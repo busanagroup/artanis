@@ -1,3 +1,25 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg" width="420px">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg" width="420px">
+    <img alt="starlette-logo" src="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg">
+  </picture>
+</p>
+
+<p align="center">
+    <em>✨ The little ASGI framework that shines. ✨</em>
+</p>
+
+---
+
+[![Supported Python Version](https://img.shields.io/pypi/pyversions/starlette.svg?color=%2334D058)](https://pypi.org/project/starlette)
+
+---
+
+**Source Code**: <a href="https://github.com/busanagroup/artanis" target="_blank">https://github.com/busanagroup/artanis</a>
+
+---
+
 # Artanis
 
 Artanis is a new generation, cloud ready, web based application platform
