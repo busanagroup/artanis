@@ -24,7 +24,7 @@ import typing
 from .configurable import ConfigurableListener, Configurable, AsyncConfigurableListener, AsyncConfigurable
 from .listenable import BaseListener, Listenable, FailureListener, Failable, AsyncFailureListener
 from .objlock import SyncLock, AsyncLock
-from .singleton import SingletonObject, AsyncSingletonObject
+from .singleton import Singleton, AsyncSingleton
 
 
 class BaseStartableListener(BaseListener):
@@ -436,7 +436,7 @@ class BaseStartableManager(object):
         return None
 
 
-class StartableManager(BaseStartableManager, Startable, Listenable):
+class StartableManager(BaseStartableManager, Startable):
 
     def add_object(self, obj):
         if (not obj) or (not isinstance(obj, Startable)):
@@ -482,7 +482,7 @@ class StartableManager(BaseStartableManager, Startable, Listenable):
                 logging.error(exc)
 
 
-class AsyncStartableManager(BaseStartableManager, AsyncStartable, Listenable):
+class AsyncStartableManager(BaseStartableManager, AsyncStartable):
 
     async def add_object(self, obj):
         if (not obj) or (not isinstance(obj, AsyncStartable)):
@@ -528,9 +528,9 @@ class AsyncStartableManager(BaseStartableManager, AsyncStartable, Listenable):
                 logging.error(exc)
 
 
-class LifeCycleManager(StartableManager, SingletonObject, SyncLock):
+class LifeCycleManager(StartableManager, Singleton, SyncLock):
     ...
 
 
-class AsyncLifeCycleManager(AsyncStartableManager, AsyncSingletonObject, AsyncLock):
+class AsyncLifeCycleManager(AsyncStartableManager, AsyncSingleton, AsyncLock):
     ...

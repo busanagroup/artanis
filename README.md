@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg" width="420px">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg" width="420px">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/busanagroup/artanis/refs/heads/main/docs/img/artanis.svg" width="420px">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/busanagroup/artanis/refs/heads/main/docs/img/artanis.svg" width="420px">
     <img alt="artanis-logo" src="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg">
   </picture>
 </p>

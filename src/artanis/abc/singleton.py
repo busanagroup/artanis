@@ -14,12 +14,12 @@
 # This module is part of Centric PLM Integration Bridge and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-__all__ = ['SingletonObject', 'AsyncSingletonObject']
+__all__ = ['Singleton', 'AsyncSingleton']
 
 from .objlock import BaseLocker
 
 
-class SingletonObject(BaseLocker):
+class Singleton(BaseLocker):
     VM_DEFAULT = None
 
     def _configure_instance(self, *args, **kwargs):
@@ -49,7 +49,7 @@ class SingletonObject(BaseLocker):
         return instance
 
 
-class AsyncSingletonObject(BaseLocker):
+class AsyncSingleton(BaseLocker):
     VM_DEFAULT = None
 
     async def _configure_instance(self, *args, **kwargs):
