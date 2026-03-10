@@ -2,12 +2,8 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg" width="420px">
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg" width="420px">
-    <img alt="starlette-logo" src="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg">
+    <img alt="artanis-logo" src="https://raw.githubusercontent.com/busanagroup/artanis/docs/img/artanis.svg">
   </picture>
-</p>
-
-<p align="center">
-    <em>✨ The little ASGI framework that shines. ✨</em>
 </p>
 
 ---
