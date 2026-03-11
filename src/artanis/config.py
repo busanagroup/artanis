@@ -86,8 +86,10 @@ _posix_variable: Pattern[str] = re.compile(
 
 class Configuration(SingletonObject, SyncLock, Listenable):
 
+    ARTANIS_AUTH_ENABLED: str = 'artanis.auth.enabled'
     ARTANIS_AUTH_BINDTYPE: str = 'artanis.auth.bindtype'
     ARTANIS_AUTH_BIND: str = 'artanis.auth.bind'
+    ARTANIS_AUTH_INSTANCES: str ='artanis.auth.instances'
 
     ARTANIS_API_ENABLED: str = 'artanis.api.enabled'
     ARTANIS_API_BINDTYPE: str = 'artanis.api.bindtype'
@@ -138,6 +140,8 @@ class Configuration(SingletonObject, SyncLock, Listenable):
                 .parent.parent.resolve())
         values: Dict[str, Optional[str]] = {
 
+            self.ARTANIS_AUTH_ENABLED: 'true',
+            self.ARTANIS_AUTH_INSTANCES: '1',
             self.ARTANIS_AUTH_BINDTYPE: 'tcp',
             self.ARTANIS_AUTH_BIND: '0.0.0.0:8001',
 

@@ -42,5 +42,5 @@ class Subsystem(Startable, Singleton, SyncLock):
         return self.factory
 
     @classmethod
-    def subsystem_is_enabled(cls, config) -> bool:
+    def subsystem_enabled(cls, config) -> bool:
         return config.get_property_value(cls.config_service_enabled, "false").lower() == "true"

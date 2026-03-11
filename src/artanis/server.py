@@ -37,14 +37,15 @@ class Artanis(LifeCycleManager):
         self.factories = []
         self.app_context = None
         self.pid_path = '{}/{}'.format(config.get_property_value(config.ARTANIS_TMP_PATH, None), 'artanis.pid')
-        for klass in subsys_classes:
-            if issubclass(klass, Subsystem) and klass.subsystem_is_enabled(config):
-                subsys = klass(config=config)
-                self.add_object(subsys)
 
     def do_configure(self):
+        config = self.get_configuration()
         write_pid_file(self.pid_path)
         self.app_context = get_context("spawn")
+        for klass in subsys_classes:
+            if issubclass(klass, Subsystem) and klass.subsystem_enabled(config):
+                subsys = klass(config=config)
+                self.add_object(subsys)
 
     def do_start(self):
         super().do_start()
