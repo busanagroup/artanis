@@ -43,7 +43,7 @@ from typing import (IO, Dict, Iterable, Iterator, Mapping, Optional, Tuple,
                     Union, Match, NamedTuple, Pattern, Sequence, Any)
 
 from .abc.listenable import Listenable
-from .abc.singleton import SingletonObject
+from .abc.singleton import Singleton
 from .abc.objlock import SyncLock
 from .exceptions import ConfigError
 
@@ -84,7 +84,7 @@ _posix_variable: Pattern[str] = re.compile(
 )
 
 
-class Configuration(SingletonObject, SyncLock, Listenable):
+class Configuration(Singleton, SyncLock, Listenable):
 
     ARTANIS_AUTH_ENABLED: str = 'artanis.auth.enabled'
     ARTANIS_AUTH_BINDTYPE: str = 'artanis.auth.bindtype'

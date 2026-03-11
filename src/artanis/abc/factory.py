@@ -21,11 +21,11 @@ from abc import ABC, abstractmethod
 from multiprocessing.context import BaseContext
 from multiprocessing.synchronize import Event as EventType
 
-from .configurable import Configurable
-from .singleton import SingletonObject
+from artanis.abc.configurable import Configurable
+from artanis.abc.singleton import Singleton
 
 
-class WorkerFactory(Configurable, SingletonObject, ABC):
+class WorkerFactory(Configurable, Singleton, ABC):
     worker_name: str
 
     def __init__(self, parent):

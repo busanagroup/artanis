@@ -17,10 +17,10 @@ from __future__ import annotations
 
 from typing import Type
 
-from .singleton import Singleton
-from .startable import Startable
-from .objlock import SyncLock
-from .factory import WorkerFactory
+from artanis.abc.singleton import Singleton
+from artanis.abc.startable import Startable
+from artanis.abc.objlock import SyncLock
+from artanis.abc.factory import WorkerFactory
 
 
 class Subsystem(Startable, Singleton, SyncLock):
