@@ -15,3 +15,24 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from artanis.subsys.asgisubsys import ASGISubsystem
+from artanis.subsys.asgisubsys import ASGIWorkerFactory
+from artanis.config import Configuration
+
+
+class AuthWorkerFactory(ASGIWorkerFactory):
+    worker_name = 'auth_worker'
+
+
+class AuthSubsystem(ASGISubsystem):
+    config_service_enabled = Configuration.ARTANIS_AUTH_ENABLED
+    config_bind_type = Configuration.ARTANIS_AUTH_BINDTYPE
+    config_bind = Configuration.ARTANIS_AUTH_BIND
+    config_process_instances = Configuration.ARTANIS_AUTH_INSTANCES
+
+    class_factory = AuthWorkerFactory
+    subsystem_name = 'authsub'
+
+    def do_configure(self):
+        super().do_configure()
+        self.asgi_config.application_path = 'artanis.asgi.auth:app'

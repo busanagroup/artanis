@@ -15,3 +15,21 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from artanis.subsys.asgisubsys import ASGISubsystem, ASGIWorkerFactory
+
+
+class StaticWorkerFactory(ASGIWorkerFactory):
+    worker_name = 'static_worker'
+
+
+class StaticSubsystem(ASGISubsystem):
+    subsystem_name = 'statsub'
+
+    def register_factory(self, parent):
+        if not self.factory:
+            self.factory = StaticWorkerFactory(self)
+            parent.factories.append(self.factory)
+
+    @classmethod
+    def subsystem_is_enabled(cls, config) -> bool:
+        return False

@@ -15,3 +15,11 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from artanis.abc.subsys import Subsystem
+
+class SchedulerSubsystem(Subsystem):
+    subsystem_name = 'schsub'
+
+    @classmethod
+    def subsystem_is_enabled(cls, config) -> bool:
+        return False

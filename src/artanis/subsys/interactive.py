@@ -15,3 +15,24 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from artanis.subsys.asgisubsys import ASGISubsystem
+from artanis.subsys.asgisubsys import ASGIWorkerFactory
+from artanis.config import Configuration
+
+
+class MVCWorkerFactory(ASGIWorkerFactory):
+    worker_name = 'mvc_worker'
+
+
+class MVCSubsystem(ASGISubsystem):
+    config_service_enabled = Configuration.ARTANIS_MVC_ENABLED
+    config_bind_type = Configuration.ARTANIS_MVC_BINDTYPE
+    config_bind = Configuration.ARTANIS_MVC_BIND
+    config_process_instances = Configuration.ARTANIS_MVC_INSTANCES
+
+    class_factory = MVCWorkerFactory
+    subsystem_name = 'intsub'
+
+    def do_configure(self):
+        super().do_configure()
+        self.asgi_config.application_path = 'artanis.services.interactive:app'
