@@ -4,14 +4,14 @@ import logging
 import multiprocessing
 import threading
 from queue import Empty
-
+from redis import Redis
 
 def install_mp_handler(logger=None):
     """Wraps the handlers in the given Logger with an MultiProcessingHandler.
 
     :param logger: whose handlers to wrap. By default, the root logger.
     """
-    if multiprocessing.get_start_method() != "fork":
+    if multiprocessing.get_start_method() not in ["fork", "forkserver"]:
         raise AssertionError("This module only works with the 'fork' start method.")
 
     if logger is None:
