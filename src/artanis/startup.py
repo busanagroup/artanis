@@ -31,11 +31,12 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from artanis import patch
 from artanis.config import Configuration
 
 
 async def artanis_startup(config: Configuration):
-    ...
+    patch.perform_patch()
 
 async def artanis_shutdown(confi: Configuration):
     ...
