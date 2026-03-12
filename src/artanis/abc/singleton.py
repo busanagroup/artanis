@@ -60,10 +60,10 @@ class AsyncSingleton(BaseLocker):
         return cls.VM_DEFAULT is not None
 
     @classmethod
-    async def get_default_instance(cls, *args, **kwargs):
+    async def get_default_instance(cls, *args, create_instance=True, **kwargs):
         await cls.get_class_locker().acquire()
         try:
-            if cls.VM_DEFAULT is None:
+            if create_instance and not cls.has_singleton_instance():
                 cls.VM_DEFAULT = object.__new__(cls)
                 cls.VM_DEFAULT.__init__()
                 await cls.VM_DEFAULT._configure_instance(*args, **kwargs)

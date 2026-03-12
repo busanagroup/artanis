@@ -36,10 +36,10 @@ class Subsystem(Startable, Singleton, SyncLock):
     def get_process_count(self):
         return self.process_count
 
-    def get_factory(self):
+    def register_factory(self, parent):
         if not self.factory:
             self.factory = self.class_factory(self)
-        return self.factory
+            parent.factories.append(self.factory)
 
     @classmethod
     def subsystem_enabled(cls, config) -> bool:

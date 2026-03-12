@@ -18,10 +18,9 @@ __all__ = ['BaseListenable', 'Listenable', 'Failable', 'BaseListener', 'FailureL
            'AsyncFailureListener', 'AsyncFailable']
 
 import asyncio
-from abc import ABC, abstractmethod
 
 
-class BaseListener(ABC):
+class BaseListener(object):
     ...
 
 
@@ -59,9 +58,8 @@ class AsyncFailureListener(FailureListener):
                 self._failure(obj, exc)
 
 
-class BaseListenable(ABC):
+class BaseListenable(object):
 
-    @abstractmethod
     def get_listeners(self):
         raise NotImplementedError()
 

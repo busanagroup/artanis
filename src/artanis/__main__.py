@@ -24,7 +24,9 @@ from artanis.config import Configuration
 
 
 def __load_config(config_path:str|None=None):
-    return Configuration.get_default_instance(config_path=config_path)
+    config = Configuration.get_default_instance(config_path=config_path)
+    config.configure_logging()
+    return config
 
 
 def main(sys_args: Optional[List[str]] = None) -> int:

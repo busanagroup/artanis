@@ -41,7 +41,7 @@ class Artanis(LifeCycleManager):
     def do_configure(self):
         config = self.get_configuration()
         write_pid_file(self.pid_path)
-        self.app_context = get_context("spawn")
+        self.app_context = get_context("forkserver")
         for klass in subsys_classes:
             if issubclass(klass, Subsystem) and klass.subsystem_enabled(config):
                 subsys = klass(config=config)
@@ -51,8 +51,8 @@ class Artanis(LifeCycleManager):
         super().do_start()
         subsys_objects: list = self.get_objects()
         for subsys in subsys_objects:
-            factory: WorkerFactory = subsys.get_factory()
-            self.factories.append(factory)
+            subsys.register_factory(self)
+
 
     def daemonize(self):
         active = True
@@ -74,6 +74,8 @@ class Artanis(LifeCycleManager):
                 if hasattr(signal, signal_name):
                     signal.signal(getattr(signal, signal_name), shutdown)
 
+            if not processes:
+                break
             wait(process.sentinel for process, worker_name in processes)
             exitcode = self._join_exited(processes)
             if exitcode != 0:

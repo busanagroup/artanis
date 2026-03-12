@@ -39,6 +39,7 @@ import logging
 from collections import OrderedDict
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod
+from logging.handlers import TimedRotatingFileHandler
 from typing import (IO, Dict, Iterable, Iterator, Mapping, Optional, Tuple,
                     Union, Match, NamedTuple, Pattern, Sequence, Any)
 
@@ -114,6 +115,7 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_STATIC_ENABLED: str = 'artanis.static.enabled'
     ARTANIS_REDIS_URL: str = 'artanis.redis.url'
     ARTANIS_LOG_FILENAME: str = 'artanis.log.filename'
+    ARTANIS_LOG_FORMAT: str = 'artanis.log.format'
     ARTANIS_LOG_LEVEL: str = 'artanis.log.level'
     ARTANIS_ENV_PATH: str = 'artanis.env.path'
     ARTANIS_TMP_PATH: str = 'artanis.tmp.path'
@@ -168,13 +170,24 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_STATIC_ENABLED: 'false',
 
             self.ARTANIS_REDIS_URL: 'redis://127.0.0.1:6379',
-            self.ARTANIS_LOG_LEVEL: 'INFO',
 
             self.ARTANIS_ENV_PATH : path,
             self.ARTANIS_TMP_PATH : '{}/tmp'.format(path),
+
+            self.ARTANIS_LOG_LEVEL: 'INFO',
+            self.ARTANIS_LOG_FORMAT: '[%(asctime)s][%(name)s][%(levelname)-7s][%(processName)s] %(message)s',
             self.ARTANIS_LOG_FILENAME : '{}/log/artanis.log'.format(path)
         }
         return values
+
+    def configure_logging(self):
+        file_handler = TimedRotatingFileHandler(self.get_property_value(self.ARTANIS_LOG_FILENAME),
+                                                when='D', backupCount=5)
+        logging.basicConfig(
+            level=logging.getLevelName(self.get_property_value(self.ARTANIS_LOG_LEVEL, 'INFO').upper()),
+            format=self.get_property_value(self.ARTANIS_LOG_FORMAT),
+            handlers=[file_handler,]
+        )
 
     @contextmanager
     def _get_stream(self) -> Iterator[IO[str]]:
