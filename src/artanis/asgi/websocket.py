@@ -15,24 +15,11 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from artanis.subsys.asgisubsys import ASGISubsystem
-from artanis.subsys.asgisubsys import ASGIWorkerFactory
-from artanis.config import Configuration
+from artanis.asgi.asgiservice import ASGIService
 
 
-class WebsocketWorkerFactory(ASGIWorkerFactory):
-    worker_name = 'websocket_worker'
+class WebSocketAppService(ASGIService):
+    ...
 
 
-class WebsocketSubsystem(ASGISubsystem):
-    config_service_enabled = Configuration.ARTANIS_WS_ENABLED
-    config_bind_type = Configuration.ARTANIS_WS_BINDTYPE
-    config_bind = Configuration.ARTANIS_WS_BIND
-    config_process_instances = Configuration.ARTANIS_WS_INSTANCES
-
-    class_factory = WebsocketWorkerFactory
-    subsystem_name = 'wsocksub'
-
-    def do_configure(self):
-        super().do_configure()
-        self.asgi_config.application_path = 'artanis.asgi.websocket:app'
+app = WebSocketAppService.get_default_instance()
