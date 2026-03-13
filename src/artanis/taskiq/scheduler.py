@@ -11,6 +11,21 @@
 # as well as the documentation shall not be copied, modified or redistributed
 # without permission, explicit or implied, of the author.
 #
-# This module is part of Centric PLM Integration Bridge and is released under
+# This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
+
+from __future__ import annotations
+
+from taskiq import TaskiqScheduler
+from taskiq.schedule_sources import LabelScheduleSource
+from taskiq.kicker import AsyncKicker
+
+from .broker import task_broker
+
+scheduler = TaskiqScheduler(broker=task_broker, sources=[LabelScheduleSource(task_broker)])
+
+
+@task_broker.task(schedule=[{"cron": "* * * * *"}])
+async def evaluate_schedule():
+    await AsyncKicker(broker=task_broker, task_name="artanis_schedule", labels={}).kiq()
