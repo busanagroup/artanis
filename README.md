@@ -18,7 +18,7 @@
 
 # Artanis
 
-Artanis is a new generation, cloud ready, web based application platform
+Artanis is a new generation, cloud ready, enterprise web based application platform
 which would be proposed as one of standardized tech stacks used for 
 in-house application development in Busana Apparel Group.
 
