@@ -21,7 +21,6 @@ from multiprocessing.connection import wait
 from multiprocessing.synchronize import Event as EventType
 from typing import Any
 
-from artanis.abc.factory import WorkerFactory
 from artanis.abc.startable import LifeCycleManager
 from artanis.abc.subsys import Subsystem
 from artanis.subsys import __all__ as subsys_classes
@@ -41,7 +40,7 @@ class Artanis(LifeCycleManager):
     def do_configure(self):
         config = self.get_configuration()
         write_pid_file(self.pid_path)
-        self.app_context = get_context("forkserver")
+        self.app_context = get_context("spawn")
         for klass in subsys_classes:
             if issubclass(klass, Subsystem) and klass.subsystem_enabled(config):
                 subsys = klass(config=config)
@@ -67,7 +66,6 @@ class Artanis(LifeCycleManager):
         exitcode = 0
         while active:
             signal.signal(signal.SIGINT, signal.SIG_IGN)
-
             self._populate_process(processes, shutdown_event)
 
             for signal_name in {"SIGINT", "SIGTERM", "SIGBREAK"}:
