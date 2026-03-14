@@ -111,6 +111,7 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_TASK_INSTANCES: str= 'artanis.task.instances'
     ARTANIS_TASK_MAXTASK: str = 'artanis.task.maxtask'
     ARTANIS_TASK_MONITOR: str = 'artanis.task.monitor'
+    ARTANIS_SPV_ENABLED: str = 'artanis.supervisor.enabled'
 
     ARTANIS_STATIC_ENABLED: str = 'artanis.static.enabled'
     ARTANIS_REDIS_URL: str = 'artanis.redis.url'
@@ -168,6 +169,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_TASK_MONITOR: 'true',
 
             self.ARTANIS_STATIC_ENABLED: 'false',
+            self.ARTANIS_SPV_ENABLED: 'true',
 
             self.ARTANIS_REDIS_URL: 'redis://127.0.0.1:6379',
 
@@ -186,7 +188,7 @@ class Configuration(Singleton, SyncLock, Listenable):
         logging.basicConfig(
             level=logging.getLevelName(self.get_property_value(self.ARTANIS_LOG_LEVEL, 'INFO').upper()),
             format=self.get_property_value(self.ARTANIS_LOG_FORMAT),
-            handlers=[file_handler,]
+            # handlers=[file_handler,]
         )
 
     @contextmanager
