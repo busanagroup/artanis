@@ -31,11 +31,12 @@ class LiteTaskSubsystem(BatchJobSubsystem):
         config: Configuration = self.get_configuration()
         self.process_count = 1
         params = ['--use-process-pool']
-        params.extend(['--max-process-pool-processes', str(self.process_count)])
+        params.extend(['--max-process-pool-processes', '1'])
         params.append('--use-process-pool')
         # params.extend(['--log-format', config.log_format[0]])
         params.extend(['--max-async-tasks', config.get_property_value(config.ARTANIS_TASK_MAXTASK, '32')])
         params.append('artanis.taskiq.broker:task_broker')
+        params.append('artanis.taskiq.tasks')
         params.append('artanis.taskiq.scheduler')
         self.worker_args = WorkerArgs.from_cli(params)
 
