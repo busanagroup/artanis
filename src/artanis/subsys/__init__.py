@@ -23,4 +23,4 @@ from artanis.subsys.restapi import APISubsystem
 from artanis.subsys.scheduler import SchedulerSubsystem
 from artanis.subsys.static import StaticSubsystem
 
-__all__ = [AuthSubsystem, MVCSubsystem, APISubsystem, BatchJobSubsystem, LiteTaskSubsystem]
+__all__ = [SchedulerSubsystem, AuthSubsystem, MVCSubsystem, APISubsystem, BatchJobSubsystem, LiteTaskSubsystem]
