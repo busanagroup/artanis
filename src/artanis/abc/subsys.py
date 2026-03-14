@@ -26,7 +26,7 @@ from artanis.abc.factory import WorkerFactory
 class Subsystem(Startable, Singleton, SyncLock):
     process_count: int = 0
     factory: WorkerFactory = None
-    class_factory: Type[WorkerFactory]
+    class_factory: Type[WorkerFactory] = None
     config_service_enabled: str
     subsystem_name: str
 
@@ -37,7 +37,7 @@ class Subsystem(Startable, Singleton, SyncLock):
         return self.process_count
 
     def register_factory(self, parent):
-        if not self.factory:
+        if not self.factory and self.class_factory:
             self.factory = self.class_factory(self)
             parent.factories.append(self.factory)
 
