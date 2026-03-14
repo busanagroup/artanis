@@ -25,7 +25,6 @@ from hypercorn.asyncio.run import uvloop_worker
 from artanis.abc.subsys import Subsystem
 from artanis.abc.factory import WorkerFactory
 from artanis.config import Configuration
-from artanis.logging import install_mp_handler
 
 
 def hypercorn_worker(
@@ -34,7 +33,6 @@ def hypercorn_worker(
 ) -> None:
     config = Configuration.get_default_instance(config_path=sysconfig_path)
     config.configure_logging()
-    install_mp_handler()
     uvloop_worker(asgi_config, sockets=sockets, shutdown_event=shutdown_event)
 
 
