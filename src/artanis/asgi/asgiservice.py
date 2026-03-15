@@ -16,25 +16,32 @@
 from __future__ import annotations
 
 import asyncio
+from typing import Any
 
-from fastapi import FastAPI
+from starlette.applications import Starlette
+from starlette.middleware import Middleware
+from starlette.middleware.errors import ServerErrorMiddleware
+from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.gzip import GZipMiddleware
+from starlette.types import ASGIApp, ExceptionHandler
 
+from artanis.abc.objloader import ObjectLoader
+from artanis.abc.objlock import SyncLock
 from artanis.abc.service import StartableService
 from artanis.abc.singleton import Singleton
-from artanis.abc.objlock import SyncLock
-from artanis.abc.objloader import ObjectLoader
+from artanis.asgi.exceptions import exception_handlers
+from artanis.asgi.middleware.asyncexitstack import AsyncExitStackMiddleware
 from artanis.config import Configuration
 from artanis.startup import artanis_monitor, artanis_startup, artanis_shutdown
 
 
-class ASGIService(FastAPI, StartableService, Singleton, SyncLock, ObjectLoader):
+class ASGIService(Starlette, StartableService, Singleton, SyncLock, ObjectLoader):
 
     def __init__(self, *args, **kwargs):
         config = kwargs.pop('config')
-        super(ASGIService, self).__init__(*args, **kwargs)
+        super(ASGIService, self).__init__(*args, exception_handlers=exception_handlers, **kwargs)
         for base in ASGIService.__bases__:
-            if base is not FastAPI:
+            if base is not Starlette:
                 base.__init__(self, *args, config=config, **kwargs)
 
     def do_configure(self):
@@ -76,14 +83,9 @@ class ASGIService(FastAPI, StartableService, Singleton, SyncLock, ObjectLoader):
         ...
 
     def configure_middlewares(self, config):
-        self.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=7)
-
-    def configure_application(self, config):
         ...
 
-    @staticmethod
-    def submit_task(*args, **kwargs):
-        # raddus_task(args, kwargs)
+    def configure_application(self, config):
         ...
 
     def load_configuration(self):
@@ -99,10 +101,39 @@ class ASGIService(FastAPI, StartableService, Singleton, SyncLock, ObjectLoader):
         if create_instance and not cls.has_singleton_instance():
             cls.get_class_locker().acquire()
             try:
-                config = Configuration.get_default_instance()
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__(*args, config=config, **kwargs)
+                config = Configuration.get_default_instance(create_instance=False)
+                cls.VM_DEFAULT = cls(*args, config=config, **kwargs)
                 cls._configure_singleton()
             finally:
                 cls.get_class_locker().release()
         return cls.VM_DEFAULT
+
+    def build_middleware_stack(self) -> ASGIApp:
+        # Duplicate/override from Starlette to add AsyncExitStackMiddleware
+        # inside of ExceptionMiddleware, inside of custom user middlewares
+        debug = self.debug
+        error_handler = None
+        exception_handlers: dict[Any, ExceptionHandler] = {}
+
+        for key, value in self.exception_handlers.items():
+            if key in (500, Exception):
+                error_handler = value
+            else:
+                exception_handlers[key] = value
+
+        middleware = (
+                [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug),
+                 Middleware(GZipMiddleware, minimum_size=1024, compresslevel=7)]
+                + self.user_middleware
+                + [
+                    Middleware(
+                        ExceptionMiddleware, handlers=exception_handlers, debug=debug
+                    ),
+                    Middleware(AsyncExitStackMiddleware),
+                ]
+        )
+
+        app = self.router
+        for cls, args, kwargs in reversed(middleware):
+            app = cls(app, *args, **kwargs)
+        return app

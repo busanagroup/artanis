@@ -15,12 +15,19 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from artanis.asgi.asgiservice import ASGIService
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
+
+from artanis.asgi.openapi import ASGIOpenAPI
 
 
-class AuthAppService(ASGIService):
+class AuthAppService(ASGIOpenAPI):
     ...
 
 
 app = AuthAppService.get_default_instance()
 
+
+@app.route('/')
+async def read_root(request: Request):
+    raise HTTPException(403)

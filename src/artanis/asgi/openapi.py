@@ -14,3 +14,12 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
+
+import asyncio
+from typing import Any
+
+from artanis.asgi.asgiservice import ASGIService
+
+
+class ASGIOpenAPI(ASGIService):
+    ...
