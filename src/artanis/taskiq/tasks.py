@@ -32,6 +32,12 @@ class TaskType(enum.Enum):
     TK_TASK = 2
 
 
+@enum.unique
+class JOBType(enum.Enum):
+    REGULAR_JOB = 1
+    LIGHT_JOB = 2
+
+
 logger = logging.getLogger("artanis.task")
 
 
