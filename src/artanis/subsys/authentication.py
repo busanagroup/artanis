@@ -35,4 +35,4 @@ class AuthSubsystem(ASGISubsystem):
 
     def do_configure(self):
         super().do_configure()
-        self.asgi_config.application_path = 'artanis.asgi.auth:app'
+        self.asgi_config.application_path = 'artanis.asgi.authentication:app'

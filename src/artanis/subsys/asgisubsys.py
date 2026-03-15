@@ -65,7 +65,6 @@ class ASGISubsystem(Subsystem):
     config_bind: str
     config_process_instances: str
 
-
     def __init__(self, config=None):
         super().__init__(config=config)
         self.asgi_config = Config()

@@ -148,12 +148,12 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_AUTH_BINDTYPE: 'tcp',
             self.ARTANIS_AUTH_BIND: '0.0.0.0:8001',
 
-            self.ARTANIS_API_ENABLED: 'false',
+            self.ARTANIS_API_ENABLED: 'true',
             self.ARTANIS_API_INSTANCES: '2',
             self.ARTANIS_API_BINDTYPE: 'tcp',
             self.ARTANIS_API_BIND: '0.0.0.0:8002',
 
-            self.ARTANIS_MVC_ENABLED: 'false',
+            self.ARTANIS_MVC_ENABLED: 'true',
             self.ARTANIS_MVC_INSTANCES: '2',
             self.ARTANIS_MVC_BINDTYPE: 'tcp',
             self.ARTANIS_MVC_BIND: '0.0.0.0:8003',
@@ -161,7 +161,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_WS_ENABLED: 'false',
             self.ARTANIS_WS_INSTANCES: '1',
             self.ARTANIS_WS_BINDTYPE: 'tcp',
-            self.ARTANIS_WS_BIND: '0.0.0.0:8003',
+            self.ARTANIS_WS_BIND: '0.0.0.0:8004',
 
             self.ARTANIS_TASK_ENABLED: 'true',
             self.ARTANIS_TASK_INSTANCES: '1',

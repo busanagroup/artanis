@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+__all__ = ['WorkerFactory', ]
+
 import weakref
 from abc import ABC, abstractmethod
 from multiprocessing.context import BaseContext

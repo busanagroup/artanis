@@ -14,8 +14,9 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-# Allows creating a class level property
+from __future__ import annotations
 
+# Allows creating a class level property
 __all__ = ['classproperty', 'ClassPropertiesMixin']
 
 from typing import Any, Callable

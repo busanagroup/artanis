@@ -82,5 +82,4 @@ class JobObjectProxy(AbstractJobObjectProxy):
                                          self.job_id)
 
     def get_task_type(self):
-        # by default this would be sent as regular job
-        return JOBType.REGULAR_JOB
+        raise NotImplementedError()  # pragma: no cover

@@ -12,7 +12,9 @@
 # without permission, explicit or implied, of the author.
 #
 # This module is part of Artanis Enterprise Platform and is released under
-# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0\
+from __future__ import annotations
+
 __all__ = ['Startable', 'AsyncStartable', 'StartableManager',
            'AsyncStartableManager', 'StartableListener', 'AsyncStartableListener',
            'LifeCycleManager', 'AsyncLifeCycleManager']
@@ -21,10 +23,10 @@ import asyncio
 import logging
 import typing
 
-from .configurable import ConfigurableListener, Configurable, AsyncConfigurableListener, AsyncConfigurable
-from .listenable import BaseListener, Listenable, FailureListener, Failable, AsyncFailureListener
-from .objlock import SyncLock, AsyncLock
-from .singleton import Singleton, AsyncSingleton
+from artanis.abc.configurable import ConfigurableListener, Configurable, AsyncConfigurableListener, AsyncConfigurable
+from artanis.abc.listenable import BaseListener, Listenable, FailureListener, Failable, AsyncFailureListener
+from artanis.abc.objlock import SyncLock, AsyncLock
+from artanis.abc.singleton import Singleton, AsyncSingleton
 
 
 class BaseStartableListener(BaseListener):

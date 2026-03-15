@@ -64,24 +64,25 @@ class Artanis(LifeCycleManager):
 
         processes = []
         exitcode = 0
-        while active:
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
-            self._populate_process(processes, shutdown_event)
+        try:
+            while active:
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+                self._populate_process(processes, shutdown_event)
 
-            for signal_name in {"SIGINT", "SIGTERM", "SIGBREAK"}:
-                if hasattr(signal, signal_name):
-                    signal.signal(getattr(signal, signal_name), shutdown)
+                for signal_name in {"SIGINT", "SIGTERM", "SIGBREAK"}:
+                    if hasattr(signal, signal_name):
+                        signal.signal(getattr(signal, signal_name), shutdown)
 
-            if not processes:
-                break
-            wait(process.sentinel for process, worker_name in processes)
-            exitcode = self._join_exited(processes)
-            if exitcode != 0:
-                shutdown_event.set()
-                active = False
-
-        for process, worker_name in processes:
-            process.terminate()
+                if not processes:
+                    break
+                wait(process.sentinel for process, worker_name in processes)
+                exitcode = self._join_exited(processes)
+                if exitcode != 0:
+                    shutdown_event.set()
+                    active = False
+        finally:
+            for process, worker_name in processes:
+                process.terminate()
 
         exitcode = self._join_exited(processes) if exitcode != 0 else exitcode
         self.stop()

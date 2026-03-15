@@ -20,8 +20,10 @@ from taskiq.cli.worker.args import WorkerArgs
 from artanis.config import Configuration
 from artanis.subsys.batchjob import BatchJobSubsystem, BatchJobWorkerFactory
 
+
 class LiteTaskWorkerFactory(BatchJobWorkerFactory):
     worker_name = 'tasks_worker'
+
 
 class LiteTaskSubsystem(BatchJobSubsystem):
     class_factory = BatchJobWorkerFactory
