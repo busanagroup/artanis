@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2025 Busana Apparel Group. All rights reserved.
+# Copyright (c) 2026 Busana Apparel Group. All rights reserved.
 #
 # This product and it's source code is protected by patents, copyright laws and
 # international copyright treaties, as well as other intellectual property
@@ -15,17 +15,22 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from artanis import patch
+from artanis import utils
+from artanis.component.rdbms import configure_database, setup_all, unconfigure_database
 from artanis.config import Configuration
 
 
-async def artanis_startup(config: Configuration):
-    patch.perform_patch()
+def load_modules():
+    utils.load_ecf_modules("ecf.tbl", True)
+    utils.load_ecf_modules("ecf.bo", True)
 
 
-async def artanis_shutdown(confi: Configuration):
-    ...
+async def do_startup():
+    config = Configuration.get_default_instance(create_instance=False)
+    await configure_database(config)
+    load_modules()
+    await setup_all(config, True)
 
-
-async def artanis_monitor(config: Configuration):
-    ...
+async def do_shutdown():
+    config: Configuration | None = Configuration.get_default_instance(create_instance=False)
+    await unconfigure_database(config)
