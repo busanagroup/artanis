@@ -59,6 +59,14 @@ async def service_unavailable(request: Request, exc: HTTPException):
     from .http_503 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
 
+async def gateway_timeout(request: Request, exc: HTTPException):
+    from .http_504 import HTML_PAGE
+    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+
+async def http_version_not_supported(request: Request, exc: HTTPException):
+    from .http_505 import HTML_PAGE
+    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+
 
 exception_handlers = {
     400: bad_request,
@@ -69,6 +77,8 @@ exception_handlers = {
     501: not_implemented,
     502: bad_gateway,
     503: service_unavailable,
+    504: gateway_timeout,
+    505: http_version_not_supported,
 }
 
 __all__ = (exception_handlers,)
