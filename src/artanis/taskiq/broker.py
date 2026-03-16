@@ -24,7 +24,7 @@ from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
 from artanis.abc.singleton import Singleton
 from artanis.config import Configuration
-from artanis.startup import artanis_startup, artanis_shutdown, artanis_monitor
+from artanis.entrypoint import artanis_startup, artanis_shutdown, artanis_monitor
 
 
 class ArtanisTaskBroker(ListQueueBroker, StartableService, Singleton, SyncLock, ObjectLoader):

@@ -37,10 +37,11 @@ import re
 import pathlib
 import logging
 from collections import OrderedDict
+from collections.abc import Mapping
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod
 from logging.handlers import TimedRotatingFileHandler
-from typing import (IO, Dict, Iterable, Iterator, Mapping, Optional, Tuple,
+from typing import (IO, Dict, Iterable, Iterator, Optional, Tuple,
                     Union, Match, NamedTuple, Pattern, Sequence, Any)
 
 from .abc.listenable import Listenable
@@ -85,6 +86,69 @@ _posix_variable: Pattern[str] = re.compile(
 )
 
 
+class WorkerState(Mapping):
+
+    def __init__(self, state: dict[str, Any]) -> None:
+        self._state = state
+
+    def __getitem__(self, key: str) -> Any:
+        return self._state[self._name][key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self._state[self._name] = {
+            **self._state[self._name],
+            key: value,
+        }
+
+    def __delitem__(self, key: str) -> None:
+        self._state[self._name] = {
+            k: v for k, v in self._state[self._name].items() if k != key
+        }
+
+    def __iter__(self) -> Iterator[Any]:
+        return iter(self._state[self._name])
+
+    def __len__(self) -> int:
+        return len(self._state[self._name])
+
+    def __repr__(self) -> str:
+        return repr(self._state[self._name])
+
+    def __eq__(self, other: object) -> bool:
+        return self._state[self._name] == other
+
+    def keys(self) -> KeysView[str]:
+        return self._state[self._name].keys()
+
+    def values(self) -> ValuesView[Any]:
+        return self._state[self._name].values()
+
+    def items(self) -> ItemsView[str, Any]:
+        return self._state[self._name].items()
+
+    def update(self, mapping: MappingType[str, Any]) -> None:
+        if any(k in self.RESTRICTED for k in mapping.keys()):
+            self._write_error(
+                [k for k in mapping.keys() if k in self.RESTRICTED]
+            )
+        self._state[self._name] = {
+            **self._state[self._name],
+            **mapping,
+        }
+
+    def pop(self) -> None:
+        raise NotImplementedError
+
+    def full(self) -> dict[str, Any]:
+        return dict(self._state)
+
+    def _write_error(self, keys: list[str]) -> None:
+        raise LookupError(
+            f"Cannot set restricted key{'s' if len(keys) > 1 else ''} on "
+            f"WorkerState: {', '.join(keys)}"
+        )
+
+
 class Configuration(Singleton, SyncLock, Listenable):
 
     ARTANIS_AUTH_ENABLED: str = 'artanis.auth.enabled'
@@ -121,6 +185,17 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_ENV_PATH: str = 'artanis.env.path'
     ARTANIS_TMP_PATH: str = 'artanis.tmp.path'
 
+    ARTANIS_DB_CONNECTION: str = 'artanis.db.connection'
+    ARTANIS_DB_SCHEMA: str = 'artanis.db.schema'
+    ARTANIS_DB_POOL_SIZE: str = 'artanis.db.pool.size'
+    ARTANIS_DB_POOL_ACTIVE: str = 'artanis.db.pool.active'
+    ARTANIS_DB_POOL_IDLE: str = 'artanis.db.pool.idle'
+
+    ARTANIS_DB_EXTCONN_COUNT: str = 'artanis.db.extconn.count'
+    # ARTANIS_DB_EXTCONN_1_NAME: str = 'artanis.db.extconn.1.name'
+    # ARTANIS_DB_EXTCONN_1_CONNECTION: str = 'artanis.db.extconn.1.connection'
+    # ARTANIS_DB_EXTCONN_1_SCHEMA: str = 'artanis.db.extconn.1.schema'
+
 
 
     def __init__(self, path: Optional[StrPath]=None):
@@ -128,6 +203,16 @@ class Configuration(Singleton, SyncLock, Listenable):
         self._config_path: Optional[StrPath] = path
         self._dict: Optional[Dict[str, Optional[str]]] = None
         self._default: Optional[Dict[str, Optional[str]]] = None
+        self.container: WorkerState | None = WorkerState({})
+        self._server_up: bool = False
+
+    @property
+    def server_is_ready(self):
+        return self._server_up
+
+    @server_is_ready.setter
+    def server_is_ready(self, value):
+        self._server_up = value
 
     @property
     def config_path(self):
@@ -178,7 +263,13 @@ class Configuration(Singleton, SyncLock, Listenable):
 
             self.ARTANIS_LOG_LEVEL: 'INFO',
             self.ARTANIS_LOG_FORMAT: '[%(asctime)s][%(name)s][%(levelname)-7s][%(processName)s] %(message)s',
-            self.ARTANIS_LOG_FILENAME : '{}/log/artanis.log'.format(path)
+            self.ARTANIS_LOG_FILENAME : '{}/log/artanis.log'.format(path),
+
+            self.ARTANIS_DB_CONNECTION: "postgresql+asyncpg://postgres:masterkey@10.0.3.102/template1",
+            self.ARTANIS_DB_SCHEMA: None,
+            self.ARTANIS_DB_POOL_SIZE: None,
+            self.ARTANIS_DB_POOL_ACTIVE: None,
+            self.ARTANIS_DB_POOL_IDLE: None,
         }
         return values
 
@@ -218,7 +309,7 @@ class Configuration(Singleton, SyncLock, Listenable):
 
     def get_property_value(self, key: str, default: Any = None):
         dictionary = self.dict()
-        return default if key not in dictionary else dictionary[key]
+        return default if key not in dictionary or not dictionary[key] else dictionary[key]
 
     @classmethod
     def _configure_instance(cls, config_path: Optional[StrPath] = None):

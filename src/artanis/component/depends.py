@@ -16,27 +16,16 @@
 from __future__ import annotations
 
 from typing import Annotated
+from collections.abc import Generator
+from fastapi.params import Depends
 
-from fastapi import Path
-from starlette.exceptions import HTTPException
-from starlette.requests import Request
-
-from artanis.asgi.openapi import ASGIOpenAPI
-
+from artanis.component.sqlorm import Session
+from artanis.config import Configuration
 
 
-class AuthAppService(ASGIOpenAPI):
-    ...
+def get_db_session() -> Generator[Session, None, None]:
+    with Session() as session:
+        yield session
 
-
-app = AuthAppService.get_default_instance()
-
-
-@app.route('/')
-async def read_root(request: Request):
-    raise HTTPException(403)
-
-@app.get('/login')
-async def do_login(
-        user: Annotated[int, Path(title="THis is the user name")]):
-    raise HTTPException(403)
+SessionDep = Annotated[Session, Depends(get_db_session)]
+ConfigurationDep = Annotated[Configuration, Depends(Configuration.get_default_instance)]

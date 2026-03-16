@@ -45,6 +45,34 @@ async def check_multiprocess_shutdown_event(
         await sleep(0.1)
 
 
+def import_ecf_module(module_name: str):
+    module_path = Path(module_name).resolve()
+    path_str = str(module_path.parent)
+    if path_str not in sys.path:
+        sys.path.insert(0, path_str)
+    if module_path.is_file():
+        import_name = module_path.with_suffix("").name
+    else:
+        import_name = module_path.name
+    try:
+        module = import_module(import_name)
+    except ModuleNotFoundError as error:
+        if error.name == import_name:
+            raise NoAppError(f"Cannot load application from '{module_path}', module not found.")
+        else:
+            raise
+    except Exception as error:
+        raise
+    return module
+
+
+def load_ecf_modules(module_name: str, should_attach: bool = False):
+    module = import_ecf_module(module_name)
+    attach = module if should_attach else None
+    for package in module.__all__:
+        import_function(f"{module_name}.{package}:{package}", attach)
+
+
 def import_function(path: str, attach=None):
     module_name, func_name = path.split(":", 1)
     module_path = Path(module_name).resolve()

@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
+from fastapi import FastAPI
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.errors import ServerErrorMiddleware
@@ -32,16 +33,16 @@ from artanis.abc.singleton import Singleton
 from artanis.asgi.exceptions import exception_handlers
 from artanis.asgi.middleware.asyncexitstack import AsyncExitStackMiddleware
 from artanis.config import Configuration
-from artanis.startup import artanis_monitor, artanis_startup, artanis_shutdown
+from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
 
 
-class ASGIService(Starlette, StartableService, Singleton, SyncLock, ObjectLoader):
+class ASGIService(FastAPI, StartableService, Singleton, SyncLock, ObjectLoader):
 
     def __init__(self, *args, **kwargs):
         config = kwargs.pop('config')
         super(ASGIService, self).__init__(*args, exception_handlers=exception_handlers, **kwargs)
         for base in ASGIService.__bases__:
-            if base is not Starlette:
+            if base is not FastAPI:
                 base.__init__(self, *args, config=config, **kwargs)
 
     def do_configure(self):
