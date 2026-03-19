@@ -20,10 +20,12 @@ from typing import Any
 
 from fastapi import FastAPI
 from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
 from starlette.middleware import Middleware
 from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.gzip import GZipMiddleware
+from starlette.requests import Request
 from starlette.types import ASGIApp, ExceptionHandler
 
 from artanis.abc.objloader import ObjectLoader
@@ -36,22 +38,18 @@ from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
 
 
-class ASGIService(FastAPI, StartableService, Singleton, SyncLock, ObjectLoader):
+class ASGIService(Starlette, StartableService, Singleton, SyncLock, ObjectLoader):
 
     def __init__(self, *args, **kwargs):
         config = kwargs.pop('config')
         super(ASGIService, self).__init__(*args, exception_handlers=exception_handlers, **kwargs)
         for base in ASGIService.__bases__:
-            if base is not FastAPI:
+            if base is not Starlette:
                 base.__init__(self, *args, config=config, **kwargs)
 
     def do_configure(self):
         super(ASGIService, self).do_configure()
         config = self.get_configuration()
-        self.configure_modules(config)
-        self.configure_services(config)
-        self.configure_middlewares(config)
-        self.configure_application(config)
 
         async def internal_scheduler():
             try:
@@ -71,6 +69,10 @@ class ASGIService(FastAPI, StartableService, Singleton, SyncLock, ObjectLoader):
             await artanis_shutdown(config)
             await self.stop()
 
+        self.configure_modules(config)
+        self.configure_services(config)
+        self.configure_middlewares(config)
+        self.configure_application(config)
         self.add_event_handler("startup", process_startup)
         self.add_event_handler("shutdown", process_shutdown)
 

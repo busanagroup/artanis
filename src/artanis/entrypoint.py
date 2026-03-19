@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 
 from artanis import patch
-from artanis.component.sqlapool import do_monitor_queue
+from artanis.sqlentity.sqlapool import do_monitor_queue
 from artanis.config import Configuration
 from artanis.utils import import_function
 

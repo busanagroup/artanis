@@ -5,7 +5,7 @@ These are completely internal, so can be refactored if desired without concern
 for breaking user experience
 """
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Callable, Coroutine
 
 from .autodoc import YamlStyleParametersParser
 from .utils import remove_nulls, remove_nulls_from_kwargs
@@ -28,6 +28,8 @@ from .definitions import (
     Tag,
 )
 
+
+RouteHandler = Callable[..., Coroutine[Any, Any, Any]]
 
 class OperationBuilder:
     summary: str

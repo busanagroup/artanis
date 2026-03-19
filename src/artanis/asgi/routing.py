@@ -15,22 +15,16 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from typing import Annotated
+from starlette.routing import BaseRoute
+from starlette.types import Scope, Receive, Send
 
-from fastapi import Path
-from starlette.exceptions import HTTPException
+from artanis.abc.configurable import Configurable
+from artanis.component.sqlentity import safe_execute as safe_exec
 
-from artanis.asgi.openapi import ASGIOpenAPI
-
-
-
-class AuthAppService(ASGIOpenAPI):
-    ...
+class ArtanisEndPoint(BaseRoute):
 
 
-app = AuthAppService.get_default_instance()
 
-
-@app.route('/login')
-async def do_login(user: Annotated[int, Path(title="THis is the user name")]):
-    raise HTTPException(403)
+    @staticmethod
+    async def safe_execute(func, *args, **kwargs):
+        return await safe_exec(func, *args, **kwargs)

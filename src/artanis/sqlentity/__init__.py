@@ -18,9 +18,11 @@ from __future__ import annotations
 import asyncio
 import types
 
-from artanis.component.sqlorm import Entity
+from sqlalchemy.types import *
+
 from artanis.config import Configuration
 from artanis.utils import import_ecf_module
+from artanis.sqlentity.sqlorm import Session, Entity, Field
 
 __config: Configuration = Configuration.get_default_instance(create_instance=False)
 __ecf_tbl: types.ModuleType | None = None

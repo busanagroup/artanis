@@ -20,15 +20,19 @@ import typing
 from typing import Optional
 from sqlalchemy import orm, schema
 import sqlalchemy.orm.decl_api as decl_api
-from sqlalchemy.ext import hybrid
 from sqlalchemy.orm.util import has_identity
 from sqlalchemy.orm import declared_attr, InstrumentedAttribute, Query
 from sqlalchemy.sql._typing import _TypeEngineArgument, _T
 from sqlalchemy.types import *
 
 from artanis.config import Configuration
+from artanis.abc.classprops import classproperty
 
-Session = Configuration.get_default_instance(create_instance=False).container.scoped_session
+
+@property
+def Session():
+    return Configuration.get_default_instance(create_instance=False).container.scoped_session
+
 
 # -- added by Jaimy for ECF
 __internal_field_prefix__ = ['AUCD', 'AUCT', 'AUDT', 'AUTM', 'AUUS', 'KUID']

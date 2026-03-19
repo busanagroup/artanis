@@ -4,6 +4,8 @@ from os.path import abspath, dirname, realpath
 from sanic.blueprints import Blueprint
 from sanic.response import json, redirect
 
+from starlette.routing import Mount
+
 from ..utils import get_all_routes, get_blueprinted_routes
 from . import operations, specification
 

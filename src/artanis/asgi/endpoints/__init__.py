@@ -14,23 +14,3 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
-
-from typing import Annotated
-
-from fastapi import Path
-from starlette.exceptions import HTTPException
-
-from artanis.asgi.openapi import ASGIOpenAPI
-
-
-
-class AuthAppService(ASGIOpenAPI):
-    ...
-
-
-app = AuthAppService.get_default_instance()
-
-
-@app.route('/login')
-async def do_login(user: Annotated[int, Path(title="THis is the user name")]):
-    raise HTTPException(403)
