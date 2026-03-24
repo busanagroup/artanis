@@ -20,11 +20,10 @@ from typing import Annotated
 from fastapi import Path
 from starlette.exceptions import HTTPException
 
-from artanis.asgi.openapi import ASGIOpenAPI
+from artanis.asgi.asgiservice import ASGIStarlette
 
 
-
-class AuthAppService(ASGIOpenAPI):
+class AuthAppService(ASGIStarlette):
     ...
 
 

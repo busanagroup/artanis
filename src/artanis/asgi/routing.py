@@ -15,15 +15,25 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from starlette.routing import BaseRoute
+from typing import Any
+
+from starlette.datastructures import URLPath
+from starlette.routing import BaseRoute, Match
 from starlette.types import Scope, Receive, Send
 
 from artanis.abc.configurable import Configurable
-from artanis.component.sqlentity import safe_execute as safe_exec
+from artanis.sqlentity import safe_execute as safe_exec
 
-class ArtanisEndPoint(BaseRoute):
+class ArtanisEndPoint(BaseRoute, Configurable):
 
+    def matches(self, scope: Scope) -> tuple[Match, Scope]:
+        raise NotImplementedError
 
+    def url_path_for(self, name: str, /, **path_params: Any) -> URLPath:
+        raise NotImplementedError
+
+    def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
+        raise NotImplementedError
 
     @staticmethod
     async def safe_execute(func, *args, **kwargs):
