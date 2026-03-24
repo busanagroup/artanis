@@ -34,7 +34,7 @@ from artanis.utils import check_multiprocess_shutdown_event
 class SchedulerWorkerFactory(WorkerFactory):
     worker_name = 'sch_worker'
 
-    def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: Event):
+    def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: Event, index: int):
         parent = self.get_parent()
         parsed = SchedulerArgs.from_cli(parent.params)
 

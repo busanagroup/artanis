@@ -29,25 +29,27 @@ from artanis.config import Configuration
 
 def hypercorn_worker(
         sysconfig_path: Configuration, asgi_config: Config, sockets: Sockets | None = None,
-        shutdown_event: Event | None = None
+        shutdown_event: Event | None = None, subsys_name: str = None, subsys_index: int = None
 ) -> None:
     config = Configuration.get_default_instance(config_path=sysconfig_path)
-    config.configure_logging()
+    config.configure_logging(subsys_name=subsys_name, subsys_index=subsys_index)
     uvloop_worker(asgi_config, sockets=sockets, shutdown_event=shutdown_event)
 
 
 class ASGIWorkerFactory(WorkerFactory):
     worker_name = 'asgi_worker'
 
-    def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: Event):
-        parent = self.get_parent()
+    def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: Event, index: int):
+        parent: ASGISubsystem = self.get_parent()
+        subsys_name: str = parent.subsystem_name
+        subsys_index: int = index
         sys_config = parent.get_configuration()
         config = parent.asgi_config
         sockets = parent.sockets
         process = ctx.Process(  # type: ignore
             target=hypercorn_worker,
             kwargs={"sysconfig_path": sys_config.config_path, "asgi_config": config, "shutdown_event": shutdown_event,
-                    "sockets": sockets},
+                    "sockets": sockets, "subsys_name": subsys_name, "subsys_index": subsys_index},
         )
         process.daemon = True
         try:

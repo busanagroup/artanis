@@ -30,15 +30,17 @@ from artanis.taskiq.worker import taskiq_worker
 class BatchJobWorkerFactory(WorkerFactory):
     worker_name = 'jobs_worker'
 
-    def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: Event):
+    def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: Event, index: int):
         parent: BatchJobSubsystem = self.get_parent()
         worker_args: WorkerArgs = parent.worker_args
         sys_config: Configuration = parent.get_configuration()
+        subsys_name: str = parent.subsystem_name
+        subsys_index: int = index
         process = ctx.Process(
             # type: ignore
             target=taskiq_worker,
             kwargs={"sysconfig_path": sys_config.config_path, "args": worker_args, "debug": False,
-                    "shutdown_event": shutdown_event},
+                    "shutdown_event": shutdown_event, "subsys_name": subsys_name, "subsys_index": subsys_index},
         )
         process.daemon = True
         try:

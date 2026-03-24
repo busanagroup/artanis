@@ -57,10 +57,17 @@ async def shutdown_broker(broker: AsyncBroker, timeout: float) -> None:
         )
 
 
-def taskiq_worker(sysconfig_path: Configuration, args: WorkerArgs, debug: bool, shutdown_event: EventType) -> None:
+def taskiq_worker(
+        sysconfig_path: Configuration,
+        args: WorkerArgs,
+        debug: bool,
+        shutdown_event: EventType,
+        subsys_name: str,
+        subsys_index: int
+) -> None:
     hardkill_counter = 0
     config = Configuration.get_default_instance(config_path=sysconfig_path)
-    config.configure_logging()
+    config.configure_logging(config.configure_logging(subsys_name=subsys_name, subsys_index=subsys_index))
 
     def interrupt_handler(signum: int, _frame: Any) -> None:
         """
