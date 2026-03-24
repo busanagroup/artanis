@@ -21,47 +21,47 @@ from starlette.responses import HTMLResponse
 
 async def bad_request(request: Request, exc: HTTPException):
     from .http_400 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=400)
 
 async def unauthorized(request: Request, exc: HTTPException):
     from .http_401 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=401)
 
 async def forbidden(request: Request, exc: HTTPException):
     from .http_403 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=403)
 
 async def not_found(request: Request, exc: HTTPException):
     from .http_404 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=404)
 
 async def method_not_allowed(request: Request, exc: HTTPException):
     from .http_405 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=405)
 
 async def request_time_out(request: Request, exc: HTTPException):
     from .http_408 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=408)
 
 async def server_error(request: Request, exc: HTTPException):
     from .http_500 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=500)
 
 async def not_implemented(request: Request, exc: HTTPException):
     from .http_501 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=501)
 
 async def bad_gateway(request: Request, exc: HTTPException):
     from .http_502 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=502)
 
 async def service_unavailable(request: Request, exc: HTTPException):
     from .http_503 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=503)
 
 async def gateway_timeout(request: Request, exc: HTTPException):
     from .http_504 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=504)
 
 async def http_version_not_supported(request: Request, exc: HTTPException):
     from .http_505 import HTML_PAGE
