@@ -91,8 +91,8 @@ class Artanis(LifeCycleManager):
     def _populate_process(self, processes: list, shutdown_event: EventType):
         for factory in self.factories:
             process_count = factory.get_processes(processes)
-            for _ in range(factory.get_process_count() - process_count):
-                factory.create_worker(processes, self.app_context, shutdown_event)
+            for index in range(factory.get_process_count() - process_count):
+                factory.create_worker(processes, self.app_context, shutdown_event, index)
 
     def _join_exited(self, processes: list) -> int:
         exitcode = 0

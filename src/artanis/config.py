@@ -13,22 +13,6 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-# !/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
-# Copyright (c) 2025 Busana Apparel Group. All rights reserved.
-#
-# This product and it's source code is protected by patents, copyright laws and
-# international copyright treaties, as well as other intellectual property
-# laws and treaties. The product is licensed, not sold.
-#
-# The source code and sample programs in this package or parts hereof
-# as well as the documentation shall not be copied, modified or redistributed
-# without permission, explicit or implied, of the author.
-#
-# This module is part of Artanis Enterprise Platform and is released under
-# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
 import os
@@ -179,7 +163,7 @@ class Configuration(Singleton, SyncLock, Listenable):
 
     ARTANIS_STATIC_ENABLED: str = 'artanis.static.enabled'
     ARTANIS_REDIS_URL: str = 'artanis.redis.url'
-    ARTANIS_LOG_FILENAME: str = 'artanis.log.filename'
+    ARTANIS_LOG_PATH: str = 'artanis.log.filename'
     ARTANIS_LOG_FORMAT: str = 'artanis.log.format'
     ARTANIS_LOG_LEVEL: str = 'artanis.log.level'
     ARTANIS_ENV_PATH: str = 'artanis.env.path'
@@ -262,8 +246,8 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_TMP_PATH : '{}/tmp'.format(path),
 
             self.ARTANIS_LOG_LEVEL: 'INFO',
-            self.ARTANIS_LOG_FORMAT: '[%(asctime)s][%(name)s][%(levelname)-7s][%(processName)s] %(message)s',
-            self.ARTANIS_LOG_FILENAME : '{}/log/artanis.log'.format(path),
+            self.ARTANIS_LOG_FORMAT: '[%(asctime)s][%(name)s][%(levelname)-7s][%(process)d] %(message)s',
+            self.ARTANIS_LOG_PATH : '{}/log/artanis'.format(path),
 
             self.ARTANIS_DB_CONNECTION: "postgresql+asyncpg://postgres:masterkey@10.0.3.102/template1",
             self.ARTANIS_DB_SCHEMA: None,
@@ -273,13 +257,18 @@ class Configuration(Singleton, SyncLock, Listenable):
         }
         return values
 
-    def configure_logging(self):
-        file_handler = TimedRotatingFileHandler(self.get_property_value(self.ARTANIS_LOG_FILENAME),
-                                                when='D', backupCount=5)
+    def configure_logging(self, subsys_name: str = None, subsys_index: int = None):
+        file_name = self.get_property_value(self.ARTANIS_LOG_PATH)
+        if subsys_name is not None:
+            file_name += f"-{subsys_name}"
+        if subsys_index is not None:
+            file_name += f"-{subsys_index}"
+        file_name += '.log'
+        file_handler = TimedRotatingFileHandler(file_name,when='D', backupCount=5)
         logging.basicConfig(
             level=logging.getLevelName(self.get_property_value(self.ARTANIS_LOG_LEVEL, 'INFO').upper()),
             format=self.get_property_value(self.ARTANIS_LOG_FORMAT),
-            # handlers=[file_handler,]
+            handlers=[file_handler,]
         )
 
     @contextmanager

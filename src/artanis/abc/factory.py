@@ -49,5 +49,5 @@ class WorkerFactory(Configurable, Singleton, ABC):
         return len([a for a, b in processes if b == self.worker_name])
 
     @abstractmethod
-    def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: EventType):
+    def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: EventType, index: int):
         ...

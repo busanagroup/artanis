@@ -133,3 +133,9 @@ class ArtanisException(Exception):
             self.message = message
         except AttributeError:
             ...
+
+class ValidationError(ArtanisException):
+    status_code = 400
+
+
+class InitError(ArtanisException): ...
