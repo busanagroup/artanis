@@ -192,23 +192,6 @@ export function WorkspaceLayout() {
                 >
                   <Plus className="h-4 w-4" />
                 </button>
-                <button
-                  type="button"
-                  onClick={controller.startEditRecord}
-                  disabled={!controller.selectedRecord || !controller.canEdit}
-                  className="rounded p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                  title="Edit"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => controller.deleteRecordMutation.mutate()}
-                  disabled={!controller.selectedRecord || !controller.canRemove || controller.deleteRecordMutation.isPending}
-                  className="rounded p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
                 <button type="button" onClick={controller.refreshCurrentData} className="rounded p-1 hover:bg-slate-100">
                   <RefreshCw className="h-4 w-4" />
                 </button>
@@ -246,13 +229,6 @@ export function WorkspaceLayout() {
                     ) : null}
                   </div>
                 ) : null}
-                <span>
-                  1 to {controller.filteredRecords.length}
-                  {controller.activeRecordsQuery.data?.length ? ` of ${controller.activeRecordsQuery.data.length}` : ''}
-                </span>
-                <button type="button" className="rounded p-1 hover:bg-slate-100">
-                  <Settings className="h-4 w-4" />
-                </button>
               </div>
             </div>
 
