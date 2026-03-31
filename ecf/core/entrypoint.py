@@ -31,6 +31,7 @@ async def do_startup():
     load_modules()
     await setup_all(config, True)
 
+
 async def do_shutdown():
     config: Configuration | None = Configuration.get_default_instance(create_instance=False)
     await unconfigure_database(config)

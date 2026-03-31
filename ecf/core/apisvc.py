@@ -15,8 +15,20 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from os.path import dirname, basename, isfile, join
-import glob
+from artanis.asgi.asgiendpoint import Descriptor
+from artanis.config import Configuration
 
-__all__ = [basename(f)[:-3] for f in glob.glob(join(dirname(__file__), "*.py")) \
-           if isfile(f) and not f.endswith('__init__.py')]
+from ecf.core.ecfcmn import BaseController
+
+
+class APIDescriptor(Descriptor):
+    handle_request = True
+
+
+class APIBaseService(BaseController):
+    __config = Configuration.get_default_instance(create_instance=False)
+    descriptor = APIDescriptor()
+
+
+class APIService(APIBaseService):
+    description: str
