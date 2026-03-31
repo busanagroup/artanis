@@ -15,11 +15,18 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from artanis.asgi.asgiservice import ASGIFastAPI
+from artanis.asgi.asgiservice import ASGIService
+from artanis.asgi.asgiendpoint import BaseEndPoint
 
 
-class APIAppService(ASGIFastAPI):
-    ...
+class APIEndPoint(BaseEndPoint):
+    base_modules = "ecf.api"
+
+
+class APIAppService(ASGIService):
+
+    def configure_services(self, config):
+        self.mount('/api', APIEndPoint(config=config, parent=self))
 
 
 app = APIAppService.get_default_instance()

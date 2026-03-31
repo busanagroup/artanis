@@ -15,21 +15,26 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from typing import Annotated
-
-from fastapi import Path
 from starlette.exceptions import HTTPException
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
-from artanis.asgi.asgiservice import ASGIStarlette
+from artanis.asgi.asgiservice import ASGIService
+from artanis.asgi.asgiendpoint import BaseEndPoint, Descriptor, published
 
 
-class AuthAppService(ASGIStarlette):
-    ...
+class AuthEndPoint(BaseEndPoint):
+    descriptor = Descriptor()
+
+    @published(path="/login", methods=["GET"])
+    async def do_login(self, request: Request):
+        return JSONResponse({'hello': 'world'})
+
+
+class AuthAppService(ASGIService):
+
+    def configure_services(self, config):
+        self.mount('/auth', AuthEndPoint(config=config, parent=self))
 
 
 app = AuthAppService.get_default_instance()
-
-
-@app.route('/login')
-async def do_login(user: Annotated[int, Path(title="THis is the user name")]):
-    raise HTTPException(403)

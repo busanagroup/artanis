@@ -15,11 +15,25 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from artanis.asgi.asgiservice import ASGIFastAPI
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse, JSONResponse
+
+from artanis.asgi.asgiservice import ASGIService
+from artanis.asgi.asgiendpoint import BaseEndPoint, published
 
 
-class MVCAppService(ASGIFastAPI):
-    ...
+class MVCEndPoint(BaseEndPoint):
+
+    base_modules = "ecf.mvc"
+
+    @published
+    def hello(self, request: Request):
+        return JSONResponse({'hello': 'world'})
+
+
+class MVCAppService(ASGIService):
+    def configure_services(self, config):
+        self.mount('/mvc', MVCEndPoint(config=config, parent=self))
 
 
 app = MVCAppService.get_default_instance()

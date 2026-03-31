@@ -15,10 +15,10 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from artanis.asgi.asgiservice import ASGIFastAPI
+from artanis.asgi.asgiservice import ASGIService
 
 
-class StaticAppService(ASGIFastAPI):
+class StaticAppService(ASGIService):
     ...
 
 
