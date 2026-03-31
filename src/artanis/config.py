@@ -15,22 +15,24 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-import os
 import io
-import re
-import pathlib
 import logging
+import os
+import pathlib
+import re
+from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
 from contextlib import contextmanager
-from abc import ABCMeta, abstractmethod
 from logging.handlers import TimedRotatingFileHandler
 from typing import (IO, Dict, Iterable, Iterator, Optional, Tuple,
                     Union, Match, NamedTuple, Pattern, Sequence, Any)
 
+from starlette.datastructures import State
+
 from .abc.listenable import Listenable
-from .abc.singleton import Singleton
 from .abc.objlock import SyncLock
+from .abc.singleton import Singleton
 from .exceptions import ConfigError
 
 StrPath = Union[str, 'os.PathLike[str]']
@@ -70,80 +72,16 @@ _posix_variable: Pattern[str] = re.compile(
 )
 
 
-class WorkerState(Mapping):
-
-    def __init__(self, state: dict[str, Any]) -> None:
-        self._state = state
-
-    def __getitem__(self, key: str) -> Any:
-        return self._state[self._name][key]
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        self._state[self._name] = {
-            **self._state[self._name],
-            key: value,
-        }
-
-    def __delitem__(self, key: str) -> None:
-        self._state[self._name] = {
-            k: v for k, v in self._state[self._name].items() if k != key
-        }
-
-    def __iter__(self) -> Iterator[Any]:
-        return iter(self._state[self._name])
-
-    def __len__(self) -> int:
-        return len(self._state[self._name])
-
-    def __repr__(self) -> str:
-        return repr(self._state[self._name])
-
-    def __eq__(self, other: object) -> bool:
-        return self._state[self._name] == other
-
-    def keys(self) -> KeysView[str]:
-        return self._state[self._name].keys()
-
-    def values(self) -> ValuesView[Any]:
-        return self._state[self._name].values()
-
-    def items(self) -> ItemsView[str, Any]:
-        return self._state[self._name].items()
-
-    def update(self, mapping: MappingType[str, Any]) -> None:
-        if any(k in self.RESTRICTED for k in mapping.keys()):
-            self._write_error(
-                [k for k in mapping.keys() if k in self.RESTRICTED]
-            )
-        self._state[self._name] = {
-            **self._state[self._name],
-            **mapping,
-        }
-
-    def pop(self) -> None:
-        raise NotImplementedError
-
-    def full(self) -> dict[str, Any]:
-        return dict(self._state)
-
-    def _write_error(self, keys: list[str]) -> None:
-        raise LookupError(
-            f"Cannot set restricted key{'s' if len(keys) > 1 else ''} on "
-            f"WorkerState: {', '.join(keys)}"
-        )
-
-
 class Configuration(Singleton, SyncLock, Listenable):
-
     ARTANIS_AUTH_ENABLED: str = 'artanis.auth.enabled'
     ARTANIS_AUTH_BINDTYPE: str = 'artanis.auth.bindtype'
     ARTANIS_AUTH_BIND: str = 'artanis.auth.bind'
-    ARTANIS_AUTH_INSTANCES: str ='artanis.auth.instances'
+    ARTANIS_AUTH_INSTANCES: str = 'artanis.auth.instances'
 
     ARTANIS_API_ENABLED: str = 'artanis.api.enabled'
     ARTANIS_API_BINDTYPE: str = 'artanis.api.bindtype'
     ARTANIS_API_BIND: str = 'artanis.api.bind'
-    ARTANIS_API_INSTANCES: str ='artanis.api.instances'
+    ARTANIS_API_INSTANCES: str = 'artanis.api.instances'
 
     ARTANIS_MVC_ENABLED: str = 'artanis.mvc.enabled'
     ARTANIS_MVC_BINDTYPE: str = 'artanis.mvc.bindtype'
@@ -156,7 +94,7 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_WS_INSTANCES: str = 'artanis.ws.instances'
 
     ARTANIS_TASK_ENABLED: str = 'artanis.task.enabled'
-    ARTANIS_TASK_INSTANCES: str= 'artanis.task.instances'
+    ARTANIS_TASK_INSTANCES: str = 'artanis.task.instances'
     ARTANIS_TASK_MAXTASK: str = 'artanis.task.maxtask'
     ARTANIS_TASK_MONITOR: str = 'artanis.task.monitor'
     ARTANIS_SPV_ENABLED: str = 'artanis.supervisor.enabled'
@@ -176,18 +114,17 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_DB_POOL_IDLE: str = 'artanis.db.pool.idle'
 
     ARTANIS_DB_EXTCONN_COUNT: str = 'artanis.db.extconn.count'
+
     # ARTANIS_DB_EXTCONN_1_NAME: str = 'artanis.db.extconn.1.name'
     # ARTANIS_DB_EXTCONN_1_CONNECTION: str = 'artanis.db.extconn.1.connection'
     # ARTANIS_DB_EXTCONN_1_SCHEMA: str = 'artanis.db.extconn.1.schema'
 
-
-
-    def __init__(self, path: Optional[StrPath]=None):
+    def __init__(self, path: Optional[StrPath] = None):
         super().__init__()
         self._config_path: Optional[StrPath] = path
         self._dict: Optional[Dict[str, Optional[str]]] = None
         self._default: Optional[Dict[str, Optional[str]]] = None
-        self.container: WorkerState | None = WorkerState({})
+        self.container: State | None = State({})
         self._server_up: bool = False
 
     @property
@@ -209,7 +146,7 @@ class Configuration(Singleton, SyncLock, Listenable):
 
     def configure_default(self) -> Mapping[str, Optional[str]]:
         path = str(pathlib.Path(os.path.abspath(self.config_path))
-                .parent.parent.resolve())
+                   .parent.parent.resolve())
         values: Dict[str, Optional[str]] = {
 
             self.ARTANIS_AUTH_ENABLED: 'true',
@@ -222,7 +159,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_API_BINDTYPE: 'tcp',
             self.ARTANIS_API_BIND: '0.0.0.0:8002',
 
-            self.ARTANIS_MVC_ENABLED: 'true',
+            self.ARTANIS_MVC_ENABLED: 'false',
             self.ARTANIS_MVC_INSTANCES: '2',
             self.ARTANIS_MVC_BINDTYPE: 'tcp',
             self.ARTANIS_MVC_BIND: '0.0.0.0:8003',
@@ -242,12 +179,12 @@ class Configuration(Singleton, SyncLock, Listenable):
 
             self.ARTANIS_REDIS_URL: 'redis://127.0.0.1:6379',
 
-            self.ARTANIS_ENV_PATH : path,
-            self.ARTANIS_TMP_PATH : '{}/tmp'.format(path),
+            self.ARTANIS_ENV_PATH: path,
+            self.ARTANIS_TMP_PATH: '{}/tmp'.format(path),
 
             self.ARTANIS_LOG_LEVEL: 'INFO',
             self.ARTANIS_LOG_FORMAT: '[%(asctime)s][%(name)s][%(levelname)-7s][%(process)d] %(message)s',
-            self.ARTANIS_LOG_PATH : '{}/log/artanis'.format(path),
+            self.ARTANIS_LOG_PATH: '{}/log/artanis'.format(path),
 
             self.ARTANIS_DB_CONNECTION: "postgresql+asyncpg://postgres:masterkey@10.0.3.102/template1",
             self.ARTANIS_DB_SCHEMA: None,
@@ -264,11 +201,11 @@ class Configuration(Singleton, SyncLock, Listenable):
         if subsys_index is not None:
             file_name += f"-{subsys_index}"
         file_name += '.log'
-        file_handler = TimedRotatingFileHandler(file_name,when='D', backupCount=5)
+        file_handler = TimedRotatingFileHandler(file_name, when='D', backupCount=5)
         logging.basicConfig(
             level=logging.getLevelName(self.get_property_value(self.ARTANIS_LOG_LEVEL, 'INFO').upper()),
             format=self.get_property_value(self.ARTANIS_LOG_FORMAT),
-            handlers=[file_handler,]
+            handlers=[file_handler, ]
         )
 
     @contextmanager
@@ -284,7 +221,7 @@ class Configuration(Singleton, SyncLock, Listenable):
         """Return dotenv as dict"""
         if self._dict:
             return self._dict
-        _dict:Mapping[str, Optional[str]] = self.configure_default()
+        _dict: Mapping[str, Optional[str]] = self.configure_default()
         raw_values = self.parse()
         self._dict = OrderedDict(_dict)
         self._dict.update(resolve_variables(raw_values, override=True))

@@ -17,13 +17,42 @@ from __future__ import annotations
 
 import os
 import sys
+import functools
+from inspect import iscoroutinefunction
 from pathlib import Path
 from importlib import import_module
 from collections.abc import Callable, Awaitable
 from multiprocessing.synchronize import Event as EventType
-from typing import Any
+from typing import Any, overload, TypeVar
+from starlette.routing import compile_path
+from starlette.types import Scope
+
+import anyio.to_thread
 
 from artanis.exceptions import ShutdownError, NoAppError
+
+T = TypeVar("T")
+AwaitableCallable = Callable[..., Awaitable[T]]
+
+
+@overload
+def is_async_callable(obj: AwaitableCallable[T]) -> TypeIs[AwaitableCallable[T]]: ...
+
+
+@overload
+def is_async_callable(obj: Any) -> TypeIs[AwaitableCallable[Any]]: ...
+
+
+def is_async_callable(obj: Any) -> Any:
+    while isinstance(obj, functools.partial):
+        obj = obj.func
+
+    return iscoroutinefunction(obj) or (callable(obj) and iscoroutinefunction(obj.__call__))
+
+
+async def run_in_threadpool(func: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+    func = functools.partial(func, *args, **kwargs)
+    return await anyio.to_thread.run_sync(func)
 
 
 def write_pid_file(pid_path: str) -> None:
@@ -98,3 +127,30 @@ def import_function(path: str, attach=None):
     if attach:
         setattr(attach, func_name, func)
     return func
+
+def get_route_path(scope: Scope) -> str:
+    path: str = scope["path"]
+    root_path = scope.get("root_path", "")
+    if not root_path:
+        return path
+
+    if not path.startswith(root_path):
+        return path
+
+    if path == root_path:
+        return ""
+
+    if path[len(root_path)] == "/":
+        return path[len(root_path):]
+
+    return path
+
+def generate_unique_id(route: "Route") -> str:
+    operation_id = f"{route.name}{route.path_format}"
+    operation_id = re.sub(r"\W", "_", operation_id)
+    assert route.methods
+    operation_id = f"{operation_id}_{list(route.methods)[0].lower()}"
+    return operation_id
+
+def get_name(endpoint: Callable[..., Any]) -> str:
+    return getattr(endpoint, "__name__", endpoint.__class__.__name__)

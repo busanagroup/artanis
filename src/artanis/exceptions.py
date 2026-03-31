@@ -54,6 +54,12 @@ class FrameTooLargeError(Exception):
     pass
 
 
+class ArtanisError(RuntimeError):
+    """
+    A generic, Artanis error.
+    """
+
+
 class ArtanisException(Exception):
     """Generic exception that will generate an HTTP response when raised in the context of a request lifecycle.
 
@@ -133,6 +139,7 @@ class ArtanisException(Exception):
             self.message = message
         except AttributeError:
             ...
+
 
 class ValidationError(ArtanisException):
     status_code = 400
