@@ -31,11 +31,14 @@ from artanis.config import Configuration
 def create_db_engine(db_url, **kwargs) -> AsyncEngine:
     return create_async_engine(db_url, poolclass=AsyncQueuePool, **kwargs)
 
+
 def create_db_session(engine: AsyncEngine):
     return async_sessionmaker(engine, autoflush=False, expire_on_commit=False, autocommit=False)
 
+
 def create_scoped_session(db_session: async_sessionmaker):
     return async_scoped_session(db_session, scopefunc=current_task)
+
 
 async def configure_database(config: Configuration):
     if not config or hasattr(config.container, 'db_engine'):

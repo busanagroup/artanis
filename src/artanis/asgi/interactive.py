@@ -19,11 +19,10 @@ from starlette.requests import Request
 from starlette.responses import PlainTextResponse, JSONResponse
 
 from artanis.asgi.asgiservice import ASGIService
-from artanis.asgi.asgiendpoint import BaseEndPoint, published
+from artanis.asgi.asgiendpoint import ASGIEndPoint, published
 
 
-class MVCEndPoint(BaseEndPoint):
-
+class MVCEndPoint(ASGIEndPoint):
     base_modules = "ecf.mvc"
 
     @published

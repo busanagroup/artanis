@@ -1,0 +1,165 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2026 Busana Apparel Group. All rights reserved.
+#
+# This product and it's source code is protected by patents, copyright laws and
+# international copyright treaties, as well as other intellectual property
+# laws and treaties. The product is licensed, not sold.
+#
+# The source code and sample programs in this package or parts hereof
+# as well as the documentation shall not be copied, modified or redistributed
+# without permission, explicit or implied, of the author.
+#
+# This module is part of Artanis Enterprise Platform and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import inspect
+import typing as t
+
+import pydantic
+from pydantic.fields import FieldInfo
+from pydantic.json_schema import model_json_schema
+
+from artanis.injection import Parameter
+from artanis.asgi.schemas.adapter import Adapter
+from artanis.asgi.schemas.exceptions import SchemaGenerationError, SchemaValidationError
+from artanis.types import JSONSchema
+
+__all__ = ["PydanticAdapter"]
+
+Schema = pydantic.BaseModel
+Field = FieldInfo
+
+
+class PydanticAdapter(Adapter[Schema, Field]):
+    def build_field(
+            self,
+            name: str,
+            type_: type,
+            nullable: bool = False,
+            required: bool = True,
+            default: t.Any = None,
+            multiple: bool = False,
+            **kwargs,
+    ) -> Field:
+        if not required:
+            kwargs["default"] = None if default is Parameter.empty else default
+
+        annotation: t.Any = type_
+
+        if multiple:
+            annotation = list[annotation]
+
+        if nullable:
+            annotation = annotation | None
+
+        if default is Parameter.empty:
+            field = FieldInfo.from_annotation(annotation)
+        else:
+            field = FieldInfo.from_annotated_attribute(annotation, default)
+
+        return field
+
+    def build_schema(
+            self,
+            *,
+            name: str | None = None,
+            module: str | None = None,
+            schema: Schema | type[Schema] | None = None,
+            fields: dict[str, type[Field]] | None = None,
+            partial: bool = False,
+    ) -> type[Schema]:
+        fields_ = {
+            **{
+                name: (field.annotation, field)
+                for name, field in (self.unique_schema(schema).model_fields.items() if self.is_schema(schema) else {})
+            },
+            **{name: (field.annotation, field) for name, field in (fields.items() if fields else {})},
+        }
+
+        if partial:
+            for name, (annotation, field) in fields_.items():
+                field.default = None
+                fields_[name] = (annotation | None, field)
+
+        return pydantic.create_model(
+            name or self.DEFAULT_SCHEMA_NAME,
+            __module__=module,  # type: ignore
+            **fields_,
+        )
+
+    def validate(
+            self, schema: Schema | type[Schema], values: dict[str, t.Any], *, partial: bool = False
+    ) -> dict[str, t.Any]:
+        schema_cls = self.unique_schema(schema)
+
+        try:
+            return schema_cls(**values).model_dump(exclude_unset=partial)
+        except pydantic.ValidationError as errors:
+            raise SchemaValidationError(
+                errors={
+                    ".".join(str(x) for x in error.get("loc", [])): error for error in errors.errors(include_url=False)
+                }
+            )
+
+    def load(self, schema: Schema | type[Schema], value: dict[str, t.Any]) -> Schema:
+        schema_cls = self.unique_schema(schema)
+
+        return schema_cls(**value)
+
+    def dump(self, schema: Schema | type[Schema], value: dict[str, t.Any]) -> dict[str, t.Any]:
+        schema_cls = self.unique_schema(schema)
+
+        return self.validate(schema_cls, value)
+
+    def name(self, schema: Schema | type[Schema], *, prefix: str | None = None) -> str:
+        schema_cls = self.unique_schema(schema)
+
+        schema_name = f"{prefix or ''}{schema_cls.__qualname__}"
+        return schema_name if schema_cls.__module__ == "builtins" else f"{schema_cls.__module__}.{schema_name}"
+
+    def to_json_schema(self, schema: type[Schema] | type[Field]) -> JSONSchema:
+        try:
+            if self.is_schema(schema):
+                json_schema = model_json_schema(schema, ref_template="#/components/schemas/{model}")
+                if "$defs" in json_schema:
+                    del json_schema["$defs"]
+            elif self.is_field(schema):
+                json_schema = model_json_schema(
+                    self.build_schema(fields={"x": schema}), ref_template="#/components/schemas/{model}"
+                )["properties"]["x"]
+                if not schema.title:  # Pydantic is introducing a default title, so we drop it
+                    del json_schema["title"]
+            else:
+                raise TypeError("Not a valid schema class or field")
+
+            return json_schema
+        except Exception as e:
+            raise SchemaGenerationError from e
+
+    def unique_schema(self, schema: Schema | type[Schema]) -> type[Schema]:
+        return schema.__class__ if isinstance(schema, Schema) else schema
+
+    def _get_field_type(self, field: Field) -> t.Any:
+        if not self.is_field(field):
+            return field
+
+        if t.get_origin(field.annotation) == list:
+            return self._get_field_type(t.get_args(field.annotation)[0])
+
+        if t.get_origin(field.annotation) == dict:
+            return self._get_field_type(t.get_args(field.annotation)[1])
+
+        return field.annotation
+
+    def schema_fields(self, schema: type[Schema]) -> dict[str, tuple[type | list[type] | dict[str, type], Field]]:
+        return {name: (self._get_field_type(field), field) for name, field in schema.model_fields.items()}
+
+    def is_schema(self, obj: t.Any) -> t.TypeGuard[type[Schema]]:
+        if t.get_origin(obj):
+            obj = t.get_origin(obj)
+
+        return inspect.isclass(obj) and issubclass(obj, Schema)
+
+    def is_field(self, obj: t.Any) -> t.TypeGuard[type[Field]]:
+        return isinstance(obj, Field)

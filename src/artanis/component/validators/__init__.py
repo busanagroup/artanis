@@ -14,4 +14,3 @@ __all__ = [
     'is_empty', 'is_validator',
     'Schema', 'CompoundValidator', 'Any', 'All', 'Pipe',
     'ForEach', 'validators', 'NestedVariables']
-

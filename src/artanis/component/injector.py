@@ -83,7 +83,6 @@ def synchronized(lock: threading.RLock) -> Callable[[CallableT], CallableT]:
 
 lock = threading.RLock()
 
-
 _inject_marker = object()
 _noinject_marker = object()
 
@@ -336,7 +335,7 @@ class MultiBinder(Provider, Generic[T]):
 
     @abstractmethod
     def multibind(
-        self, interface: type, to: Any, scope: Union['ScopeDecorator', Type['Scope'], None]
+            self, interface: type, to: Any, scope: Union['ScopeDecorator', Type['Scope'], None]
     ) -> None:
         raise NotImplementedError
 
@@ -363,7 +362,7 @@ class MultiBindProvider(MultiBinder[List[T]]):
     return sequences."""
 
     def multibind(
-        self, interface: type, to: Any, scope: Union['ScopeDecorator', Type['Scope'], None]
+            self, interface: type, to: Any, scope: Union['ScopeDecorator', Type['Scope'], None]
     ) -> None:
         try:
             element_type = get_args(_punch_through_alias(interface))[0]
@@ -389,7 +388,7 @@ class MapBindProvider(MultiBinder[Dict[str, T]]):
     """A provider for map bindings."""
 
     def multibind(
-        self, interface: type, to: Any, scope: Union['ScopeDecorator', Type['Scope'], None]
+            self, interface: type, to: Any, scope: Union['ScopeDecorator', Type['Scope'], None]
     ) -> None:
         try:
             value_type = get_args(_punch_through_alias(interface))[1]
@@ -458,7 +457,7 @@ class Binder:
 
     @private
     def __init__(
-        self, injector: 'Injector', auto_bind: bool = True, parent: Optional['Binder'] = None
+            self, injector: 'Injector', auto_bind: bool = True, parent: Optional['Binder'] = None
     ) -> None:
         """Create a new Binder.
 
@@ -472,10 +471,10 @@ class Binder:
         self.parent = parent
 
     def bind(
-        self,
-        interface: Type[T],
-        to: Union[None, T, Callable[..., T], Provider[T]] = None,
-        scope: Union[None, Type['Scope'], 'ScopeDecorator'] = None,
+            self,
+            interface: Type[T],
+            to: Union[None, T, Callable[..., T], Provider[T]] = None,
+            scope: Union[None, Type['Scope'], 'ScopeDecorator'] = None,
     ) -> None:
         """Bind an interface to an implementation.
 
@@ -524,24 +523,24 @@ class Binder:
 
     @overload
     def multibind(
-        self,
-        interface: Type[List[T]],
-        to: Union[Collection[Union[T, Type[T]]], Callable[..., List[T]], Provider[List[T]], Type[T]],
-        scope: Union[Type['Scope'], 'ScopeDecorator', None] = None,
+            self,
+            interface: Type[List[T]],
+            to: Union[Collection[Union[T, Type[T]]], Callable[..., List[T]], Provider[List[T]], Type[T]],
+            scope: Union[Type['Scope'], 'ScopeDecorator', None] = None,
     ) -> None:  # pragma: no cover
         pass
 
     @overload
     def multibind(
-        self,
-        interface: Type[Dict[K, V]],
-        to: Union[Mapping[K, Union[V, Type[V]]], Callable[..., Dict[K, V]], Provider[Dict[K, V]]],
-        scope: Union[Type['Scope'], 'ScopeDecorator', None] = None,
+            self,
+            interface: Type[Dict[K, V]],
+            to: Union[Mapping[K, Union[V, Type[V]]], Callable[..., Dict[K, V]], Provider[Dict[K, V]]],
+            scope: Union[Type['Scope'], 'ScopeDecorator', None] = None,
     ) -> None:  # pragma: no cover
         pass
 
     def multibind(
-        self, interface: type, to: Any, scope: Union['ScopeDecorator', Type['Scope'], None] = None
+            self, interface: type, to: Any, scope: Union['ScopeDecorator', Type['Scope'], None] = None
     ) -> None:
         """Creates or extends a multi-binding.
 
@@ -577,10 +576,10 @@ class Binder:
         multi_binder: MultiBinder
         if interface not in self._bindings:
             if (
-                isinstance(interface, dict)
-                or isinstance(interface, type)
-                and issubclass(interface, dict)
-                or _get_origin(_punch_through_alias(interface)) is dict
+                    isinstance(interface, dict)
+                    or isinstance(interface, type)
+                    and issubclass(interface, dict)
+                    or _get_origin(_punch_through_alias(interface)) is dict
             ):
                 multi_binder = MapBindProvider(self)
             else:
@@ -632,7 +631,7 @@ class Binder:
         instance(self)
 
     def create_binding(
-        self, interface: type, to: Any = None, scope: Union['ScopeDecorator', Type['Scope'], None] = None
+            self, interface: type, to: Any = None, scope: Union['ScopeDecorator', Type['Scope'], None] = None
     ) -> Binding:
         provider = self.provider_for(interface, to)
         scope = scope or getattr(to or interface, '__scope__', None)
@@ -654,14 +653,14 @@ class Binder:
         elif isinstance(to, Provider):
             return to
         elif isinstance(
-            to,
-            (
-                types.FunctionType,
-                types.LambdaType,
-                types.MethodType,
-                types.BuiltinFunctionType,
-                types.BuiltinMethodType,
-            ),
+                to,
+                (
+                        types.FunctionType,
+                        types.LambdaType,
+                        types.MethodType,
+                        types.BuiltinFunctionType,
+                        types.BuiltinMethodType,
+                ),
         ):
             return CallableProvider(to)
         elif issubclass(type(to), type):
@@ -682,12 +681,12 @@ class Binder:
             builder = interface(self.injector, target)
             return InstanceProvider(builder)
         elif (
-            origin is None
-            and isinstance(base_type, (tuple, type))
-            and interface is not Any
-            and isinstance(to, base_type)
-            or origin in {dict, list}
-            and isinstance(to, origin)
+                origin is None
+                and isinstance(base_type, (tuple, type))
+                and interface is not Any
+                and isinstance(to, base_type)
+                or origin in {dict, list}
+                and isinstance(to, origin)
         ):
             return InstanceProvider(to)
         elif issubclass(type(base_type), type) or isinstance(base_type, (tuple, list)):
@@ -963,10 +962,10 @@ class Injector:
     binder: Binder
 
     def __init__(
-        self,
-        modules: Union[_InstallableModuleType, Iterable[_InstallableModuleType], None] = None,
-        auto_bind: bool = True,
-        parent: Optional['Injector'] = None,
+            self,
+            modules: Union[_InstallableModuleType, Iterable[_InstallableModuleType], None] = None,
+            auto_bind: bool = True,
+            parent: Optional['Injector'] = None,
     ) -> None:
         # Stack of keys currently being injected. Used to detect circular
         # dependencies.
@@ -1073,7 +1072,7 @@ class Injector:
         return instance
 
     def call_with_injection(
-        self, callable: Callable[..., T], self_: Any = None, args: Any = (), kwargs: Any = {}
+            self, callable: Callable[..., T], self_: Any = None, args: Any = (), kwargs: Any = {}
     ) -> T:
         """Call a callable and provide its dependencies if needed.
 
@@ -1124,7 +1123,7 @@ class Injector:
     @private
     @synchronized(lock)
     def args_to_inject(
-        self, function: Callable, bindings: Dict[str, type], owner_key: object
+            self, function: Callable, bindings: Dict[str, type], owner_key: object
     ) -> Dict[str, Any]:
         """Inject arguments into a function.
 
@@ -1279,7 +1278,7 @@ def _infer_injected_bindings(callable: Callable, only_explicit_bindings: bool) -
 
     def _is_injection_annotation(annotation: Any) -> bool:
         return _is_specialization(annotation, Annotated) and (
-            _inject_marker in annotation.__metadata__ or _noinject_marker in annotation.__metadata__
+                _inject_marker in annotation.__metadata__ or _noinject_marker in annotation.__metadata__
         )
 
     def _recreate_annotated_origin(annotated_type: Any) -> Any:
@@ -1348,9 +1347,9 @@ def _infer_injected_bindings(callable: Callable, only_explicit_bindings: bool) -
                 if _is_specialization(member, Annotated)
             }
             if (
-                only_explicit_bindings
-                and _inject_marker not in union_metadata
-                or _noinject_marker in union_metadata
+                    only_explicit_bindings
+                    and _inject_marker not in union_metadata
+                    or _noinject_marker in union_metadata
             ):
                 del bindings[k]
             else:

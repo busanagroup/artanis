@@ -68,7 +68,7 @@ class DeclarativeMeta(type):
             setattr(cls, name, copy.copy(getattr(cls, name)))
         cls.declarative_count = next(cls.counter)
         if ('__classinit__' in new_attrs and not isinstance(cls.__classinit__,
-                (staticmethod, types.FunctionType))):
+                                                            (staticmethod, types.FunctionType))):
             setattr(cls, '__classinit__',
                     staticmethod(cls.__classinit__.__func__))
         cls.__classinit__(cls, new_attrs)
@@ -98,7 +98,6 @@ class singletonmethod:
 
 
 class Declarative(metaclass=DeclarativeMeta):
-
     __unpackargs__ = ()
 
     __mutableattributes__ = ()
@@ -114,9 +113,9 @@ class Declarative(metaclass=DeclarativeMeta):
     def __init__(self, *args, **kw):
         if self.__unpackargs__ and self.__unpackargs__[0] == '*':
             assert len(self.__unpackargs__) == 2, (
-                "When using __unpackargs__ = ('*', varname),"
-                " you must only provide a single variable name"
-                " (you gave %r)" % self.__unpackargs__)
+                    "When using __unpackargs__ = ('*', varname),"
+                    " you must only provide a single variable name"
+                    " (you gave %r)" % self.__unpackargs__)
             name = self.__unpackargs__[1]
             if name in kw:
                 if args:
@@ -216,7 +215,7 @@ class Declarative(metaclass=DeclarativeMeta):
             name = '%s %i' % (name, v.pop('declarative_count'))
         names = sorted(v)
         args = ['%s=self' % n if v[n] is self else '%s=%r' % (n, v[n])
-            for n in self._repr_vars(names)]
+                for n in self._repr_vars(names)]
         if not args:
             return '<%s>' % name
         return '<%s %s>' % (name, ' '.join(args))
@@ -224,4 +223,4 @@ class Declarative(metaclass=DeclarativeMeta):
     @staticmethod
     def _repr_vars(dictNames):
         return sorted(n for n in dictNames
-            if not n.startswith('_') and n != 'declarative_count')
+                      if not n.startswith('_') and n != 'declarative_count')

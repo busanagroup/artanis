@@ -30,7 +30,6 @@ class IDeclarative(Interface):
 
 
 class IValidator(IDeclarative):
-
     messages = Attribute("""
     A dictionary of messages (with formatting strings) for error
     responses""", name='messages')
@@ -67,6 +66,5 @@ class IValidator(IDeclarative):
 
 
 class ISchema(IValidator):
-
     fields = Attribute('A dictionary of (field name: validator)',
-        name='fields')
+                       name='fields')

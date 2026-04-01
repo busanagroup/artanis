@@ -15,9 +15,10 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from artanis.helpers import STATUS_CODES
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
+
+from artanis.helpers import STATUS_CODES
 
 
 class ShutdownError(Exception):
@@ -50,9 +51,11 @@ class UnexpectedMessageError(Exception):
         super().__init__(f"Unexpected message type, {message_type} given the state {state}")
 
 
-class FrameTooLargeError(Exception):
-    pass
+class FrameTooLargeError(Exception): ...
 
+class NoCodecAvailable(Exception): ...
+
+class DecodeError(Exception): ...
 
 class ArtanisError(RuntimeError):
     """
@@ -141,8 +144,60 @@ class ArtanisException(Exception):
             ...
 
 
-class ValidationError(ArtanisException):
-    status_code = 400
-
-
 class InitError(ArtanisException): ...
+
+class WebSocketException(ArtanisException): ...
+
+
+class ValidationError(ArtanisException):
+    def __init__(
+            self,
+            message: str | dict[str, list[str]] | None = None,
+            status_code: int = 400,
+    ) -> None:
+        super().__init__(message=message, status_code=status_code)
+
+
+class SerializationError(ArtanisException):
+    def __init__(self, message: None | str | dict[str, list[str]] = None, status_code: int = 500) -> None:
+        super().__init__(message=message, status_code=status_code)
+
+
+class DependencyNotInstalled(ArtanisException):
+    class Dependency(StrEnum):  # PORT: Replace compat when stop supporting 3.10
+        pydantic = "pydantic"
+        marshmallow = "marshmallow"
+        apispec = "apispec"
+        typesystem = "typesystem"
+        sqlalchemy = "sqlalchemy[asyncio]"
+        httpx = "httpx"
+        tomli = "tomli"  # PORT: Remove when stop supporting 3.10
+
+    def __init__(
+            self,
+            *,
+            dependency: str | Dependency | None = None,
+            dependant: str | None = None,
+            msg: str = "",
+    ) -> None:
+        super().__init__()
+        self.dependency = self.Dependency(dependency) if dependency else None
+        self.dependant = dependant
+        self.msg = msg
+
+    def __str__(self) -> str:
+        if self.dependency:
+            s = f"Dependency '{self.dependency.value}' must be installed"
+            if self.dependant:
+                s += f" to use '{self.dependant}'"
+            if self.msg:
+                s += f" ({self.msg})"
+        else:
+            s = self.msg
+
+        return s
+
+    def __repr__(self) -> str:
+        params = ("msg", "dependency", "dependant")
+        formatted_params = ", ".join([f"{x}={getattr(self, x)}" for x in params if getattr(self, x)])
+        return f"{self.__class__.__name__}({formatted_params})"

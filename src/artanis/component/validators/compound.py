@@ -59,11 +59,11 @@ class CompoundValidator(FancyValidator):
 
     def _convert_to_python(self, value, state=None):
         return self._attempt_convert(value, state,
-                                    to_python)
+                                     to_python)
 
     def _convert_from_python(self, value, state=None):
         return self._attempt_convert(value, state,
-                                    from_python)
+                                     from_python)
 
     def subvalidators(self):
         return self.validators

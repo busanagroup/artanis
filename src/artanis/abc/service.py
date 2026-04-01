@@ -18,7 +18,27 @@ from __future__ import annotations
 import asyncio
 import typing
 
+from starlette.websockets import WebSocket
+from starlette.routing import BaseRoute
+
+from artanis.modules import Modules
+from artanis.models import ModelsModule
+from artanis.asgi import components
+from artanis.asgi import validations
+
 from artanis.abc.configurable import Configurable
+from artanis import types, injection
+
+from artanis.abc.workercomp import WorkerComponent
+
+from artanis.asgi.http import Request, Response
+from artanis.asgi.schemas.modules import SchemaModule
+from artanis.config import Configuration
+from artanis.injection import Components
+from artanis.resources import ResourcesModule
+from artanis.resources.workers import ArtanisWorker
+
+__all__ = ["ArtanisService"]
 
 
 class StartableService(Configurable):
@@ -145,3 +165,85 @@ class StartableService(Configurable):
     @service_enabled.setter
     def service_enabled(self, value):
         self._enabled = value
+
+
+class ArtanisService(StartableService):
+
+    def __init__(
+            self,
+            *args,
+            **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self._injector = injection.Injector(Context)
+        openapi: types.OpenAPISpec = {
+            "info": {
+                "title": "Artanis",
+                "version": "0.1.0",
+                "summary": "Artanis application",
+                "description": "The future is ours",
+            },
+        }
+
+        # Initialise components
+        default_components = []
+
+        # Create worker
+        if (worker := ArtanisWorker() if ArtanisWorker else None) and WorkerComponent:
+            default_components.append(WorkerComponent(worker=worker))
+
+        # Initialise modules
+        default_modules = [
+            ResourcesModule(worker=worker),
+            SchemaModule(openapi, schema="/schema/", docs="/docs/"),
+            ModelsModule(),
+        ]
+        self.modules = Modules(app=self, modules={*default_modules, *([])})
+        _components = [*default_components, *([])]
+        self.components = Components(_components if _components else set())
+
+    @property
+    def injector(self) -> injection.Injector:
+        """Components dependency injector.
+
+        :return: Injector instance.
+        """
+        _comps = injection.Components(self.components + components.ASGI_COMPONENTS + validations.VALIDATION_COMPONENTS)
+        if self._injector.components != _comps:
+            self._injector.components = _comps
+        return self._injector
+
+    def add_component(self, component: injection.Component):
+        self.components = Components(self.components + (component,))
+
+
+class Context(injection.Context):
+    types = {
+        "scope": types.Scope,
+        "receive": types.Receive,
+        "send": types.Send,
+        "exc": Exception,
+        "app": ArtanisService,
+        "route": BaseRoute,
+        "request": Request,
+        "response": Response,
+        "websocket": WebSocket,
+        "websocket_message": types.Message,
+        "websocket_encoding": types.Encoding,
+        "websocket_code": types.Code,
+        "config": Configuration,
+    }
+
+    hashable = (
+        "scope",
+        "receive",
+        "send",
+        "exc",
+        "app",
+        "route",
+        "response",
+        "websocket_message",
+        "websocket_encoding",
+        "websocket_code",
+        "config",
+    )

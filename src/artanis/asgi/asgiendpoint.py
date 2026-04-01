@@ -15,6 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+import functools
+
 from collections.abc import Collection
 from dataclasses import field, dataclass
 from enum import Enum
@@ -26,6 +28,7 @@ from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse, Response, RedirectResponse
 from starlette.routing import Router, Match, compile_path, BaseRoute, Mount, Route
+from starlette._exception_handler import wrap_app_handling_exceptions
 from starlette.staticfiles import StaticFiles
 from starlette.types import ASGIApp, Scope, Send, Receive
 from starlette.websockets import WebSocketClose
@@ -34,7 +37,7 @@ from artanis.abc.configurable import Configurable
 from artanis.abc.service import StartableService
 from artanis.abc.startable import StartableListener
 from artanis.datastructures import Default, URL, DefaultPlaceholder
-from artanis.utils import get_route_path, import_function, get_name
+from artanis.utils import get_route_path, import_function, get_name, is_async_callable
 
 
 class Handled(Enum):
@@ -108,14 +111,6 @@ class ControllerABC(Configurable):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.has_published_methods = hasattr(self, "published_methods")
-        if self.has_published_methods:
-            self.published_routes = [Route(
-                func.published.path,
-                getattr(self, func.__name__),
-                methods=func.published.methods,
-                name=func.published.name,
-                include_in_schema=func.published.include_in_schema
-            ) for func in self.published_methods]
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -124,6 +119,29 @@ class ControllerABC(Configurable):
             cls.published_methods = published_methods
         if hasattr(cls, "descriptor"):
             cls.descriptor.describe(cls.__name__)
+
+
+def request_response(
+        func: Callable[[Request], Awaitable[Response] | Response],
+) -> ASGIApp:
+    """
+    Takes a function or coroutine `func(request) -> response`,
+    and returns an ASGI application.
+    """
+    f: Callable[[Request], Awaitable[Response]] = (
+        func if is_async_callable(func) else functools.partial(run_in_threadpool, func)
+    )
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        request = Request(scope, receive, send)
+
+        async def app(scope: Scope, receive: Receive, send: Send) -> None:
+            response = await f(request)
+            await response(scope, receive, send)
+
+        await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+
+    return app
 
 
 @dataclass
@@ -153,6 +171,44 @@ class Published:
     def __post_init__(self):
         self.path = f"/{self.name}" if self.path is None else self.path
         self.path_regex, self.path_format, self.param_convertors = compile_path(self.path)
+
+    def matches(self, scope: Scope) -> tuple[Match, Scope]:
+        path_params: dict[str, Any]
+        if scope["type"] == "http":
+            route_path = get_route_path(scope)
+            match = self.path_regex.match(route_path)
+            if match:
+                matched_params = match.groupdict()
+                for key, value in matched_params.items():
+                    matched_params[key] = self.param_convertors[key].convert(value)
+                path_params = dict(scope.get("path_params", {}))
+                path_params.update(matched_params)
+                child_scope = {"path_params": path_params}
+                if self.methods and scope["method"] not in self.methods:
+                    return Match.PARTIAL, child_scope
+                else:
+                    return Match.FULL, child_scope
+        return Match.NONE, {}
+
+    @staticmethod
+    def prepare_endpoint(endpoint: Callable[..., Any]) -> Callable[..., Any]:
+        endpoint_handler = endpoint
+        while isinstance(endpoint_handler, functools.partial):
+            endpoint_handler = endpoint_handler.func
+        return request_response(endpoint)
+
+    async def handle(self, scope: Scope, receive: Receive, send: Send):
+        if self.methods and scope["method"] not in self.methods:
+            headers = {"Allow": ", ".join(self.methods)}
+            if "app" in scope:
+                raise HTTPException(status_code=405, headers=headers)
+            else:
+                response = PlainTextResponse("Method Not Allowed", status_code=405, headers=headers)
+            await response(scope, receive, send)
+        else:
+            endpoint = scope.get("endpoint")
+            app = self.prepare_endpoint(endpoint)
+            await app(scope, receive, send)
 
 
 def published(
@@ -227,7 +283,7 @@ def published(
         return wrapper
 
 
-class BaseEndPoint(ControllerABC):
+class ASGIEndPoint(ControllerABC):
     base_modules: str = None
 
     def __init__(self, *args, **kwargs):
@@ -309,41 +365,45 @@ class BaseEndPoint(ControllerABC):
             instance: ControllerABC = klass(config=config)
             if not instance.has_published_methods:
                 return Handled.NONE
-            for endpoint in instance.published_routes:
-                match, child_scope = endpoint.matches(scope)
+            for func in instance.published_methods:
+                match, child_scope = func.published.matches(scope)
                 if match == Match.FULL:
+                    endpoint = getattr(instance, func.__name__)
                     child_scope.update({'endpoint': endpoint})
                     scope.update(child_scope)
-                    await endpoint.handle(scope, receive, send)
+                    await func.published.handle(scope, receive, send)
                     return Handled.FULL
                 elif match == Match.PARTIAL and partial is None:
-                    child_scope.update({'endpoint': endpoint})
-                    partial = endpoint
+                    partial = func
                     partial_scope = child_scope
 
             if partial is not None:
+                endpoint = getattr(instance, partial.__name__)
+                partial_scope.update({'endpoint': endpoint})
                 scope.update(partial_scope)
-                await partial.handle(scope, receive, send)
+                await partial.published.handle(scope, receive, send)
                 return Handled.FULL
 
             return Handled.NONE
 
         partial = None
-        for endpoint in self.published_methods:
-            match, child_scope = endpoint.matches(scope)
+        for func in self.published_methods:
+            match, child_scope = func.published.matches(scope)
             if match == Match.FULL:
+                endpoint = getattr(self, func.__name__)
                 child_scope.update({'endpoint': endpoint})
                 scope.update(child_scope)
-                await endpoint.handle(scope, receive, send)
+                await func.published.handle(scope, receive, send)
                 return Handled.FULL
             elif match == Match.PARTIAL and partial is None:
-                child_scope.update({'endpoint': endpoint})
-                partial = endpoint
+                partial = func
                 partial_scope = child_scope
 
         if partial is not None:
+            endpoint = getattr(self, partial.__name__)
+            partial_scope.update({'endpoint': endpoint})
             scope.update(partial_scope)
-            await partial.handle(scope, receive, send)
+            await partial.published.handle(scope, receive, send)
             return Handled.FULL
 
         return Handled.NONE

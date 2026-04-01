@@ -27,5 +27,6 @@ def get_db_session() -> Generator[Session, None, None]:
     with Session() as session:
         yield session
 
+
 SessionDep = Annotated[Session, Depends(get_db_session)]
 ConfigurationDep = Annotated[Configuration, Depends(Configuration.get_default_instance)]

@@ -15,15 +15,14 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
 from artanis.asgi.asgiservice import ASGIService
-from artanis.asgi.asgiendpoint import BaseEndPoint, Descriptor, published
 
 
-class AuthEndPoint(BaseEndPoint):
+class AuthEndPoint(ASGIEndPoint):
     descriptor = Descriptor()
 
     @published(path="/login", methods=["GET"])

@@ -23,19 +23,21 @@ from starlette.middleware import Middleware
 from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.gzip import GZipMiddleware
+from starlette.routing import BaseRoute
 from starlette.types import ASGIApp, ExceptionHandler, Scope, Send, Receive
 
 from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
-from artanis.abc.service import StartableService
+from artanis.abc.service import ArtanisService
 from artanis.abc.singleton import Singleton
 from artanis.asgi.middleware.asyncexitstack import AsyncExitStackMiddleware
+from artanis.asgi.middleware.authentication.middleware import AuthenticationMiddleware
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
 from artanis.asgi.exceptions import exception_handlers
 
 
-class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
+class BaseASGIService(ArtanisService, Singleton, SyncLock, ObjectLoader):
 
     def do_configure(self):
         super().do_configure()
@@ -111,11 +113,44 @@ class ASGIService(Starlette, BaseASGIService):
             if base is not Starlette:
                 base.__init__(self, *args, config=config, **kwargs)
 
-
     def do_configure(self):
         super().do_configure()
         if self.middleware_stack is None:
             self.middleware_stack = self.build_middleware_stack()
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        scope.setdefault("root_app", self)
+        await super().__call__(scope, receive, send)
+
+    def resolve_route(self, scope: Scope) -> tuple[BaseRoute, Scope]:
+        partial = None
+        partial_allowed_methods: set[str] = set()
+        for route in self.routes:
+            m = route.matches(scope)
+            if m == route.Match.full:
+                route_scope = types.Scope({**scope, **route.route_scope(scope)})
+
+                if isinstance(route, Mount):
+                    try:
+                        return route.app.resolve_route(route_scope)  # type: ignore[no-any-return,union-attr]
+                    except AttributeError:
+                        ...
+
+                return route, route_scope
+            elif m == route.Match.partial:
+                partial = route
+                if isinstance(route, Route):
+                    partial_allowed_methods |= route.methods
+
+        if partial:
+            route_scope = types.Scope({**scope, **partial.route_scope(scope)})
+            raise exceptions.MethodNotAllowedException(
+                route_scope.get("root_path", "") + route_scope["path"], route_scope["method"], partial_allowed_methods
+            )
+
+        raise exceptions.NotFoundException(
+            path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
+        )
 
     def build_middleware_stack(self) -> ASGIApp:
         debug = self.debug
@@ -130,7 +165,9 @@ class ASGIService(Starlette, BaseASGIService):
 
         middleware = (
                 [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug),
-                 Middleware(GZipMiddleware, minimum_size=1024, compresslevel=7)]
+                 Middleware(GZipMiddleware, minimum_size=1024, compresslevel=7),
+                 Middleware(AuthenticationMiddleware, )
+                 ]
                 + self.user_middleware
                 + [
                     Middleware(

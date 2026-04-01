@@ -93,7 +93,6 @@ class ByteArrayLengthException(Exception):
 
 @total_ordering
 class SortableUID:
-
     # Timestamp is a uint32
     TIMESTAMP_LENGTH_IN_BYTES = 4
 
@@ -171,7 +170,6 @@ class SortableUID:
 
 
 class MSSortableUID(SortableUID):
-
     # Timestamp is a uint32
     TIMESTAMP_LENGTH_IN_BYTES = 5
 

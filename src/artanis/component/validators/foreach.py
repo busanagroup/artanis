@@ -84,7 +84,7 @@ class ForEach(CompoundValidator):
                 return new_list
             else:
                 raise Invalid('Errors:\n%s' % '\n'.join(str(e)
-                    for e in errors if e), value, state, error_list=errors)
+                                                        for e in errors if e), value, state, error_list=errors)
         finally:
             if state is not None:
                 if previous_index is NoDefault:

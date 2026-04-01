@@ -8,7 +8,6 @@ __all__ = ['Schema', 'SimpleFormValidator']
 
 
 class Schema(FancyValidator):
-
     """
     A schema validates a dictionary of values, applying different
     validators (be key) to the different values.  If
@@ -64,8 +63,8 @@ class Schema(FancyValidator):
         notExpected=_('The input field %(name)s was not expected.'),
         missingValue=_('Missing value'),
         badDictType=_('The input must be dict-like'
-            ' (not a %(type)s: %(value)r)'),
-        singleValueExpected=_('Please provide only one value'),)
+                      ' (not a %(type)s: %(value)r)'),
+        singleValueExpected=_('Please provide only one value'), )
 
     __mutableattributes__ = ('fields', 'chained_validators',
                              'pre_validators')
@@ -85,7 +84,7 @@ class Schema(FancyValidator):
             if key in ('pre_validators', 'chained_validators'):
                 if is_validator(value):
                     msg = "Any validator with the name %s will be ignored." % \
-                            (key,)
+                          (key,)
                     warnings.warn(msg, FERuntimeWarning)
                 continue
             if is_validator(value):
@@ -105,7 +104,7 @@ class Schema(FancyValidator):
             if key in ('pre_validators', 'chained_validators'):
                 if is_validator(value):
                     msg = "Any validator with the name %s will be ignored." % \
-                            (key,)
+                          (key,)
                     warnings.warn(msg, FERuntimeWarning)
                 continue
             if is_validator(value):
@@ -124,7 +123,7 @@ class Schema(FancyValidator):
             # Not a dict or dict-like object
             raise Invalid(
                 self.message('badDictType', state,
-                    type=type(value), value=value), value, state)
+                             type=type(value), value=value), value, state)
 
     def _convert_to_python(self, value_dict, state):
         if not value_dict:
@@ -151,7 +150,7 @@ class Schema(FancyValidator):
                 except ValueError:
                     if not self.allow_extra_fields:
                         raise Invalid(self.message('notExpected',
-                            state, name=repr(name)), value_dict, state)
+                                                   state, name=repr(name)), value_dict, state)
                     if not self.filter_extra_fields:
                         new[name] = value
                     continue
@@ -232,8 +231,8 @@ class Schema(FancyValidator):
         finished = []
         for validator in chained:
             __traceback_info__ = (
-                'for_python chained_validator %s (finished %s)') % (
-                validator, ', '.join(map(repr, finished)) or 'none')
+                                     'for_python chained_validator %s (finished %s)') % (
+                                     validator, ', '.join(map(repr, finished)) or 'none')
             finished.append(validator)
             value_dict = validator.from_python(value_dict, state)
         self.assert_dict(value_dict, state)
@@ -251,7 +250,7 @@ class Schema(FancyValidator):
                 except ValueError:
                     if not self.allow_extra_fields:
                         raise Invalid(self.message('notExpected',
-                            state, name=repr(name)), value_dict, state)
+                                                   state, name=repr(name)), value_dict, state)
                     if not self.filter_extra_fields:
                         new[name] = value
                 else:
@@ -475,4 +474,5 @@ class SimpleFormValidator(FancyValidator):
     def decorate(cls, **kw):
         def decorator(func):
             return cls(func, **kw)
+
         return decorator

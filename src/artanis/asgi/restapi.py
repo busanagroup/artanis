@@ -16,10 +16,10 @@
 from __future__ import annotations
 
 from artanis.asgi.asgiservice import ASGIService
-from artanis.asgi.asgiendpoint import BaseEndPoint
+from artanis.asgi.asgiendpoint import ASGIEndPoint
 
 
-class APIEndPoint(BaseEndPoint):
+class APIEndPoint(ASGIEndPoint):
     base_modules = "ecf.api"
 
 

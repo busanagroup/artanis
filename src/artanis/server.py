@@ -28,7 +28,6 @@ from artanis.utils import write_pid_file
 
 
 class Artanis(LifeCycleManager):
-
     pid_path: str
 
     def __init__(self, config=None):
@@ -51,7 +50,6 @@ class Artanis(LifeCycleManager):
         subsys_objects: list = self.get_objects()
         for subsys in subsys_objects:
             subsys.register_factory(self)
-
 
     def daemonize(self):
         active = True

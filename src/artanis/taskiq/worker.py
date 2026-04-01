@@ -38,8 +38,8 @@ from artanis.config import Configuration
 from artanis.exceptions import ShutdownError
 from artanis.utils import raise_shutdown
 
-
 worker_logger = logging.getLogger("taskiq.worker")
+
 
 async def shutdown_broker(broker: AsyncBroker, timeout: float) -> None:
     worker_logger.warning("Shutting down the broker.")
@@ -134,7 +134,9 @@ def taskiq_worker(
     finally:
         loop.run_until_complete(shutdown_broker(broker, args.shutdown_timeout))
 
+
 scheduler_logger = logging.getLogger("taskiq.scheduler")
+
 
 async def scheduler_worker(args: SchedulerArgs):
     if isinstance(args.scheduler, str):
@@ -145,8 +147,8 @@ async def scheduler_worker(args: SchedulerArgs):
         scheduler = args.scheduler
     if not isinstance(scheduler, TaskiqScheduler):
         scheduler_logger.error(
-                    "Imported scheduler is not a subclass of TaskiqScheduler.",
-                )
+            "Imported scheduler is not a subclass of TaskiqScheduler.",
+        )
         sys.exit(1)
 
     scheduler.broker.is_scheduler_process = True
@@ -210,4 +212,3 @@ async def run_scheduler(args: SchedulerArgs,
             raise other_errors
     except (ShutdownError, KeyboardInterrupt):
         pass
-

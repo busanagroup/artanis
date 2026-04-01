@@ -132,10 +132,10 @@ def variable_encode(d, prepend='', result=None, add_repetitions=True,
     elif isinstance(d, list):
         for i, value in enumerate(d):
             variable_encode(value, "%s%s%i" % (prepend, list_char, i), result,
-                add_repetitions, dict_char=dict_char, list_char=list_char)
+                            add_repetitions, dict_char=dict_char, list_char=list_char)
         if add_repetitions:
             rep_name = ('%s--repetitions' % prepend
-                if prepend else '__repetitions__')
+                        if prepend else '__repetitions__')
             result[rep_name] = str(len(d))
     else:
         result[prepend] = d

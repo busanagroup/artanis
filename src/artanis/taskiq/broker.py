@@ -31,7 +31,7 @@ class ArtanisTaskBroker(ListQueueBroker, StartableService, Singleton, SyncLock, 
 
     def __init__(self, *args, config: Configuration = None, queue_name: str = "arttask", **kwargs):
         self.redis_url = "/".join([config.get_property_value(config.ARTANIS_REDIS_URL, None), '0'])
-        super(ArtanisTaskBroker, self).__init__(self.redis_url, *args, queue_name=queue_name,**kwargs)
+        super(ArtanisTaskBroker, self).__init__(self.redis_url, *args, queue_name=queue_name, **kwargs)
         for base in ArtanisTaskBroker.__bases__:
             if base is not ListQueueBroker:
                 base.__init__(self, *args, **kwargs)  # type: ignore
@@ -85,6 +85,7 @@ class ArtanisTaskBroker(ListQueueBroker, StartableService, Singleton, SyncLock, 
                 cls.get_class_locker().release()
         return cls.VM_DEFAULT
 
+
 class ArtanisJobBroker(ArtanisTaskBroker):
 
     def __init__(self, *args, config: Configuration = None, **kwargs):
@@ -114,6 +115,7 @@ class ArtanisJobBroker(ArtanisTaskBroker):
 
         self.add_event_handler(TaskiqEvents.WORKER_STARTUP, process_startup)
         self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, process_shutdown)
+
 
 broker = ArtanisJobBroker.get_default_instance()
 task_broker = ArtanisTaskBroker.get_default_instance()

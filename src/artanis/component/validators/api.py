@@ -43,7 +43,6 @@ def get_localedir():
 
 def set_stdtranslation(domain="FormEncode", languages=None,
                        localedir=get_localedir()):
-
     t = gettext.translation(domain=domain,
                             languages=languages,
                             localedir=localedir, fallback=True)
@@ -72,11 +71,14 @@ def deprecation_warning(old, new=None, stacklevel=3):
 
 def deprecated(old=None, new=None):
     """A decorator which can be used to mark functions as deprecated."""
+
     def outer(func):
         def inner(*args, **kwargs):
             deprecation_warning(old or func.__name__, new)
             return func(*args, **kwargs)
+
         return inner
+
     return outer
 
 
@@ -87,17 +89,16 @@ class NoDefault:
 def is_empty(value):
     """Check whether the given value should be considered "empty"."""
     return value is None or value == '' or value == b'' or (
-        isinstance(value, (list, tuple, dict)) and not value)
+            isinstance(value, (list, tuple, dict)) and not value)
 
 
 def is_validator(obj):
     """Check whether obj is a Validator instance or class."""
     return (isinstance(obj, Validator) or
-        (isinstance(obj, type) and issubclass(obj, Validator)))
+            (isinstance(obj, type) and issubclass(obj, Validator)))
 
 
 class Invalid(Exception):
-
     """
     This is raised in response to invalid input.  It has several
     public attributes:
@@ -153,7 +154,7 @@ class Invalid(Exception):
                 "You can only encode dictionary errors")
             assert not self.error_dict
             return [item.unpack_errors() if item else item
-                for item in self.error_list]
+                    for item in self.error_list]
         if self.error_dict:
             result = {}
             for name, item in self.error_dict.items():
@@ -176,7 +177,6 @@ class Invalid(Exception):
 # Base Classes
 
 class Validator(declarative.Declarative):
-
     """
     The base class of most validators.  See ``IValidator`` for more, and
     ``FancyValidator`` for the more common (and more featureful) class.
@@ -305,7 +305,6 @@ Identity = _Identity()
 
 
 class FancyValidator(Validator):
-
     """
     FancyValidator is the (abstract) superclass for various validators
     and converters.  A subclass can validate, convert, or do both.
@@ -424,7 +423,7 @@ class FancyValidator(Validator):
             if old in new_attrs:
                 if new not in new_attrs:
                     deprecation_warning(old, new,
-                        stacklevel=cls._inheritance_level + 2)
+                                        stacklevel=cls._inheritance_level + 2)
                     setattr(cls, new, new_attrs[old])
             elif new in new_attrs:
                 setattr(cls, old, deprecated(old=old, new=new)(new_attrs[new]))
