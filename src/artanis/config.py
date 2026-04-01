@@ -154,7 +154,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_AUTH_BINDTYPE: 'tcp',
             self.ARTANIS_AUTH_BIND: '0.0.0.0:8001',
 
-            self.ARTANIS_API_ENABLED: 'true',
+            self.ARTANIS_API_ENABLED: 'false',
             self.ARTANIS_API_INSTANCES: '2',
             self.ARTANIS_API_BINDTYPE: 'tcp',
             self.ARTANIS_API_BIND: '0.0.0.0:8002',

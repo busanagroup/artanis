@@ -1,0 +1,141 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2026 Busana Apparel Group. All rights reserved.
+#
+# This product and it's source code is protected by patents, copyright laws and
+# international copyright treaties, as well as other intellectual property
+# laws and treaties. The product is licensed, not sold.
+#
+# The source code and sample programs in this package or parts hereof
+# as well as the documentation shall not be copied, modified or redistributed
+# without permission, explicit or implied, of the author.
+#
+# This module is part of Artanis Enterprise Platform and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import inspect
+import logging
+import typing as t
+
+from artanis import exceptions
+from artanis.asgi import types, endpoints, websockets
+from artanis.asgi.routing.routes.base import BaseRoute, BaseEndpointWrapper
+
+if t.TYPE_CHECKING:
+    from artanis.asgi.asgiservice import ASGIService
+
+__all__ = ["WebSocketRoute"]
+
+logger = logging.getLogger(__name__)
+
+
+class BaseWebSocketEndpointWrapper(BaseEndpointWrapper): ...
+
+
+class WebSocketFunctionWrapper(BaseWebSocketEndpointWrapper):
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
+        """Performs a request.
+
+        :param scope: ASGI scope.
+        :param receive: ASGI receive.
+        :param send: ASGI send.
+        """
+        app: ASGIService = scope["app"]
+        scope["path"] = scope.get("root_path", "").rstrip("/") + scope["path"]
+        scope["root_path"] = ""
+        route, route_scope = app.router.resolve_route(scope)
+        context = {
+            "scope": route_scope,
+            "receive": receive,
+            "send": send,
+            "exc": None,
+            "app": app,
+            "route": route,
+            "websocket": websockets.WebSocket(route_scope, receive, send),
+            "websocket_encoding": None,
+            "websocket_code": None,
+            "websocket_message": None,
+        }
+
+        injected_func = await app.injector.inject(self.handler, context)
+        await injected_func(**route_scope.get("kwargs", {}))
+
+
+class WebSocketEndpointWrapper(BaseWebSocketEndpointWrapper):
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
+        """Performs a request.
+
+        :param scope: ASGI scope.
+        :param receive: ASGI receive.
+        :param send: ASGI send.
+        """
+        await self.handler(scope, receive, send)
+
+
+class WebSocketRoute(BaseRoute):
+    def __init__(
+        self,
+        path: str,
+        endpoint: types.WebSocketHandler,
+        *,
+        name: str | None = None,
+        include_in_schema: bool = True,
+        pagination: types.Pagination | None = None,
+        tags: dict[str, t.Any] | None = None,
+    ):
+        """A route definition of a websocket endpoint.
+
+        :param path: URL path.
+        :param endpoint: Websocket endpoint or function.
+        :param name: Route name.
+        :param include_in_schema: True if this route must be listed as part of the App schema.
+        :param pagination: Apply a pagination technique.
+        :param tags: Route tags.
+        """
+
+        if not (self.is_endpoint(endpoint) or (not inspect.isclass(endpoint) and callable(endpoint))):
+            raise exceptions.ApplicationError("Endpoint must be a callable or a WebSocketEndpoint subclass")
+
+        name = endpoint.__name__ if name is None else name
+        wrapped_endpoint = (
+            endpoint
+            if isinstance(endpoint, BaseWebSocketEndpointWrapper)
+            else WebSocketEndpointWrapper(endpoint, signature=inspect.signature(endpoint), pagination=pagination)
+            if inspect.isclass(endpoint)
+            else WebSocketFunctionWrapper(endpoint, signature=inspect.signature(endpoint), pagination=pagination)
+        )
+
+        super().__init__(path, wrapped_endpoint, name=name, include_in_schema=include_in_schema, tags=tags)
+
+        self.app: BaseWebSocketEndpointWrapper
+
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
+        if scope["type"] == "websocket":
+            await self.handle(types.Scope({**scope, **self.route_scope(scope)}), receive, send)
+
+    @staticmethod
+    def is_endpoint(x: types.WebSocketHandler) -> t.TypeGuard[type[endpoints.WebSocketEndpoint]]:
+        return inspect.isclass(x) and issubclass(x, endpoints.WebSocketEndpoint)
+
+    def endpoint_handlers(self) -> dict[str, t.Callable]:
+        """Return a mapping of all possible endpoints of this route.
+
+        Useful to identify all endpoints by HTTP methods.
+
+        :return: Mapping of all endpoints.
+        """
+        if self.is_endpoint(self.endpoint):
+            return self.endpoint.allowed_handlers()
+
+        return {"WEBSOCKET": self.endpoint}
+
+    def match(self, scope: types.Scope) -> BaseRoute.Match:
+        """Check if this route matches with given scope.
+
+        :param scope: ASGI scope.
+        :return: Match.
+        """
+        if scope["type"] != "websocket":
+            return self.Match.none
+
+        return super().match(scope)

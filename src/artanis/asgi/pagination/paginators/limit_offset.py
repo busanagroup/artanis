@@ -1,0 +1,150 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2026 Busana Apparel Group. All rights reserved.
+#
+# This product and it's source code is protected by patents, copyright laws and
+# international copyright treaties, as well as other intellectual property
+# laws and treaties. The product is licensed, not sold.
+#
+# The source code and sample programs in this package or parts hereof
+# as well as the documentation shall not be copied, modified or redistributed
+# without permission, explicit or implied, of the author.
+#
+# This module is part of Artanis Enterprise Platform and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import functools
+import inspect
+import typing as t
+
+from artanis.asgi import schemas
+from artanis.asgi.pagination.paginators.base import BasePaginator, PaginatedResponse
+from artanis.asgi.schemas.data_structures import Field, Schema
+
+__all__ = ["LimitOffsetPaginator", "LimitOffsetResponse"]
+
+P = t.ParamSpec("P")
+R = t.TypeVar("R", covariant=True)
+
+
+class LimitOffsetResponse(PaginatedResponse[R]):
+    """
+    Response paginated based on a limit of elements and an offset.
+
+    First 10 elements:
+        /resource?offset=0&limit=10
+    Elements 20-30:
+        /resource?offset=20&limit=10
+    """
+
+    default_limit = 10
+
+    def __init__(
+        self,
+        schema: R,
+        offset: int | str | None = None,
+        limit: int | str | None = None,
+        count: bool | None = True,
+        **kwargs,
+    ):
+        self.offset = int(offset) if offset is not None else 0
+        self.limit = int(limit) if limit is not None else self.default_limit
+        self.count = count
+        super().__init__(schema=schema, **kwargs)
+
+    def render(self, content: t.Sequence[t.Any]) -> bytes:
+        init = self.offset
+        end = self.offset + self.limit
+        return super().render(
+            {
+                "meta": {"limit": self.limit, "offset": self.offset, "count": len(content) if self.count else None},
+                "data": content[init:end],
+            }
+        )
+
+
+class LimitOffsetPaginator(BasePaginator):
+    PARAMETERS = [
+        inspect.Parameter(
+            name="limit", default=None, annotation=int | None, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD
+        ),
+        inspect.Parameter(
+            name="offset", default=None, annotation=int | None, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD
+        ),
+        inspect.Parameter(
+            name="count", default=False, annotation=bool | None, kind=inspect.Parameter.POSITIONAL_OR_KEYWORD
+        ),
+    ]
+
+    @classmethod
+    def _decorate_async(
+        cls, func: t.Callable[P, t.Coroutine[R, t.Any, t.Any]], schema: t.Any
+    ) -> t.Callable[P, t.Coroutine[LimitOffsetResponse[R], t.Any, t.Any]]:
+        @functools.wraps(func)
+        async def decorator(
+            *args,
+            limit: int | None = None,
+            offset: int | None = None,
+            count: bool | None = False,
+            **kwargs,
+        ):
+            return LimitOffsetResponse(
+                schema=schema, limit=limit, offset=offset, count=count, content=await func(*args, **kwargs)
+            )
+
+        return decorator
+
+    @classmethod
+    def _decorate_sync(cls, func: t.Callable[P, R], schema: t.Any) -> t.Callable[P, LimitOffsetResponse[R]]:
+        @functools.wraps(func)
+        def decorator(
+            *args,
+            limit: int | None = None,
+            offset: int | None = None,
+            count: bool | None = False,
+            **kwargs,
+        ):
+            return LimitOffsetResponse(
+                schema=schema, limit=limit, offset=offset, count=count, content=func(*args, **kwargs)
+            )
+
+        return decorator
+
+    @classmethod
+    def wraps(
+        cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature
+    ) -> tuple[t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], dict[str, t.Any]]:
+        """
+        Decorator for adding pagination behavior to a view. That decorator produces a view based on limit-offset and
+        it adds three query parameters to control the pagination: limit, offset and count. Offset has a default value of
+        zero to start with the first element of the collection, limit default value is defined in
+        :class:`LimitOffsetResponse` and count defines if the response will
+        define the total number of elements.
+
+        The output field is also modified by :class:`LimitOffsetSchema`,
+        creating a new field based on it but using the old output field as the content of its data field.
+
+        :param func: Function to decorate.
+        :param signature: Function signature.
+        :return: Decorated view and new schemas.
+        """
+        schema = Schema.from_type(signature.return_annotation)
+
+        try:
+            module, schema_class = schema.name.rsplit(".", 1)
+            name = f"LimitOffsetPaginated{schema_class}"
+        except ValueError:  # pragma: no cover
+            module = None
+            name = f"LimitOffsetPaginated{schema.name}"
+
+        paginated_schema = Schema.build(
+            name,
+            module,
+            schema=schemas.schemas.LimitOffset,
+            fields=[Field("data", schema.unique_schema, multiple=True)],
+        )
+
+        decorator = cls._decorate(func, signature, paginated_schema.unique_schema)
+        new_schemas = {schema.name: schema.unique_schema, paginated_schema.name: paginated_schema.unique_schema}
+
+        return decorator, new_schemas

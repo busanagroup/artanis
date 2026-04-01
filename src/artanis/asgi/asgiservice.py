@@ -18,13 +18,20 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.types import ASGIApp, ExceptionHandler, Scope, Send, Receive
 
+from artanis import injection
+from artanis.abc.components import WorkerComponent
+from artanis.asgi.events import Events
+from artanis.asgi.middlewares import MiddlewareStack
+from artanis.asgi.modules import Modules
+from artanis.asgi.pagination import paginator
+from artanis.asgi.schemas.modules import SchemaModule
+from artanis.injection import injector
 from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
 from artanis.abc.service import StartableService
@@ -33,9 +40,62 @@ from artanis.asgi.middleware.asyncexitstack import AsyncExitStackMiddleware
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
 from artanis.asgi.exceptions import exception_handlers
+from artanis.asgi import routing, http, types, websockets
+from artanis.models import ModelsModule
+from artanis.resources import ResourcesModule
+from artanis.resources.workers import ResourceWorker
 
 
-class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
+class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
+
+    resources: ResourcesModule
+    schema: SchemaModule
+    models: ModelsModule
+
+    def __init__(
+            self,
+            config: Any = None,
+            debug: bool = False,
+            parent: ASGIService | None = None
+    ):
+        super().__init__(config=config)
+        openapi: types.OpenAPISpec = {
+            "info": {
+                "title": "Artanis",
+                "version": "0.1.0",
+                "summary": "Artanis application",
+                "description": "The future is ours",
+            },
+        }
+        self.debug = debug
+        self.exception_handlers = exception_handlers
+        self.parent = parent
+        self._shutdown = False
+
+        self._injector = injector.Injector(Context)
+
+        default_components = []
+
+        if (worker := ResourceWorker() if ResourceWorker else None) and WorkerComponent:
+            default_components.append(WorkerComponent(worker=worker))
+
+        default_modules = [
+            ResourcesModule(worker=worker),
+            SchemaModule(openapi, schema="/schema/", docs="/docs/"),
+            ModelsModule(),
+        ]
+        self.modules = Modules(app=self, modules={*default_modules, *([])})
+
+        self.app = self.router = routing.Router(
+            routes=None, components=[*default_components, *([])], lifespan=None, app=self
+        )
+        self.middleware = MiddlewareStack(app=self, middleware=[], debug=debug)
+        self.schema.schema_library = None
+        self.schema.add_routes()
+        self.events = Events.build(**({}))
+        self.events.startup += [m.on_startup for m in self.modules.values()]
+        self.events.shutdown += [m.on_shutdown for m in self.modules.values()]
+        self.paginator = paginator
 
     def do_configure(self):
         super().do_configure()
@@ -84,39 +144,6 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
     def load_configuration(self):
         return self.get_configuration()
 
-    @classmethod
-    def _configure_singleton(cls, *args, **kwargs):
-        if cls.has_singleton_instance():
-            cls.VM_DEFAULT.configure()
-
-    @classmethod
-    def get_default_instance(cls, *args, create_instance=True, **kwargs):
-        if create_instance and not cls.has_singleton_instance():
-            cls.get_class_locker().acquire()
-            try:
-                config = Configuration.get_default_instance(create_instance=False)
-                cls.VM_DEFAULT = cls(*args, config=config, **kwargs)
-                cls._configure_singleton()
-            finally:
-                cls.get_class_locker().release()
-        return cls.VM_DEFAULT
-
-
-class ASGIService(Starlette, BaseASGIService):
-
-    def __init__(self, *args, **kwargs):
-        config = kwargs.pop('config')
-        super(ASGIService, self).__init__(*args, exception_handlers=exception_handlers, **kwargs)
-        for base in BaseASGIService.__bases__:
-            if base is not Starlette:
-                base.__init__(self, *args, config=config, **kwargs)
-
-
-    def do_configure(self):
-        super().do_configure()
-        if self.middleware_stack is None:
-            self.middleware_stack = self.build_middleware_stack()
-
     def build_middleware_stack(self) -> ASGIApp:
         debug = self.debug
         error_handler = None
@@ -144,3 +171,50 @@ class ASGIService(Starlette, BaseASGIService):
         for cls, args, kwargs in reversed(middleware):
             app = cls(app, *args, **kwargs)
         return app
+
+    @classmethod
+    def _configure_singleton(cls, *args, **kwargs):
+        if cls.has_singleton_instance():
+            cls.VM_DEFAULT.configure()
+
+    @classmethod
+    def get_default_instance(cls, *args, create_instance=True, **kwargs):
+        if create_instance and not cls.has_singleton_instance():
+            cls.get_class_locker().acquire()
+            try:
+                config = Configuration.get_default_instance(create_instance=False)
+                cls.VM_DEFAULT = cls(*args, config=config, **kwargs)
+                cls._configure_singleton()
+            finally:
+                cls.get_class_locker().release()
+        return cls.VM_DEFAULT
+
+
+class Context(injection.Context):
+    types = {
+        "scope": types.Scope,
+        "receive": types.Receive,
+        "send": types.Send,
+        "exc": Exception,
+        "app": ASGIService,
+        "route": routing.BaseRoute,
+        "request": http.Request,
+        "response": http.Response,
+        "websocket": websockets.WebSocket,
+        "websocket_message": types.Message,
+        "websocket_encoding": types.Encoding,
+        "websocket_code": types.Code,
+    }
+
+    hashable = (
+        "scope",
+        "receive",
+        "send",
+        "exc",
+        "app",
+        "route",
+        "response",
+        "websocket_message",
+        "websocket_encoding",
+        "websocket_code",
+    )
