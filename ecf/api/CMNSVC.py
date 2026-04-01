@@ -15,14 +15,13 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
 from artanis.asgi.asgiendpoint import published
 from ecf.core.apisvc import *
 
 
-class cmnsvc(APIService):
+class CMNSVC(APIService):
 
     description = 'Common Service API'
 
