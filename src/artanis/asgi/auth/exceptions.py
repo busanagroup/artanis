@@ -13,10 +13,35 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
-from typing import Any
+__all__ = [
+    "AuthenticationException",
+    "Unauthorized",
+    "JWTException",
+    "JWTDecodeException",
+    "JWTValidateException",
+    "JWTClaimValidateException",
+]
 
-class Descriptor:
-    name: str
-    path: str
-    handle_request: bool = False
+
+class AuthenticationException(Exception): ...
+
+
+class Unauthorized(AuthenticationException): ...
+
+
+class Forbidden(AuthenticationException): ...
+
+
+class JWTException(AuthenticationException): ...
+
+
+class JWTDecodeException(JWTException): ...
+
+
+class JWTValidateException(JWTException): ...
+
+
+class JWTClaimValidateException(JWTValidateException):
+    def __init__(self, claim: str) -> None:
+        self.claim = claim
+        super().__init__(f"Claim '{self.claim}' is not valid")

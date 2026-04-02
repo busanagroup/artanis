@@ -303,12 +303,12 @@ class _ArtanisLoader(jinja2.PackageLoader):
         if spec is None or spec.origin is None:
             raise exceptions.ApplicationError("Artanis package not found")
 
-        templates_path = pathlib.Path(spec.origin).parent.joinpath("templates")
+        templates_path = pathlib.Path(spec.origin).parent.joinpath("asgi", "templates")
         if not templates_path.exists():
             warnings.warn("Templates folder not found in the Artanis package")
             templates_path.mkdir(exist_ok=True)
 
-        super().__init__(package_name="artanis", package_path="templates")
+        super().__init__(package_name="artanis.asgi", package_path="templates")
 
 
 class _ArtanisTemplateResponse(HTMLTemplateResponse):

@@ -13,10 +13,12 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
-from typing import Any
+from artanis.asgi.auth.jwt import JWT
 
-class Descriptor:
-    name: str
-    path: str
-    handle_request: bool = False
+__all__ = ["AccessToken", "RefreshToken"]
+
+
+class AccessToken(JWT): ...
+
+
+class RefreshToken(JWT): ...

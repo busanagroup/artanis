@@ -25,6 +25,7 @@ import starlette.middleware.trustedhost
 
 from artanis import concurrency
 from artanis.asgi.debug.middleware import ExceptionMiddleware, ServerErrorMiddleware
+from artanis.asgi.exceptions import exception_handlers
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService
@@ -117,11 +118,11 @@ class Middleware:
 
 
 class MiddlewareStack:
-    def __init__(self, app: "ASGIService ", middleware: t.Sequence[Middleware], debug: bool):
+    def __init__(self, app: "ASGIService ", middleware: t.Sequence[Middleware] = [], debug: bool = False):
         self.app = app
         self.middleware = list(reversed(middleware))
         self.debug = debug
-        self._exception_handlers: dict[int | type[Exception], t.Callable[[Request, Exception], Response]] = {}
+        self._exception_handlers: dict[int | type[Exception], t.Callable[[Request, Exception], Response]] = exception_handlers
         self._stack: types.MiddlewareClass | types.App | None = None
 
     @property

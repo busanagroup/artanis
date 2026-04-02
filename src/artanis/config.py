@@ -20,6 +20,7 @@ import logging
 import os
 import pathlib
 import re
+import uuid
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -73,6 +74,8 @@ _posix_variable: Pattern[str] = re.compile(
 
 
 class Configuration(Singleton, SyncLock, Listenable):
+    ARTANIS_APP_NAME: str = 'artanis.app.name'
+    ARTANIS_CMP_NAME: str = 'artanis.cmp.name'
     ARTANIS_AUTH_ENABLED: str = 'artanis.auth.enabled'
     ARTANIS_AUTH_BINDTYPE: str = 'artanis.auth.bindtype'
     ARTANIS_AUTH_BIND: str = 'artanis.auth.bind'
@@ -115,6 +118,15 @@ class Configuration(Singleton, SyncLock, Listenable):
 
     ARTANIS_DB_EXTCONN_COUNT: str = 'artanis.db.extconn.count'
 
+    JWT_SECRET_KEY : str = 'artanis.jwt.secret.key'
+    JWT_HEADER_KEY : str = 'artanis.jwt.header.key'
+    JWT_HEADER_PREFIX : str = 'artanis.jwt.header.prefix'
+    JWT_ALGORITHM : str = 'artanis.jwt.algorithm'
+    JWT_TOKEN_EXPIRATION : str = 'artanis.jwt.token.expiration'
+    JWT_REFRESH_EXPIRATION : str = 'artanis.jwt.refresh.expiration'
+    JWT_ACCESS_COOKIE_KEY : str = 'artanis.jwt.access.key'
+    JWT_REFRESH_COOKIE_KEY : str = 'artanis.jwt.refresh.key'
+
     # ARTANIS_DB_EXTCONN_1_NAME: str = 'artanis.db.extconn.1.name'
     # ARTANIS_DB_EXTCONN_1_CONNECTION: str = 'artanis.db.extconn.1.connection'
     # ARTANIS_DB_EXTCONN_1_SCHEMA: str = 'artanis.db.extconn.1.schema'
@@ -148,6 +160,9 @@ class Configuration(Singleton, SyncLock, Listenable):
         path = str(pathlib.Path(os.path.abspath(self.config_path))
                    .parent.parent.resolve())
         values: Dict[str, Optional[str]] = {
+
+            self.ARTANIS_APP_NAME: 'Artanis',
+            self.ARTANIS_CMP_NAME: 'Busana Apparel Group',
 
             self.ARTANIS_AUTH_ENABLED: 'true',
             self.ARTANIS_AUTH_INSTANCES: '1',
@@ -191,6 +206,15 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_DB_POOL_SIZE: None,
             self.ARTANIS_DB_POOL_ACTIVE: None,
             self.ARTANIS_DB_POOL_IDLE: None,
+
+            self.JWT_SECRET_KEY : str(uuid.uuid5(uuid.NAMESPACE_OID, 'Artanis')),
+            self.JWT_HEADER_KEY : "Authorization",  # Authorization header identifie
+            self.JWT_HEADER_PREFIX : "Bearer",  # Bearer prefix
+            self.JWT_ALGORITHM : "HS256",  # Algorithm used to sign the token
+            self.JWT_TOKEN_EXPIRATION : "300",  # 5 minutes in seconds
+            self.JWT_REFRESH_EXPIRATION : "2592000",  # 30 days in seconds
+            self.JWT_ACCESS_COOKIE_KEY : "access_token",
+            self.JWT_REFRESH_COOKIE_KEY : "refresh_token",
         }
         return values
 
