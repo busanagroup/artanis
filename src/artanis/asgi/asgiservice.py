@@ -16,61 +16,62 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+import logging
+import threading
+import typing as t
+import uuid
 
-from starlette.middleware import Middleware
-from starlette.middleware.errors import ServerErrorMiddleware
-from starlette.middleware.exceptions import ExceptionMiddleware
-from starlette.middleware.gzip import GZipMiddleware
-from starlette.types import ASGIApp, ExceptionHandler, Scope, Send, Receive
-
-from artanis import injection
+from artanis import injection, exceptions
 from artanis.abc.components import WorkerComponent
-from artanis.asgi.events import Events
-from artanis.asgi.middlewares import MiddlewareStack
-from artanis.asgi.modules import Modules
-from artanis.asgi.pagination import paginator
-from artanis.asgi.schemas.modules import SchemaModule
-from artanis.injection import injector
 from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
 from artanis.abc.service import StartableService
 from artanis.abc.singleton import Singleton
-from artanis.asgi.middleware.asyncexitstack import AsyncExitStackMiddleware
+from artanis.asgi import routing, http, types, websockets, url
+from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent, AuthenticationMiddleware
+from artanis.asgi.components import asgi, validation
+from artanis.asgi.events import Events
+from artanis.asgi.exceptions import exception_handlers
+from artanis.asgi.middlewares import MiddlewareStack, Middleware
+from artanis.asgi.modules import Modules
+from artanis.asgi.pagination import paginator
+from artanis.asgi.routing import WebSocketRoute
+from artanis.asgi.schemas.modules import SchemaModule
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
-from artanis.asgi.exceptions import exception_handlers
-from artanis.asgi import routing, http, types, websockets
+from artanis.injection import injector, Components
 from artanis.models import ModelsModule
 from artanis.resources import ResourcesModule
 from artanis.resources.workers import ResourceWorker
 
+logger = logging.getLogger(__name__)
+
 
 class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
-
     resources: ResourcesModule
     schema: SchemaModule
     models: ModelsModule
 
     def __init__(
             self,
-            config: Any = None,
+            config: Configuration = None,
             debug: bool = False,
-            parent: ASGIService | None = None
+            parent: ASGIService | None = None,
+            openapi: types.OpenAPISpec = {
+                "info": {
+                    "title": "Artanis",
+                    "version": "0.1.0",
+                    "summary": "Artanis application",
+                    "description": "The future is ours",
+                },
+            },
     ):
         super().__init__(config=config)
-        openapi: types.OpenAPISpec = {
-            "info": {
-                "title": "Artanis",
-                "version": "0.1.0",
-                "summary": "Artanis application",
-                "description": "The future is ours",
-            },
-        }
         self.debug = debug
         self.exception_handlers = exception_handlers
         self.parent = parent
         self._shutdown = False
+        self._status = types.AppStatus.NOT_STARTED
 
         self._injector = injector.Injector(Context)
 
@@ -81,20 +82,41 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
 
         default_modules = [
             ResourcesModule(worker=worker),
-            SchemaModule(openapi, schema="/schema/", docs="/docs/"),
+            SchemaModule(openapi, schema="/openapi.json", docs="/docs/"),
             ModelsModule(),
         ]
         self.modules = Modules(app=self, modules={*default_modules, *([])})
 
+        jwt_secret = config.get_property_value(config.JWT_SECRET_KEY, str(uuid.UUID(int=0)))
         self.app = self.router = routing.Router(
-            routes=None, components=[*default_components, *([])], lifespan=None, app=self
+            routes=None, components=[*default_components, *(
+                [
+                    AccessTokenComponent(
+                        jwt_secret.encode(),
+                        header_prefix=config.get_property_value(config.JWT_HEADER_PREFIX),
+                        header_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY),
+                        cookie_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY)
+                    ),
+                    RefreshTokenComponent(
+                        jwt_secret.encode(),
+                        header_prefix=config.get_property_value(config.JWT_HEADER_PREFIX),
+                        header_key=config.get_property_value(config.JWT_REFRESH_COOKIE_KEY),
+                        cookie_key=config.get_property_value(config.JWT_REFRESH_COOKIE_KEY)
+                    )
+                ])], lifespan=None, app=self
         )
-        self.middleware = MiddlewareStack(app=self, middleware=[], debug=debug)
+        self.middleware = MiddlewareStack(
+            app=self,
+            middleware=[
+                Middleware(AuthenticationMiddleware)
+            ],
+            debug=debug
+        )
         self.schema.schema_library = None
         self.schema.add_routes()
         self.events = Events.build(**({}))
-        self.events.startup += [m.on_startup for m in self.modules.values()]
-        self.events.shutdown += [m.on_shutdown for m in self.modules.values()]
+        self.events.startup += [mod.on_startup for mod in self.modules.values()]
+        self.events.shutdown += [mod.on_shutdown for mod in self.modules.values()]
         self.paginator = paginator
 
     def do_configure(self):
@@ -125,9 +147,7 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         self.configure_services(config)
         self.configure_middlewares(config)
         self.configure_application(config)
-
-    def add_event_handler(self, event_type: str, func: Callable) -> None:
-        raise NotImplementedError
+        self.configure_endpoints(config)
 
     def configure_modules(self, config):
         ...
@@ -141,36 +161,126 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
     def configure_application(self, config):
         ...
 
+    def configure_endpoints(self, config):
+        ...
+
     def load_configuration(self):
         return self.get_configuration()
 
-    def build_middleware_stack(self) -> ASGIApp:
-        debug = self.debug
-        error_handler = None
-        exception_handlers: dict[Any, ExceptionHandler] = {}
+    def __getattr__(self, item: str) -> t.Any:
+        try:
+            return self.modules.__getitem__(item)
+        except KeyError:
+            return None
 
-        for key, value in self.exception_handlers.items():
-            if key in (500, Exception):
-                error_handler = value
-            else:
-                exception_handlers[key] = value
+    @property
+    def status(self) -> types.AppStatus:
+        return self._status
 
-        middleware = (
-                [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug),
-                 Middleware(GZipMiddleware, minimum_size=1024, compresslevel=7)]
-                + self.user_middleware
-                + [
-                    Middleware(
-                        ExceptionMiddleware, handlers=exception_handlers, debug=debug
-                    ),
-                    Middleware(AsyncExitStackMiddleware),
-                ]
+    @status.setter
+    def status(self, s: types.AppStatus) -> None:
+        logger.debug("Transitioning %s from %s to %s", self, self._status, s)
+
+        with threading.Lock():
+            self._status = s
+
+    @property
+    def components(self) -> injection.Components:
+        return Components(self.router.components + (self.parent.components if self.parent else ()))
+
+    def add_component(self, component: injection.Component):
+        self.router.add_component(component)
+
+    @property
+    def routes(self) -> list[routing.BaseRoute]:
+        return self.router.routes
+
+    def add_route(
+            self,
+            path: str | None = None,
+            endpoint: types.HTTPHandler | None = None,
+            methods: list[str] | None = None,
+            *,
+            name: str | None = None,
+            include_in_schema: bool = True,
+            route: routing.Route | None = None,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
+    ) -> routing.Route:
+        return self.router.add_route(
+            path,
+            endpoint,
+            methods=methods,
+            name=name,
+            include_in_schema=include_in_schema,
+            route=route,
+            pagination=pagination,
+            tags=tags,
         )
 
-        app = self.router
-        for cls, args, kwargs in reversed(middleware):
-            app = cls(app, *args, **kwargs)
-        return app
+    def add_websocket_route(
+            self,
+            path: str | None = None,
+            endpoint: types.WebSocketHandler | None = None,
+            *,
+            name: str | None = None,
+            route: WebSocketRoute | None = None,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
+    ) -> WebSocketRoute:
+        return self.router.add_websocket_route(
+            path,
+            endpoint,
+            name=name,
+            route=route,
+            pagination=pagination,
+            tags=tags
+        )
+
+    def add_exception_handler(self, exc_class_or_status_code: int | type[Exception], handler: t.Callable):
+        self.middleware.add_exception_handler(exc_class_or_status_code, handler)
+
+    def add_middleware(self, middleware: "Middleware"):
+        self.middleware.add_middleware(middleware)
+
+    def mount(
+            self,
+            path: str | None = None,
+            app: types.App | None = None,
+            *,
+            name: str | None = None,
+            mount: routing.Mount | None = None,
+            tags: dict[str, t.Any] | None = None,
+    ) -> routing.Mount:
+        return self.router.mount(path, app, name=name, mount=mount, tags=tags)
+
+    def resolve_route(self, scope: types.Scope) -> tuple[routing.BaseRoute, types.Scope]:
+        return self.router.resolve_route(scope)
+
+    def resolve_url(self, name: str, **path_params: t.Any) -> url.URL:
+        return self.router.resolve_url(name, **path_params)
+
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
+        if scope["type"] != "lifespan":
+            if self.status in (types.AppStatus.NOT_STARTED, types.AppStatus.STARTING):
+                raise exceptions.ApplicationError("Application is not ready to process requests yet.")
+
+            elif self.status in (types.AppStatus.SHUT_DOWN, types.AppStatus.SHUTTING_DOWN):
+                raise exceptions.ApplicationError("Application is already shut down.")
+
+        scope["app"] = self
+        scope.setdefault("root_app", self)
+        await self.middleware(scope, receive, send)
+
+    def add_event_handler(self, event: str, func: t.Callable) -> None:
+        self.events.register(event, func)
+
+    @property
+    def injector(self) -> injection.Injector:
+        components = injection.Components(self.components + asgi.ASGI_COMPONENTS + validation.VALIDATION_COMPONENTS)
+        if self._injector.components != components:
+            self._injector.components = components
+        return self._injector
 
     @classmethod
     def _configure_singleton(cls, *args, **kwargs):

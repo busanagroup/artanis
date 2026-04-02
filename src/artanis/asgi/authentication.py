@@ -15,26 +15,32 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from artanis.asgi.asgiservice import ASGIService
-from artanis.asgi.asgiendpoint import BaseEndPoint, Descriptor, published
+# from artanis.asgi.asgiendpoint import BaseEndPoint, Descriptor, published
 
 
-class AuthEndPoint(BaseEndPoint):
-    descriptor = Descriptor()
-
-    @published(path="/login", methods=["GET"])
-    async def do_login(self, request: Request):
-        return JSONResponse({'hello': 'world'})
+# class AuthEndPoint(BaseEndPoint):
+#     descriptor = Descriptor()
+#
+#     @published(path="/login", methods=["GET"])
+#     async def do_login(self, request: Request):
+#         return JSONResponse({'hello': 'world'})
 
 
 class AuthAppService(ASGIService):
 
+    async def hello(self):
+        return {'message': 'Hello World'}
+
+    def configure_endpoints(self, config):
+        self.add_route('/', self.hello, methods=["GET"])
+
     def configure_services(self, config):
-        self.mount('/auth', AuthEndPoint(config=config, parent=self))
+        ...
+        # self.mount('/auth', AuthEndPoint(config=config, parent=self))
 
 
 app = AuthAppService.get_default_instance()
