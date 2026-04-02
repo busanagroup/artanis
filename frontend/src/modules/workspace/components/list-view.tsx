@@ -81,7 +81,7 @@ export function ListView({
         data={gridData}
         dataItemKey="id"
         className="text-sm w-full"
-        style={{ width: '100%', minWidth: gridMinWidth }}
+        style={{ width: '100%' }}
         scrollable="scrollable"
         autoProcessData={true}
         sortable={true}

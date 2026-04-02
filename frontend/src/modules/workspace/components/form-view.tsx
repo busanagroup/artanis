@@ -1,5 +1,7 @@
-import { AppButton } from '@/components/global/ui/button'
+import { Alert, Button, Card, Input, Typography } from 'antd'
 import type { RecordItem } from './list-view'
+
+const { Text, Title } = Typography
 
 export type FormIntent = 'view' | 'create' | 'edit'
 
@@ -25,46 +27,68 @@ export function FormView({
   onUpdateField,
 }: FormViewProps) {
   return (
-    <div className="min-h-[480px] p-4">
-      <div className="mb-4 flex items-center justify-between border-b border-indigo-100 pb-3">
+    <div className="min-h-[520px] bg-[linear-gradient(180deg,#fbfcff_0%,#f7f9fd_100%)] p-5">
+      <div className="mb-5 flex flex-col gap-4 rounded-[24px] border border-[#e5ebf6] bg-white px-5 py-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-wider text-slate-500">{formIntent === 'create' ? 'Create Page' : 'Edit Page'}</p>
-          <h3 className="text-xl font-semibold text-[#33437a]">
+          <Text className="!text-xs !font-semibold !uppercase !tracking-[0.16em] !text-[#8896b3]">
+            {formIntent === 'create' ? 'Create Page' : 'Edit Page'}
+          </Text>
+          <Title level={4} className="!mb-0 !mt-2 !text-[#223d73]">
             {formIntent === 'create' ? 'Create Record' : `Edit ${getRecordTitle(formRecord)}`}
-          </h3>
+          </Title>
         </div>
+
         <div className="flex items-center gap-2">
-          <AppButton onClick={onSave} disabled={isSaving} className="px-3 py-1.5 text-xs">
+          <Button type="primary" loading={isSaving} onClick={onSave}>
             {isSaving ? 'Saving...' : 'Save'}
-          </AppButton>
-          <AppButton variant="ghost" onClick={onCancel} className="px-3 py-1.5 text-xs">
-            Cancel
-          </AppButton>
+          </Button>
+          <Button onClick={onCancel}>Cancel</Button>
         </div>
       </div>
 
       {saveErrorMessage ? (
-        <p className="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{saveErrorMessage}</p>
+        <Alert
+          type="error"
+          showIcon
+          message={saveErrorMessage}
+          className="!mb-4 !rounded-2xl !border-0 !bg-[#fff2f0]"
+        />
       ) : null}
 
-      <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {Object.entries(formRecord)
           .filter(([key]) => !key.startsWith('$'))
           .slice(0, 36)
-          .map(([key, value]) => (
-            <div key={key} className="rounded-md border border-indigo-100 bg-slate-50 px-3 py-2">
-              <p className="text-xs text-slate-500">{key}</p>
-              {['id', 'version'].includes(key) ? (
-                <p className="mt-1 text-sm text-[#3f4c7c]">{String(value ?? '-')}</p>
-              ) : (
-                <input
-                  value={String(value ?? '')}
-                  onChange={(event) => onUpdateField(key, event.target.value)}
-                  className="mt-1 w-full rounded border border-indigo-200 bg-white px-2 py-1 text-sm text-[#3f4c7c] outline-none ring-indigo-300 focus:ring"
-                />
-              )}
-            </div>
-          ))}
+          .map(([key, value]) => {
+            const readOnly = ['id', 'version'].includes(key)
+
+            return (
+              <Card
+                key={key}
+                bordered={false}
+                className="!rounded-[22px] !border !border-[#e7edf7] !bg-white !shadow-none"
+                bodyStyle={{ padding: 18 }}
+              >
+                <div className="space-y-3">
+                  <div>
+                    <Text className="!text-xs !font-semibold !uppercase !tracking-[0.12em] !text-[#8a96b3]">{key}</Text>
+                    {readOnly ? (
+                      <p className="mt-2 text-sm font-medium text-[#314677]">{String(value ?? '-')}</p>
+                    ) : null}
+                  </div>
+
+                  {!readOnly ? (
+                    <Input
+                      value={String(value ?? '')}
+                      onChange={(event) => onUpdateField(key, event.target.value)}
+                      size="large"
+                      className="!rounded-xl"
+                    />
+                  ) : null}
+                </div>
+              </Card>
+            )
+          })}
       </div>
     </div>
   )
