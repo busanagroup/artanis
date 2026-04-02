@@ -17,3 +17,30 @@ body {
   color: var(--text-main);
   font-family: "Nunito Sans", "Segoe UI", sans-serif;
 }
+
+#root {
+  min-height: 100vh;
+}
+
+.workspace-nav-tabs .ant-tabs-nav {
+  margin: 0 !important;
+}
+
+.workspace-nav-tabs .ant-tabs-tab {
+  border-radius: 14px 14px 0 0 !important;
+  border-color: #dbe4f2 !important;
+  background: #f7f9ff !important;
+}
+
+.workspace-nav-tabs .ant-tabs-tab-active {
+  background: linear-gradient(180deg, #eff1ff 0%, #ffffff 100%) !important;
+}
+
+.workspace-nav-tabs .ant-tabs-content-holder {
+  display: none;
+}
+
+.workspace-content-shell .k-grid {
+  border: 0;
+  background: transparent;
+}
