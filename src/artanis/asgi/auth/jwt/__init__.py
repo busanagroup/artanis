@@ -13,6 +13,6 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from flama.authentication.components import *  # noqa
-from flama.authentication.jwt.jwt import JWT  # noqa
-from flama.authentication.types import *  # noqa
+from artanis.asgi.auth.components import *  # noqa
+from artanis.asgi.auth.jwt.jwt import JWT  # noqa
+from artanis.asgi.auth.types import *  # noqa
