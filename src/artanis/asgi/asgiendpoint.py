@@ -25,7 +25,7 @@ from artanis.abc.configurable import Configurable
 from artanis.abc.service import StartableService
 from artanis.abc.startable import StartableListener
 from artanis.asgi import url, types
-from artanis.asgi.routing import BaseRoute
+from artanis.asgi.routing import BaseRoute, Route
 from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
 from artanis.asgi.schemas.routing import ParametersDescriptor
 from artanis.utils import get_name, import_function, get_route_path
@@ -110,6 +110,7 @@ class Published:
     pagination: types.Pagination | None = None
     tags: dict[str, t.Any] | None = None
     _endpoint: t.Callable[..., t.Any] | None = None
+    _app: t.Callable[..., t.Any] | None = None
 
     def __post_init__(self):
         self.path = f"/{self.name}" if self.path is None else self.path
@@ -136,6 +137,10 @@ class Published:
     def endpoint(self):
         return self._endpoint
 
+    @property
+    def app(self):
+        return self._app
+
     @endpoint.setter
     def endpoint(self, value: t.Callable[..., t.Any] | None):
         if value:
@@ -144,14 +149,15 @@ class Published:
             self.parameters._build(wrapped_endpoint)
         else:
             wrapped_endpoint = value
-        self._endpoint = wrapped_endpoint
+        self._app = wrapped_endpoint
+        self._endpoint = wrapped_endpoint.handler
 
     async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
         if scope["type"] == "http":
             await self.handle(types.Scope({**scope, **self.route_scope(scope)}), receive, send)
 
     async def handle(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
-        await concurrency.run(self.endpoint, scope, receive, send)
+        await concurrency.run(self._app, scope, receive, send)
 
 
 def published(
@@ -196,6 +202,8 @@ class ASGIEndPoint(ControllerABC):
     def __init__(self, *args, **kwargs):
         parent: StartableService = kwargs.pop('parent') if 'parent' in kwargs else None
         super().__init__(*args, **kwargs)
+        self.parent = parent
+        self.__routes = None
         self.apply_lock = False
         self.__all_classes = None
         self.configure()
@@ -274,6 +282,60 @@ class ASGIEndPoint(ControllerABC):
         raise exceptions.NotFoundException(
             path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
         )
+
+    @property
+    def routes(self):
+        if not self.__routes:
+            routes = []
+            config = self.get_configuration()
+            if self.all_classes:
+                for klass in self.all_classes.values():
+                    descriptor = klass.descriptor
+                    if descriptor.handle_request:
+                        if klass.has_published_methods:
+                            instance: ControllerABC = klass(config=config)
+                            for method in instance.published_methods:
+                                path = f"{descriptor.path.path}{method.path.path}"
+                                route = Route(
+                                    path,
+                                    method.endpoint,
+                                    methods=method.methods,
+                                    name=method.name,
+                                    include_in_schema=method.include_in_schema,
+                                    pagination=method.pagination,
+                                    tags=method.tags
+                                )
+                                route._build(self.parent)
+                                routes.append(route)
+                    else:
+                        for method in self.published_methods:
+                            path = f"{descriptor.path.path}{method.path.path}"
+                            route = Route(
+                                path,
+                                method.endpoint,
+                                methods=method.methods,
+                                name=method.name,
+                                include_in_schema=method.include_in_schema,
+                                pagination=method.pagination,
+                                tags=method.tags
+                            )
+                            route._build(self.parent)
+                            routes.append(route)
+            else:
+                for method in self.published_methods:
+                    route = Route(
+                        method.path.path,
+                        method.endpoint,
+                        methods=method.methods,
+                        name=method.name,
+                        include_in_schema=method.include_in_schema,
+                        pagination=method.pagination,
+                        tags=method.tags,
+                    )
+                    route._build(self.parent)
+                    routes.append(route)
+            self.__routes = routes
+        return self.__routes
 
     def register_listener(self, parent: StartableService):
         def on_started(sender: StartableService):
