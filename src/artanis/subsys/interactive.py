@@ -15,9 +15,9 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from artanis.config import Configuration
 from artanis.subsys.asgisubsys import ASGISubsystem
 from artanis.subsys.asgisubsys import ASGIWorkerFactory
-from artanis.config import Configuration
 
 
 class MVCWorkerFactory(ASGIWorkerFactory):

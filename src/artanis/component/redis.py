@@ -18,8 +18,8 @@ from __future__ import annotations
 from redis import Redis as SyncRedisPy, ConnectionPool as SyncConnectionPool
 from redis.asyncio import Redis as AsyncRedisPy, ConnectionPool as AsyncConnectionPool
 
-from artanis.abc.singleton import Singleton, AsyncSingleton
 from artanis.abc.objlock import SyncLock, AsyncLock
+from artanis.abc.singleton import Singleton, AsyncSingleton
 from artanis.config import Configuration
 
 

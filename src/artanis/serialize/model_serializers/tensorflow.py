@@ -19,8 +19,8 @@ import json
 import tempfile
 import typing as t
 
-from artanis.asgi import types
 from artanis import exceptions
+from artanis.asgi import types
 from artanis.serialize.model_serializers.base import BaseModelSerializer
 
 try:

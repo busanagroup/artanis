@@ -15,8 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import enum
 import typing as t
-from types import ModuleType
 from compression import bz2, lzma, zlib, zstd
+from types import ModuleType
 
 from artanis.asgi import types
 

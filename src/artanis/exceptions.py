@@ -16,12 +16,13 @@
 from __future__ import annotations
 
 import http
-from typing import Any
 from enum import Enum, StrEnum
+from typing import Any
 
 import starlette.exceptions
 
 from artanis.helpers import STATUS_CODES
+
 
 class ShutdownError(Exception):
     pass

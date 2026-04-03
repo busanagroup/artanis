@@ -32,8 +32,8 @@ from sqlalchemy.pool.base import _AsyncConnDialect
 from sqlalchemy.pool.base import _CreatorFnType
 from sqlalchemy.pool.base import _CreatorWRecFnType
 from sqlalchemy.util import queue as sqla_queue
-from sqlalchemy.util.langhelpers import memoized_property
 from sqlalchemy.util.concurrency import greenlet_spawn
+from sqlalchemy.util.langhelpers import memoized_property
 
 _T = TypeVar("_T", bound=Any)
 

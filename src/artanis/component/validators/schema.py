@@ -1,7 +1,7 @@
 import warnings
 
-from .api import _, is_validator, FancyValidator, Invalid, NoDefault
 from . import declarative
+from .api import _, is_validator, FancyValidator, Invalid, NoDefault
 from .exc import FERuntimeWarning
 
 __all__ = ['Schema', 'SimpleFormValidator']

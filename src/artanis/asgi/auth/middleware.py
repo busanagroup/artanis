@@ -20,8 +20,8 @@ import typing as t
 
 from artanis import exceptions
 from artanis.asgi import authentication
-from artanis.exceptions import HTTPException
 from artanis.asgi.http import APIErrorResponse, Request
+from artanis.exceptions import HTTPException
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService

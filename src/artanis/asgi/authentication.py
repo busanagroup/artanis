@@ -15,8 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from artanis.asgi.asgiendpoint import ASGIEndPoint, published
 from artanis.asgi.asgiservice import ASGIService
-from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
 
 
 class AuthEndPoint(ASGIEndPoint):

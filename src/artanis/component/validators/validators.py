@@ -6,7 +6,6 @@ Validator/Converters for use with FormEncode.
 """
 
 import re
-import warnings
 from encodings import idna
 
 # These are only imported when needed

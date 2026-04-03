@@ -17,7 +17,6 @@ import abc
 import asyncio
 import logging
 import typing as t
-
 from annotationlib import get_annotations
 
 from artanis.abc.repositories import BaseRepository

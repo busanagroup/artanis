@@ -19,10 +19,10 @@ import pydantic
 from pydantic.fields import FieldInfo
 from pydantic.json_schema import model_json_schema
 
-from artanis.injection import Parameter
 from artanis.asgi.schemas.adapter import Adapter
 from artanis.asgi.schemas.exceptions import SchemaGenerationError, SchemaValidationError
 from artanis.asgi.types import JSONSchema
+from artanis.injection import Parameter
 
 __all__ = ["PydanticAdapter"]
 

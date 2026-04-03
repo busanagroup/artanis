@@ -19,9 +19,9 @@ import warnings
 
 from artanis import exceptions
 from artanis.asgi import types
-from artanis.resources import data_structures
 from artanis.asgi.routing import Mount, Route
 from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
+from artanis.resources import data_structures
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService

@@ -20,11 +20,11 @@ import marshmallow
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin, resolve_schema_cls
 
-from artanis.injection import Parameter
 from artanis.asgi.schemas._libs.marshmallow.fields import MAPPING, MAPPING_TYPES
 from artanis.asgi.schemas.adapter import Adapter
 from artanis.asgi.schemas.exceptions import SchemaGenerationError, SchemaValidationError
 from artanis.asgi.types import JSONSchema
+from artanis.injection import Parameter
 
 if t.TYPE_CHECKING:
     from apispec.ext.marshmallow import OpenAPIConverter

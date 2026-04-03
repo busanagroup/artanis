@@ -12,7 +12,7 @@
 # without permission, explicit or implied, of the author.
 #
 # This module is part of Artanis Enterprise Platform and is released under
-from typesystem import Definitions, Reference, Schema, fields
+from typesystem import Definitions, Schema, fields
 
 __all__ = [
     "APIError",

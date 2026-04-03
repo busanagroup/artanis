@@ -14,15 +14,17 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
-import logging
+
 import enum
+import logging
 from typing import Any, Callable
 
 from starlette.authentication import SimpleUser
-from artanis.taskiq.broker import broker, task_broker
-from artanis.config import Configuration
-from artanis.utils import import_function
+
 from artanis.abc.classprops import classproperty
+from artanis.config import Configuration
+from artanis.taskiq.broker import broker, task_broker
+from artanis.utils import import_function
 
 
 @enum.unique

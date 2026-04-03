@@ -24,8 +24,8 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker, AsyncEngine
 )
 
-from artanis.sqlentity.sqlapool import AsyncQueuePool
 from artanis.config import Configuration
+from artanis.sqlentity.sqlapool import AsyncQueuePool
 
 
 def create_db_engine(db_url, **kwargs) -> AsyncEngine:

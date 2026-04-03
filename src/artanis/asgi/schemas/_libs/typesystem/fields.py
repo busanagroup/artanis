@@ -18,7 +18,6 @@ import typing as t
 import uuid
 
 from typesystem.fields import *
-from typesystem.schemas import Reference
 
 MAPPING: t.Dict[type | None, type[Field]] = {
     None: Field,

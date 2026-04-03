@@ -21,8 +21,8 @@ from pickle import PicklingError
 
 from taskiq.cli.worker.args import WorkerArgs
 
-from artanis.abc.subsys import Subsystem
 from artanis.abc.factory import WorkerFactory
+from artanis.abc.subsys import Subsystem
 from artanis.config import Configuration
 from artanis.taskiq.worker import taskiq_worker
 

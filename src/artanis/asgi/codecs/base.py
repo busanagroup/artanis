@@ -17,7 +17,7 @@ import abc
 import typing as t
 
 if t.TYPE_CHECKING:
-    from artanis.asgi import http, types
+    pass
 
 
 Input = t.TypeVar("Input")

@@ -38,7 +38,6 @@ from artanis.config import Configuration
 from artanis.exceptions import ShutdownError
 from artanis.utils import raise_shutdown
 
-
 worker_logger = logging.getLogger("taskiq.worker")
 
 async def shutdown_broker(broker: AsyncBroker, timeout: float) -> None:

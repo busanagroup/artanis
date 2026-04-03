@@ -18,9 +18,9 @@ import sys
 import typing as t
 from types import ModuleType
 
-from artanis.exceptions import DependencyNotInstalled
 from artanis.asgi.schemas.exceptions import SchemaParseError, SchemaValidationError
 from artanis.asgi.types import Schema, SchemaList, SchemaMetadata
+from artanis.exceptions import DependencyNotInstalled
 
 if t.TYPE_CHECKING:
     from artanis.asgi.schemas.adapter import Adapter
