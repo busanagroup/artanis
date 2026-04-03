@@ -41,7 +41,7 @@ from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
 from artanis.injection import injector, Components
 from artanis.models import ModelsModule
-from artanis.resources import ResourcesModule
+from artanis.resources import ResourcesModule, ResourceRoute, resource as rsc
 from artanis.resources.workers import ResourceWorker
 
 logger = logging.getLogger(__name__)
@@ -237,11 +237,36 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
             tags=tags
         )
 
-    def add_exception_handler(self, exc_class_or_status_code: int | type[Exception], handler: t.Callable):
+    def add_exception_handler(
+            self,
+            exc_class_or_status_code: int | type[Exception],
+            handler: t.Callable
+    ):
         self.middleware.add_exception_handler(exc_class_or_status_code, handler)
 
-    def add_middleware(self, middleware: "Middleware"):
+    def add_middleware(
+            self,
+            middleware: "Middleware"
+    ):
         self.middleware.add_middleware(middleware)
+
+    def add_resource(
+            self,
+            path: str,
+            resource: rsc.Resource | type[rsc.Resource],
+            *args,
+            include_in_schema: bool = True,
+            tags: dict[str, dict[str, t.Any]] | None = None,
+            **kwargs,
+    ) -> ResourceRoute:
+        return self.resources.add_resource(
+            path,
+            resource,
+            *args,
+            include_in_schema=include_in_schema,
+            tags=tags,
+            **kwargs
+        )
 
     def mount(
             self,

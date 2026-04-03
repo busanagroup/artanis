@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 import functools
 from inspect import iscoroutinefunction
@@ -128,6 +129,7 @@ def import_function(path: str, attach=None):
         setattr(attach, func_name, func)
     return func
 
+
 def get_route_path(scope: Scope) -> str:
     path: str = scope["path"]
     root_path = scope.get("root_path", "")
@@ -145,12 +147,14 @@ def get_route_path(scope: Scope) -> str:
 
     return path
 
+
 def generate_unique_id(route: "Route") -> str:
     operation_id = f"{route.name}{route.path_format}"
     operation_id = re.sub(r"\W", "_", operation_id)
     assert route.methods
     operation_id = f"{operation_id}_{list(route.methods)[0].lower()}"
     return operation_id
+
 
 def get_name(endpoint: Callable[..., Any]) -> str:
     return getattr(endpoint, "__name__", endpoint.__class__.__name__)
