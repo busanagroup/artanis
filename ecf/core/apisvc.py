@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from artanis.asgi.asgiendpoint import Descriptor
 from artanis.config import Configuration
-
 from ecf.core.ecfcmn import BaseController
 
 
