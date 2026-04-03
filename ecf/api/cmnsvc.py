@@ -27,7 +27,7 @@ class cmnsvc(APIService):
     description = 'Common Service API'
 
     @published(path='/userinfo', methods=["GET"])
-    async def get_user_info(self, request):
+    async def get_user_info(self):
         return JSONResponse({'hello': 'world'})
 
 
