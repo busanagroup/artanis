@@ -18,6 +18,8 @@ from __future__ import annotations
 import asyncio
 import types
 
+from sqlalchemy.types import *
+
 from artanis.config import Configuration
 from artanis.sqlentity.sqlorm import Session, Entity, Field
 from artanis.utils import import_ecf_module
@@ -25,6 +27,8 @@ from artanis.utils import import_ecf_module
 __config: Configuration = Configuration.get_default_instance(create_instance=False)
 __ecf_tbl: types.ModuleType | None = None
 
+
+def _() -> Variant: ...
 
 def get_table_repository():
     global __ecf_tbl
@@ -133,3 +137,4 @@ async def safe_execute(func, *args, **kwargs):
             finally:
                 await session_close_all(session)
     return result
+
