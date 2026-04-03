@@ -15,20 +15,19 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+import functools
 import os
 import re
 import sys
-import functools
-from inspect import iscoroutinefunction
-from pathlib import Path
-from importlib import import_module
 from collections.abc import Callable, Awaitable
+from importlib import import_module
+from inspect import iscoroutinefunction
 from multiprocessing.synchronize import Event as EventType
+from pathlib import Path
 from typing import Any, overload, TypeVar
-from starlette.routing import compile_path
-from starlette.types import Scope
 
 import anyio.to_thread
+from starlette.types import Scope
 
 from artanis.exceptions import ShutdownError, NoAppError
 

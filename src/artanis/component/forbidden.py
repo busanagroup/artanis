@@ -40,6 +40,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import builtins as __builtin__
 import ctypes
 import gc
 import inspect
@@ -47,8 +48,6 @@ import sys
 from collections import defaultdict
 from contextlib import contextmanager
 from functools import wraps
-
-import builtins as __builtin__
 
 __version__ = '0.1.4'
 

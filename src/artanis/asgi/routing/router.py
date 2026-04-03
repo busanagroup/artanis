@@ -18,12 +18,12 @@ import typing as t
 
 from artanis import exceptions
 from artanis.asgi import types, url
-from artanis.injection import Component, Components
 from artanis.asgi.lifespan import Lifespan
 from artanis.asgi.routing.routes.base import BaseRoute
 from artanis.asgi.routing.routes.http import Route
 from artanis.asgi.routing.routes.mount import Mount
 from artanis.asgi.routing.routes.websocket import WebSocketRoute
+from artanis.injection import Component, Components
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService

@@ -14,14 +14,15 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
+
 import asyncio
 
 from taskiq import TaskiqEvents, TaskiqState
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
-from artanis.abc.service import StartableService
 from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
+from artanis.abc.service import StartableService
 from artanis.abc.singleton import Singleton
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_startup, artanis_shutdown, artanis_monitor

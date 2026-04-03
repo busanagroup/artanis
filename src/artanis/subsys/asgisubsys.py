@@ -19,11 +19,11 @@ from multiprocessing.context import BaseContext
 from multiprocessing.synchronize import Event
 from pickle import PicklingError
 
-from hypercorn.config import Config, Sockets
 from hypercorn.asyncio.run import uvloop_worker
+from hypercorn.config import Config, Sockets
 
-from artanis.abc.subsys import Subsystem
 from artanis.abc.factory import WorkerFactory
+from artanis.abc.subsys import Subsystem
 from artanis.config import Configuration
 
 

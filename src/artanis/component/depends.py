@@ -15,11 +15,12 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from typing import Annotated
 from collections.abc import Generator
-from fastapi.params import Depends
+from typing import Annotated
 
 from artanis.component.sqlorm import Session
+from fastapi.params import Depends
+
 from artanis.config import Configuration
 
 

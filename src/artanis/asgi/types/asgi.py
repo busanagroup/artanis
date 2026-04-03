@@ -16,7 +16,7 @@
 import typing as t
 
 if t.TYPE_CHECKING:
-    from artanis.asgi import endpoints
+    pass
 
 __all__ = [
     "Scope",

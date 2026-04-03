@@ -19,11 +19,11 @@ import warnings
 
 import typesystem
 
-from artanis.injection import Parameter
 from artanis.asgi.schemas._libs.typesystem.fields import MAPPING, MAPPING_TYPES
 from artanis.asgi.schemas.adapter import Adapter
 from artanis.asgi.schemas.exceptions import SchemaGenerationError, SchemaValidationError
 from artanis.asgi.types import JSONSchema
+from artanis.injection import Parameter
 
 __all__ = ["TypesystemAdapter"]
 

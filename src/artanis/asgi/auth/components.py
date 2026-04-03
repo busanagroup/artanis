@@ -16,11 +16,11 @@
 import http
 import logging
 
-from artanis.injection import Component
 from artanis.asgi.auth import exceptions, jwt, types
-from artanis.exceptions import HTTPException
 from artanis.asgi.types import Headers
 from artanis.asgi.types.http import Cookies
+from artanis.exceptions import HTTPException
+from artanis.injection import Component
 
 logger = logging.getLogger(__name__)
 

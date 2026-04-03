@@ -15,8 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-import threading
 import asyncio
+import threading
 from functools import partial
 from multiprocessing.context import BaseContext
 from multiprocessing.synchronize import Event
@@ -27,7 +27,7 @@ from taskiq.cli.scheduler.args import SchedulerArgs
 from artanis.abc.factory import WorkerFactory
 from artanis.abc.subsys import Subsystem
 from artanis.config import Configuration
-from artanis.taskiq.worker import scheduler_worker, run_scheduler
+from artanis.taskiq.worker import run_scheduler
 from artanis.utils import check_multiprocess_shutdown_event
 
 

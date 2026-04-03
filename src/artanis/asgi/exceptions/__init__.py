@@ -19,6 +19,7 @@ from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
+
 async def bad_request(request: Request, exc: HTTPException):
     from .http_400 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=400)

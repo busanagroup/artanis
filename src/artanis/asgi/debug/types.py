@@ -18,7 +18,7 @@ import typing as t
 from artanis.asgi import types
 
 if t.TYPE_CHECKING:
-    from artanis.asgi import http
+    pass
 
 HandlerException = t.TypeVar("HandlerException", bound=Exception)
 Handler = t.Callable[

@@ -18,15 +18,15 @@ from __future__ import annotations
 import datetime as dt
 import typing
 from typing import Optional
-from sqlalchemy import orm, schema
-import sqlalchemy.orm.decl_api as decl_api
-from sqlalchemy.orm.util import has_identity
-from sqlalchemy.orm import declared_attr, InstrumentedAttribute, Query
-from sqlalchemy.sql._typing import _TypeEngineArgument, _T
-from sqlalchemy.types import *
 
-from artanis.config import Configuration
+import sqlalchemy.orm.decl_api as decl_api
+from sqlalchemy import orm, schema
+from sqlalchemy.orm import declared_attr, InstrumentedAttribute, Query
+from sqlalchemy.orm.util import has_identity
+from sqlalchemy.sql._typing import _TypeEngineArgument, _T
+
 from artanis.abc.classprops import classproperty
+from artanis.config import Configuration
 
 
 @property
