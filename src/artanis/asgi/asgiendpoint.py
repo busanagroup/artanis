@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2026 Busana Apparel Group. All rights reserved.
@@ -19,6 +20,7 @@ import inspect
 import typing as t
 from dataclasses import dataclass
 from pathlib import PurePosixPath
+from typing import Callable
 
 from artanis import exceptions, concurrency
 from artanis.abc.configurable import Configurable
@@ -79,11 +81,16 @@ class ControllerABC(Configurable):
     def __init__(
             self,
             *args,
-            func_name: str | None = None,
+            func_path: str | None = None,
             **kwargs):
         super().__init__(*args, **kwargs)
         for descriptor in self.published_methods:
-            if (func_name is None) or (func_name == descriptor.name):
+            if ((func_path is None) or
+                    (descriptor.path.match(func_path).match in (
+                            descriptor.path.Match.exact,
+                            descriptor.path.Match.partial
+                    ))
+            ):
                 func = getattr(self, descriptor.name)
                 descriptor.endpoint = func
                 descriptor.methods = {"GET"} if descriptor.methods is None else set(descriptor.methods)
@@ -196,15 +203,43 @@ def published(
         return wrapper
 
 
+class EndPointRepository(dict[str, type[ControllerABC] | None]):
+
+    def __init__(self, *args, base_modules: str | None = None, package_func: Callable | None = None, **kwargs):
+        self.base_modules = base_modules
+        self.package_func = package_func
+        super().__init__(*args, **kwargs)
+
+    def __getitem__(self, item):
+        value = super().__getitem__(item)
+        return self.validate(item, value)
+
+    def get(self, key: str, *args, **kwargs):
+        value = super().get(key, *args, **kwargs)
+        return self.validate(key, value)
+
+    def values(self):
+        return [self.get(item) for item in self.keys()]
+
+    def validate(self, key, value):
+        klass = value
+        if isinstance(value, str):
+            klass = self.package_func(value, self.base_modules)
+            self.__setitem__(key, klass)
+        return klass
+
+
 class ASGIEndPoint(ControllerABC):
     base_modules: str = None
 
     def __init__(self, *args, **kwargs):
         parent: StartableService = kwargs.pop('parent') if 'parent' in kwargs else None
         super().__init__(*args, **kwargs)
+        self.dynamic_load: bool = True
         self.parent = parent
         self.__routes = None
         self.apply_lock = False
+        self.__class_dir = None
         self.__all_classes = None
         self.configure()
         self.register_listener(parent)
@@ -237,7 +272,8 @@ class ASGIEndPoint(ControllerABC):
             partial = None
             partial_allowed_methods: set[str] = set()
             config = self.get_configuration()
-            instance: ControllerABC = klass(config=config)
+            func_name = scope['path']
+            instance: ControllerABC = klass(config=config, func_path=func_name)
             if not instance.has_published_methods:
                 raise exceptions.NotFoundException(
                     path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
@@ -339,7 +375,8 @@ class ASGIEndPoint(ControllerABC):
 
     def register_listener(self, parent: StartableService):
         def on_started(sender: StartableService):
-            self.load_classes()
+            self._load_class_dir()
+            self._load_classes()
 
         if self.base_modules:
             parent.add_listener(StartableListener(started_func=on_started))
@@ -348,13 +385,21 @@ class ASGIEndPoint(ControllerABC):
     def all_classes(self):
         return self.__all_classes
 
-    def load_classes(self):
+    def _load_class_dir(self):
+        if (not self.base_modules) or self.__class_dir:
+            return
+        self.__class_dir = import_function(f"{self.base_modules}:__all__")
+
+    def _load_classes(self):
         if (not self.base_modules) or self.__all_classes:
             return
-        __all = import_function(f"{self.base_modules}:__all__")
-        self.__all_classes = dict([self.__get_package_class(klass_name, self.base_modules) \
-                                   for klass_name in __all])
+        self.__all_classes = dict([(f"/{klass_name}", self.__get_package_class(klass_name, self.base_modules)) \
+                                   for klass_name in self.__class_dir]) \
+            if not self.dynamic_load else EndPointRepository(
+            [(f"/{klass_name}", klass_name) for klass_name in self.__class_dir],
+            base_modules=self.base_modules,
+            package_func=self.__get_package_class)
 
     def __get_package_class(self, class_name: str, base_path: str | None = None, module_name: str | None = None):
         package = f"{self.base_modules if not base_path else base_path}.{class_name if not module_name else module_name}:{class_name}"
-        return f"/{class_name}", import_function(package)
+        return import_function(package)
