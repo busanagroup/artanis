@@ -17,8 +17,8 @@ import typing as t
 from http import HTTPStatus
 
 from artanis import exceptions
-from artanis.abc import exceptions as abc_exceptions
 from artanis.asgi import http, schemas, types
+from artanis.ddd import exceptions as ddd_exceptions
 from artanis.resources import data_structures
 from artanis.resources.rest import RESTResource, RESTResourceType
 from artanis.resources.routing import ResourceRoute
@@ -50,7 +50,7 @@ class CreateMixin:
                 repository = worker.repositories[self._meta.name]
                 try:
                     result = await repository.create(resource)
-                except abc_exceptions.IntegrityError as e:
+                except ddd_exceptions.IntegrityError as e:
                     raise exceptions.HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
 
             return http.APIResponse(  # type: ignore[return-value]

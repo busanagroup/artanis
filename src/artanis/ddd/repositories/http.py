@@ -19,8 +19,8 @@ import typing as t
 import uuid
 
 from artanis import client
-from artanis.abc import exceptions
-from artanis.abc.repositories import BaseRepository
+from artanis.ddd import exceptions
+from artanis.ddd.repositories import BaseRepository
 
 __all__ = ["HTTPRepository", "HTTPResourceManager", "HTTPResourceRepository"]
 

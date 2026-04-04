@@ -13,4 +13,6 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from artanis.abc.repositories.base import *  # noqa
+from artanis.ddd.workers.base import *  # noqa
+from artanis.ddd.workers.http import *  # noqa
+from artanis.ddd.workers.worker import *  # noqa

@@ -18,7 +18,7 @@ import typing as t
 import uuid
 
 from artanis import exceptions
-from artanis.abc.repositories.sqlalchemy import SQLAlchemyTableRepository
+from artanis.ddd.repositories.sqlalchemy import SQLAlchemyTableRepository
 from artanis.resources import data_structures
 from artanis.resources.exceptions import ResourceAttributeError
 from artanis.resources.resource import Resource, ResourceType

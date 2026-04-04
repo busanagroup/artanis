@@ -22,7 +22,6 @@ import typing as t
 import uuid
 
 from artanis import injection, exceptions
-from artanis.abc.components import WorkerComponent
 from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
 from artanis.abc.service import StartableService
@@ -38,6 +37,7 @@ from artanis.asgi.pagination import paginator
 from artanis.asgi.routing import WebSocketRoute
 from artanis.asgi.schemas.modules import SchemaModule
 from artanis.config import Configuration
+from artanis.ddd.components import WorkerComponent
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
 from artanis.injection import injector, Components
 from artanis.models import ModelsModule

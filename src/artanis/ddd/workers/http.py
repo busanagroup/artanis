@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import typing as t
 
-from artanis.abc.workers.base import BaseWorker
+from artanis.ddd.workers.base import BaseWorker
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService

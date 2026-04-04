@@ -17,7 +17,7 @@ import logging
 import typing as t
 
 from artanis import exceptions
-from artanis.abc.workers.base import BaseWorker
+from artanis.ddd.workers.base import BaseWorker
 
 try:
     from sqlalchemy.ext.asyncio import AsyncConnection, AsyncTransaction

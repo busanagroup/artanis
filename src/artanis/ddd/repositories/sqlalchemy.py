@@ -16,8 +16,8 @@
 import typing as t
 
 from artanis import exceptions
-from artanis.abc import exceptions as ddd_exceptions
-from artanis.abc.repositories import BaseRepository
+from artanis.ddd import exceptions as ddd_exceptions
+from artanis.ddd.repositories import BaseRepository
 
 try:
     import sqlalchemy

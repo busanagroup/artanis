@@ -24,7 +24,7 @@ from artanis.resources.routing import ResourceRoute
 
 if t.TYPE_CHECKING:
     try:
-        from artanis.abc.repositories.sqlalchemy import SQLAlchemyTableRepository
+        from artanis.ddd.repositories.sqlalchemy import SQLAlchemyTableRepository
         from artanis.resources.workers import ResourceWorker
     except exceptions.DependencyNotInstalled:
         ...

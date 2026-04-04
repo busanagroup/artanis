@@ -19,7 +19,7 @@ import logging
 import typing as t
 from annotationlib import get_annotations
 
-from artanis.abc.repositories import BaseRepository
+from artanis.ddd.repositories import BaseRepository
 from artanis.exceptions import ApplicationError
 
 if t.TYPE_CHECKING:
