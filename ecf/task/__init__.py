@@ -15,3 +15,12 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from os.path import dirname, basename, isfile, join
+import glob
+
+def __dir__():
+    return __all__
+
+__all__ = [basename(f)[:-3] for f in glob.glob(join(dirname(__file__), "*.py")) \
+           if isfile(f) and not f.endswith('__init__.py')]
+
