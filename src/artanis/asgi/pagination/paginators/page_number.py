@@ -19,7 +19,7 @@ import typing as t
 
 from artanis.asgi import schemas
 from artanis.asgi.pagination.paginators.base import BasePaginator, PaginatedResponse
-from artanis.asgi.schemas.data_structures import Field, Schema
+from artanis.asgi.schemas.datastructures import Field, Schema
 
 __all__ = ["PageNumberPaginator", "PageNumberResponse"]
 

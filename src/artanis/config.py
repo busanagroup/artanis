@@ -13,7 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
+
 
 import io
 import logging
@@ -25,7 +25,6 @@ from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
 from contextlib import contextmanager
-from logging.handlers import TimedRotatingFileHandler
 from typing import (IO, Dict, Iterable, Iterator, Optional, Tuple,
                     Union, Match, NamedTuple, Pattern, Sequence, Any)
 
@@ -225,11 +224,11 @@ class Configuration(Singleton, SyncLock, Listenable):
         if subsys_index is not None:
             file_name += f"-{subsys_index}"
         file_name += '.log'
-        file_handler = TimedRotatingFileHandler(file_name, when='D', backupCount=5)
+        # file_handler = TimedRotatingFileHandler(file_name, when='D', backupCount=5)
         logging.basicConfig(
             level=logging.getLevelName(self.get_property_value(self.ARTANIS_LOG_LEVEL, 'INFO').upper()),
             format=self.get_property_value(self.ARTANIS_LOG_FORMAT),
-            handlers=[file_handler, ]
+            # handlers=[file_handler, ]
         )
 
     @contextmanager

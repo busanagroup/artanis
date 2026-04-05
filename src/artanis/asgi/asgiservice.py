@@ -13,8 +13,6 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
-
 import asyncio
 import logging
 import threading
@@ -32,7 +30,6 @@ from artanis.asgi.components import asgi, validation
 from artanis.asgi.events import Events
 from artanis.asgi.exceptions import exception_handlers
 from artanis.asgi.middlewares import MiddlewareStack, Middleware
-from artanis.asgi.modules import Modules
 from artanis.asgi.pagination import paginator
 from artanis.asgi.routing import WebSocketRoute
 from artanis.asgi.schemas.modules import SchemaModule
@@ -41,10 +38,14 @@ from artanis.ddd.components import WorkerComponent
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
 from artanis.injection import injector, Components
 from artanis.models import ModelsModule
+from artanis.modules import Modules
 from artanis.resources import ResourcesModule, ResourceRoute, resource as rsc
 from artanis.resources.workers import ResourceWorker
+from artanis.sqlentity.module import SQLAlchemyModule
 
 logger = logging.getLogger(__name__)
+
+__all__ = ["ASGIService"]
 
 
 class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
@@ -65,6 +66,7 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
                     "description": "The future is ours",
                 },
             },
+            schema_library: str | None = "pydantic",
     ):
         super().__init__(config=config)
         self.debug = debug
@@ -82,8 +84,9 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
 
         default_modules = [
             ResourcesModule(worker=worker),
-            SchemaModule(openapi, schema="/openapi.json", docs="/docs/"),
+            SchemaModule(openapi, schema="/openapi.json", docs="/docs"),
             ModelsModule(),
+            SQLAlchemyModule(config, single_connection=False),
         ]
         self.modules = Modules(app=self, modules={*default_modules, *([])})
 
@@ -112,17 +115,22 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
             ],
             debug=debug
         )
-        self.schema.schema_library = None
+        self.schema.schema_library = schema_library
         self.schema.add_routes()
         self.events = Events.build(**({}))
-        self.events.startup += [mod.on_startup for mod in self.modules.values()]
-        self.events.shutdown += [mod.on_shutdown for mod in self.modules.values()]
         self.paginator = paginator
 
     def do_configure(self):
         super().do_configure()
         config = self.get_configuration()
+        self.configure_lifespan(config)
+        self.configure_modules(config)
+        self.configure_services(config)
+        self.configure_middlewares(config)
+        self.configure_application(config)
+        self.configure_endpoints(config)
 
+    def configure_lifespan(self, config):
         async def internal_scheduler():
             try:
                 while True:
@@ -143,11 +151,8 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
 
         self.add_event_handler("startup", process_startup)
         self.add_event_handler("shutdown", process_shutdown)
-        self.configure_modules(config)
-        self.configure_services(config)
-        self.configure_middlewares(config)
-        self.configure_application(config)
-        self.configure_endpoints(config)
+        self.events.startup += [mod.on_startup for mod in self.modules.values()]
+        self.events.shutdown += [mod.on_shutdown for mod in self.modules.values()]
 
     def configure_modules(self, config):
         ...

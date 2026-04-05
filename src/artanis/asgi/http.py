@@ -33,7 +33,7 @@ import starlette.schemas
 
 from artanis import exceptions
 from artanis.asgi import schemas, types, url
-from artanis.asgi.schemas.data_structures import Schema
+from artanis.asgi.schemas.datastructures import Schema
 
 __all__ = [
     "Method",

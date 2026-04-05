@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import inspect
 import typing as t
-from dataclasses import dataclass
 from pathlib import PurePosixPath
 from typing import Callable
 
@@ -26,17 +25,19 @@ from artanis import exceptions, concurrency
 from artanis.abc.configurable import Configurable
 from artanis.abc.service import StartableService
 from artanis.abc.startable import StartableListener
-from artanis.asgi import url, types
+from artanis.asgi import url, types, endpoints
 from artanis.asgi.routing import BaseRoute, Route
 from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
-from artanis.asgi.schemas.routing import ParametersDescriptor
 from artanis.utils import get_name, import_function, get_route_path
+
+__all__ = ["ASGIEndPoint", "published", "Descriptor", "ControllerABC"]
 
 
 class Descriptor:
     name: str
     path: url.Path | str
     handle_request: bool = False
+    default_tags: dict[str, t.Any] | None = {"permissions": ["access:secure"]}
 
     def describe(self, name: str):
         self.name = name
@@ -65,15 +66,6 @@ def has_published_method(cls):
     return False
 
 
-def prepare_endpoint(func: t.Callable[..., t.Any]):
-    descriptor: Published = func.published
-    descriptor.methods = {"GET"} if descriptor.methods is None else set(descriptor.methods)
-    wrapped_endpoint = HTTPFunctionWrapper(func, signature=inspect.signature(func), pagination=descriptor.pagination)
-    descriptor.endpoint = wrapped_endpoint
-    descriptor.parameters._build(wrapped_endpoint)
-    return func
-
-
 class ControllerABC(Configurable):
     descriptor: Descriptor
     has_published_methods: bool = False
@@ -92,7 +84,7 @@ class ControllerABC(Configurable):
                     ))
             ):
                 func = getattr(self, descriptor.name)
-                descriptor.endpoint = func
+                descriptor.app = func
                 descriptor.methods = {"GET"} if descriptor.methods is None else set(descriptor.methods)
 
     def __init_subclass__(cls, **kwargs):
@@ -104,25 +96,37 @@ class ControllerABC(Configurable):
         for _, func in cls.__dict__.items():
             if hasattr(func, "published"):
                 descriptor = func.published
+                tags = dict(cls.descriptor.default_tags)
+                tags.update(descriptor.tags)
+                descriptor.tags = tags
                 cls.published_methods.append(descriptor)
                 del func.published
 
 
-@dataclass
-class Published:
-    path: str | url.Path | None = None
-    name: str | None = None
-    methods: list[str] | set[str] | None = None
-    include_in_schema: bool = True
-    pagination: types.Pagination | None = None
-    tags: dict[str, t.Any] | None = None
-    _endpoint: t.Callable[..., t.Any] | None = None
-    _app: t.Callable[..., t.Any] | None = None
+class Published(BaseRoute):
 
-    def __post_init__(self):
-        self.path = f"/{self.name}" if self.path is None else self.path
-        self.path = url.Path(self.path)
-        self.parameters = ParametersDescriptor(self)
+    def __init__(
+            self,
+            path: str | url.Path | None = None,
+            name: str | None = None,
+            methods: set[str] | t.Sequence[str] | None = None,
+            include_in_schema: bool = True,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
+    ):
+        self._app: t.Callable[..., t.Any] | None = None
+        self._endpoint: t.Callable[..., t.Any] | None = None
+        self.pagination = pagination
+        self.methods = {"GET"} if methods is None else set(methods)
+        if "GET" in self.methods:
+            self.methods.add("HEAD")
+        super().__init__(
+            f"/{name}" if path is None else path,
+            None,
+            name=name,
+            include_in_schema=include_in_schema,
+            tags=tags
+        )
 
     def match(self, scope: types.Scope) -> BaseRoute.Match:
         if scope["type"] != "http":
@@ -134,37 +138,66 @@ class Published:
             return m
         return BaseRoute.Match.full if scope["method"] in self.methods else BaseRoute.Match.partial
 
-    def endpoint_handlers(self) -> dict[str, t.Callable]:
-        return {}
-
     def route_scope(self, scope: types.Scope) -> types.Scope:
         return types.Scope({})
-
-    @property
-    def endpoint(self):
-        return self._endpoint
 
     @property
     def app(self):
         return self._app
 
-    @endpoint.setter
-    def endpoint(self, value: t.Callable[..., t.Any] | None):
+    @app.setter
+    def app(self, value):
+        wrapped_endpoint = None
         if value:
             wrapped_endpoint = HTTPFunctionWrapper(value, signature=inspect.signature(value),
                                                    pagination=self.pagination)
-            self.parameters._build(wrapped_endpoint)
-        else:
-            wrapped_endpoint = value
+            self.endpoint = wrapped_endpoint.handler
         self._app = wrapped_endpoint
-        self._endpoint = wrapped_endpoint.handler
+
+    @property
+    def endpoint(self):
+        return self._endpoint
+
+    @endpoint.setter
+    def endpoint(self, value: t.Callable[..., t.Any] | None):
+        self._endpoint = value
 
     async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
         if scope["type"] == "http":
             await self.handle(types.Scope({**scope, **self.route_scope(scope)}), receive, send)
 
     async def handle(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
-        await concurrency.run(self._app, scope, receive, send)
+        await concurrency.run(self.app, scope, receive, send)
+
+    def __hash__(self) -> int:
+        return hash((self.app, self.path, self.name, tuple(self.methods)))
+
+    def __eq__(self, other: t.Any) -> bool:
+        return (
+                isinstance(other, Published)
+                and self.path == other.path
+                and self.app == other.app
+                and self.name == other.name
+                and self.methods == other.methods
+        )
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(path={self.path!r}, name={self.name!r}, methods={sorted(self.methods)!r})"
+
+    @staticmethod
+    def is_endpoint(x: t.Callable | type[endpoints.HTTPEndpoint]) -> t.TypeGuard[type[endpoints.HTTPEndpoint]]:
+        return inspect.isclass(x) and issubclass(x, endpoints.HTTPEndpoint)
+
+    def endpoint_handlers(self) -> dict[str, t.Callable]:
+        if self.is_endpoint(self.endpoint):
+            return {
+                method: handler
+                for method, handler in self.endpoint.allowed_handlers().items()
+                if method in self.methods
+            }
+
+        return {method: self.endpoint for method in self.methods}
+
 
 
 def published(
@@ -265,6 +298,9 @@ class ASGIEndPoint(ControllerABC):
                 )
             scope.update({
                 "root_path": str(url.Path(scope.get("root_path", "")) / (m.matched or "")),
+                "module_base": self.base_modules,
+                "module_path": posix,
+                "module_class": klass,
                 "path": str(url.Path("/") / (m.unmatched or "")),
             })
         descriptor = klass.descriptor if klass else None
@@ -282,6 +318,7 @@ class ASGIEndPoint(ControllerABC):
                 match = route.match(scope)
                 if match == BaseRoute.Match.full:
                     route_scope = types.Scope({**scope, **route.route_scope(scope)})
+                    route._build(self.parent)
                     return route, route_scope
                 elif match == route.Match.partial:
                     partial = route
@@ -304,6 +341,7 @@ class ASGIEndPoint(ControllerABC):
             match = route.match(scope)
             if match == BaseRoute.Match.full:
                 route_scope = types.Scope({**scope, **route.route_scope(scope)})
+                route._build(self.parent)
                 return route, route_scope
             elif match == route.Match.partial:
                 partial = route

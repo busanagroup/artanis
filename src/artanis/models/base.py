@@ -17,7 +17,7 @@ import abc
 import typing as t
 
 if t.TYPE_CHECKING:
-    from artanis.serialize.data_structures import Artifacts, Metadata
+    from artanis.serialize.datastructures import Artifacts, Metadata
 
 __all__ = ["BaseModel"]
 

@@ -13,7 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
+
 
 import asyncio
 
@@ -41,7 +41,9 @@ class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
         self.with_result_backend(RedisAsyncResultBackend(redis_url=self.redis_url,
                                                          keep_results=False,
                                                          result_ex_time=600))
+        self.configure_lifespan(config)
 
+    def configure_lifespan(self, config: Configuration):
         async def internal_scheduler():
             try:
                 while True:

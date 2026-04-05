@@ -19,7 +19,7 @@ from artanis import exceptions
 from artanis.asgi import codecs, http, routing, types
 from artanis.asgi.negotiation import ContentTypeNegotiator, WebSocketEncodingNegotiator
 from artanis.asgi.schemas import SchemaValidationError
-from artanis.asgi.schemas.data_structures import Field, Schema
+from artanis.asgi.schemas.datastructures import Field, Schema
 from artanis.injection import Component, Components
 from artanis.injection.resolver import Parameter
 

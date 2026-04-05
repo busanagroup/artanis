@@ -19,7 +19,7 @@ import typing as t
 import artanis.asgi.schemas
 from artanis.asgi import types
 from artanis.models.components import ModelComponentBuilder
-from artanis.resources import data_structures
+from artanis.resources import datastructures
 from artanis.resources.exceptions import ResourceAttributeError
 from artanis.resources.resource import Resource, ResourceType
 from artanis.resources.routing import ResourceRoute
@@ -109,7 +109,7 @@ class ModelResourceType(ResourceType, InspectMixin, PredictMixin):
             except AttributeError as e:
                 raise ResourceAttributeError(str(e), name)
 
-            namespace.setdefault("_meta", data_structures.Metadata()).namespaces["model"] = {
+            namespace.setdefault("_meta", datastructures.Metadata()).namespaces["model"] = {
                 "component": component,
                 "model": component.model,
                 "model_type": component.get_model_type(),

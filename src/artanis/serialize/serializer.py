@@ -24,7 +24,7 @@ import warnings
 from artanis import exceptions
 from artanis.asgi import types
 from artanis.serialize.compression import Compression
-from artanis.serialize.data_structures import Artifacts, ModelArtifact
+from artanis.serialize.datastructures import Artifacts, ModelArtifact
 from artanis.serialize.model_serializers import ModelSerializer
 from artanis.serialize.protocols import Protocol
 

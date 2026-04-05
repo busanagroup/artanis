@@ -19,7 +19,7 @@ import re
 import typing as t
 
 from artanis import exceptions
-from artanis.asgi import authentication
+from artanis.asgi import auth
 from artanis.asgi.http import APIErrorResponse, Request
 from artanis.exceptions import HTTPException
 
@@ -65,8 +65,8 @@ class AuthenticationMiddleware:
             return self.app
 
         try:
-            token: authentication.AccessToken = await app.injector.value(
-                authentication.AccessToken, {"request": Request(scope, receive=receive)}
+            token: auth.AccessToken = await app.injector.value(
+                auth.AccessToken, {"request": Request(scope, receive=receive)}
             )
         except HTTPException as e:
             logger.debug("JWT error: %s", e.detail)

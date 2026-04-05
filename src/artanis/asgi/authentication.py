@@ -13,29 +13,81 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
+import typing as t
+import uuid
 
-from artanis.asgi.asgiendpoint import ASGIEndPoint, published
+import pydantic
+
+from artanis.asgi import schemas
+from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
 from artanis.asgi.asgiservice import ASGIService
+from artanis.asgi.auth.jwt import jwt
+from artanis.config import Configuration
+
+
+class User(pydantic.BaseModel):
+    username: str = None
+    password: str = None
+
+
+class UserToken(pydantic.BaseModel):
+    token: str
+
+
+UserRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(User)]
+UserResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(UserToken)]
+
+
+class AuthDescriptor(Descriptor):
+    default_tags = {}
 
 
 class AuthEndPoint(ASGIEndPoint):
+    descriptor = AuthDescriptor()
 
-    @published(path="/login", methods=["GET"])
-    async def do_login(self):
-        return {'hello': 'world'}
+    @published(path="/login", methods=["POST"])
+    async def do_login(
+            self,
+            user: UserRequest
+    ) -> UserResponse:
+        """
+        tags:
+            - Public
+        title:
+            Authenticate user
+        description:
+            Returns a user token to access protected endpoints
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        config: Configuration = Configuration.get_default_instance(create_instance=False)
+        jwt_secret = config.get_property_value(config.JWT_SECRET_KEY, str(uuid.UUID(int=0)))
+        jwt_token = jwt.JWT(
+            {"alg": "HS256", "typ": "JWT"},
+            {
+                "data": {
+                    "user_id": 123,
+                    "permissions": ["read:secure"],
+                },
+                "iat": 0,
+            },
+        )
+
+        token_string = jwt_token.encode(jwt_secret.encode()).decode()
+        # APIResponse(status_code=http.HTTPStatus.OK, schema=types.Schema[UserToken],
+        #                            content={'token': token_string})
+        retval = {"token": token_string}
+        UserToken.model_validate(retval)
+        return retval
+
 
 class APIEndPoint(ASGIEndPoint):
     base_modules = "ecf.api"
 
 
 class AuthAppService(ASGIService):
-
-    async def hello(self):
-        return {'message': 'Hello World'}
-
-    def configure_endpoints(self, config):
-        self.add_route('/hello', self.hello, methods=["GET"])
 
     def configure_services(self, config):
         self.mount('/auth', AuthEndPoint(config=config, parent=self))

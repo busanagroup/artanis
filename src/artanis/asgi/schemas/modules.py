@@ -17,8 +17,8 @@ from pathlib import Path
 
 from artanis import exceptions
 from artanis.asgi import http, pagination, schemas, types
-from artanis.asgi.modules import Module
 from artanis.asgi.schemas.generator import SchemaGenerator
+from artanis.modules import Module
 
 __all__ = ["SchemaModule"]
 

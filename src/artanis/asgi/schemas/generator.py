@@ -24,7 +24,7 @@ import yaml
 from artanis import exceptions
 from artanis.asgi import routing, schemas, types, url
 from artanis.asgi.schemas import openapi
-from artanis.asgi.schemas.data_structures import Parameter, Schema
+from artanis.asgi.schemas.datastructures import Parameter, Schema
 
 logger = logging.getLogger(__name__)
 

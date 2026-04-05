@@ -20,7 +20,7 @@ import typing as t
 from artanis import concurrency, exceptions
 from artanis.asgi import types, http, endpoints
 from artanis.asgi.routing.routes.base import BaseEndpointWrapper, BaseRoute
-from artanis.asgi.schemas.data_structures import Schema
+from artanis.asgi.schemas.datastructures import Schema
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService

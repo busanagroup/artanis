@@ -24,7 +24,7 @@ import starlette.exceptions
 
 from artanis import concurrency, exceptions
 from artanis.asgi import http, types, websockets
-from artanis.asgi.debug.data_structures import ErrorContext, NotFoundContext
+from artanis.asgi.debug.datastructures import ErrorContext, NotFoundContext
 
 if t.TYPE_CHECKING:
     from artanis.asgi.debug.types import Handler

@@ -19,7 +19,7 @@ import uuid
 
 from artanis import exceptions
 from artanis.ddd.repositories.sqlalchemy import SQLAlchemyTableRepository
-from artanis.resources import data_structures
+from artanis.resources import datastructures
 from artanis.resources.exceptions import ResourceAttributeError
 from artanis.resources.resource import Resource, ResourceType
 
@@ -56,7 +56,7 @@ class RESTResourceType(ResourceType):
             except AttributeError as e:
                 raise ResourceAttributeError(str(e), name)
 
-            namespace.setdefault("_meta", data_structures.Metadata()).namespaces.update(
+            namespace.setdefault("_meta", datastructures.Metadata()).namespaces.update(
                 {
                     "rest": {"model": model, "schemas": resource_schemas},
                     "ddd": {
@@ -72,7 +72,7 @@ class RESTResourceType(ResourceType):
         return namespace.get("__module__") == "artanis.resources.rest" and namespace.get("__qualname__") == "RESTResource"
 
     @classmethod
-    def _get_model(cls, bases: t.Sequence[t.Any], namespace: dict[str, t.Any]) -> data_structures.Model:
+    def _get_model(cls, bases: t.Sequence[t.Any], namespace: dict[str, t.Any]) -> datastructures.Model:
         """Look for the resource model and checks if a primary key is defined with a valid type.
 
         :param bases: List of superclasses.
@@ -82,7 +82,7 @@ class RESTResourceType(ResourceType):
         model = cls._get_attribute("model", bases, namespace, metadata_namespace="rest")
 
         # Already defined model probably because resource inheritance, so no need to create it
-        if isinstance(model, data_structures.Model):
+        if isinstance(model, datastructures.Model):
             return model
 
         # Resource define model as a sqlalchemy Table, so extract necessary info from it
@@ -110,14 +110,14 @@ class RESTResourceType(ResourceType):
             except KeyError:
                 raise AttributeError(ResourceAttributeError.PK_WRONG_TYPE)
 
-            return data_structures.Model(
-                table=model, primary_key=data_structures.PrimaryKey(model_pk_name, model_pk_type)
+            return datastructures.Model(
+                table=model, primary_key=datastructures.PrimaryKey(model_pk_name, model_pk_type)
             )
 
         raise AttributeError(ResourceAttributeError.MODEL_INVALID)
 
     @classmethod
-    def _get_schemas(cls, name: str, bases: t.Sequence[t.Any], namespace: dict[str, t.Any]) -> data_structures.Schemas:
+    def _get_schemas(cls, name: str, bases: t.Sequence[t.Any], namespace: dict[str, t.Any]) -> datastructures.Schemas:
         """Look for the resource schema or the pair of input and output schemas.
 
         :param name: Class name.
@@ -126,12 +126,12 @@ class RESTResourceType(ResourceType):
         :return: Resource schemas.
         """
         try:
-            return data_structures.Schemas(
-                input=data_structures.Schema(
+            return datastructures.Schemas(
+                input=datastructures.Schema(
                     name="Input" + name,
                     schema=cls._get_attribute("input_schema", bases, namespace, metadata_namespace="rest"),
                 ),
-                output=data_structures.Schema(
+                output=datastructures.Schema(
                     name="Output" + name,
                     schema=cls._get_attribute("output_schema", bases, namespace, metadata_namespace="rest"),
                 ),
@@ -140,15 +140,15 @@ class RESTResourceType(ResourceType):
             ...
 
         try:
-            schema = data_structures.Schema(
+            schema = datastructures.Schema(
                 name=name, schema=cls._get_attribute("schema", bases, namespace, metadata_namespace="rest")
             )
-            return data_structures.Schemas(input=schema, output=schema)
+            return datastructures.Schemas(input=schema, output=schema)
         except AttributeError:
             ...
 
         try:
-            schemas: data_structures.Schemas = cls._get_attribute(
+            schemas: datastructures.Schemas = cls._get_attribute(
                 "schemas", bases, namespace, metadata_namespace="rest"
             )
             return schemas

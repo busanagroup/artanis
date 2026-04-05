@@ -16,8 +16,8 @@
 import os
 import typing as t
 
-from artanis.asgi.modules import Module
 from artanis.models.resource import ModelResource, ModelResourceType
+from artanis.modules import Module
 
 if t.TYPE_CHECKING:
     from artanis.resources import ResourceRoute

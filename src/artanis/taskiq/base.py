@@ -13,18 +13,20 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
+
+
+import typing as t
 
 from artanis import injection
 from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
 from artanis.abc.service import StartableService
 from artanis.abc.singleton import Singleton
-from artanis.asgi.modules import Modules
 from artanis.asgi.schemas.modules import SchemaModule
 from artanis.ddd import WorkerComponent
 from artanis.injection import injector, Components
 from artanis.models import ModelsModule
+from artanis.modules import Modules
 from artanis.resources import ResourcesModule
 from artanis.resources.workers import ResourceWorker
 
@@ -51,10 +53,12 @@ class BaseBrokerService(StartableService, Singleton, SyncLock, ObjectLoader):
 
         default_modules = [
             ResourcesModule(worker=worker),
+            SchemaModule(None),
             ModelsModule(),
         ]
         self.modules = Modules(app=self, modules={*default_modules, *([])})
         self._components =  Components([*default_modules])
+        self.schema.schema_library = 'pydantic'
 
     def __getattr__(self, item: str) -> t.Any:
         try:

@@ -18,7 +18,7 @@ import typing as t
 
 from artanis import exceptions
 from artanis.asgi import types
-from artanis.asgi.modules import Module
+from artanis.modules import Module
 from artanis.resources.resource import Resource
 from artanis.resources.routing import ResourceRoute
 
