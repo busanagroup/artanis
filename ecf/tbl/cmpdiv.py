@@ -14,7 +14,7 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.entity import *
+from artanis.sqlentity.sqlorm import *
 
 
 class cmpdiv(Entity):

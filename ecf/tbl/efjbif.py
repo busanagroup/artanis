@@ -9,7 +9,7 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2009 My Company'
 
-from artanis.sqlentity.entity import *
+from artanis.sqlentity.sqlorm import *
 
 
 class efjbif(Entity):

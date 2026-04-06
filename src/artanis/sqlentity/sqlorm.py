@@ -25,15 +25,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import declared_attr, InstrumentedAttribute, Query
 from sqlalchemy.orm.util import has_identity
 from sqlalchemy.sql._typing import _TypeEngineArgument, _T
+from sqlalchemy.types import *
 
 from artanis.abc.classprops import classproperty
 from artanis.config import Configuration
 
 Session: AsyncSession = Configuration.get_default_instance(create_instance=False).container.scoped_session
 
-
 # -- added by Jaimy for ECF
 __internal_field_prefix__ = ['AUCD', 'AUCT', 'AUDT', 'AUTM', 'AUUS', 'KUID']
+
+
+def _() -> Variant: ...
 
 
 async def update_or_create_entity(cls, data, surrogate=True):
