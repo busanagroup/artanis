@@ -15,8 +15,9 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from os.path import dirname, basename, isfile, join
 import glob
+from os.path import dirname, basename, isfile, join
+
 
 def __dir__():
     return __all__

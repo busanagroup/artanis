@@ -19,9 +19,9 @@ from typing import Callable
 
 from taskiq.kicker import AsyncKicker
 
-from artanis.sqlentity import entity
 from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
+from artanis.sqlentity import entity
 from artanis.taskiq.broker import task_broker
 from artanis.taskiq.tasks import TaskType
 from artanis.utils import import_function
