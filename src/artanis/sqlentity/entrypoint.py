@@ -52,6 +52,9 @@ async def configure_database(config: Configuration):
     config.container.scoped_session = scoped_session
     config.container.db_metadata = MetaData(schema=db_schema) if db_schema else MetaData()
 
+    from artanis.sqlentity import sqlorm
+    sqlorm.Session = config.container.scoped_session
+
 
 async def setup_all(config: Configuration, create_tables: bool = False):
     if not create_tables:

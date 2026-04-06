@@ -28,9 +28,6 @@ from artanis.injection import Component, Components
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService
 
-
-
-
 __all__ = ["Router"]
 
 logger = logging.getLogger(__name__)
@@ -38,12 +35,12 @@ logger = logging.getLogger(__name__)
 
 class Router:
     def __init__(
-        self,
-        routes: t.Sequence[BaseRoute] | None = None,
-        *,
-        app: "ASGIService",
-        components: t.Sequence["Component"] | set["Component"] | None = None,
-        lifespan: t.Callable[["ASGIService | None"], t.AsyncContextManager] | None = None,
+            self,
+            routes: t.Sequence[BaseRoute] | None = None,
+            *,
+            app: "ASGIService",
+            components: t.Sequence["Component"] | set["Component"] | None = None,
+            lifespan: t.Callable[["ASGIService | None"], t.AsyncContextManager] | None = None,
     ):
         """A router for containing all routes and mount points.
 
@@ -89,16 +86,16 @@ class Router:
         self.components = Components(self.components + (component,))
 
     def add_route(
-        self,
-        path: str | None = None,
-        endpoint: types.HTTPHandler | None = None,
-        methods: list[str] | None = None,
-        *,
-        name: str | None = None,
-        include_in_schema: bool = True,
-        route: Route | None = None,
-        pagination: types.Pagination | None = None,
-        tags: dict[str, t.Any] | None = None,
+            self,
+            path: str | None = None,
+            endpoint: types.HTTPHandler | None = None,
+            methods: list[str] | None = None,
+            *,
+            name: str | None = None,
+            include_in_schema: bool = True,
+            route: Route | None = None,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
     ) -> Route:
         """Register a new HTTP route in this router under given path.
 
@@ -131,14 +128,14 @@ class Router:
         return route
 
     def route(
-        self,
-        path: str,
-        methods: list[str] | None = None,
-        *,
-        name: str | None = None,
-        include_in_schema: bool = True,
-        pagination: types.Pagination | None = None,
-        tags: dict[str, t.Any] | None = None,
+            self,
+            path: str,
+            methods: list[str] | None = None,
+            *,
+            name: str | None = None,
+            include_in_schema: bool = True,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
     ) -> t.Callable[[types.HTTPHandler], types.HTTPHandler]:
         """Decorator version for registering a new HTTP route in this router under given path.
 
@@ -166,14 +163,14 @@ class Router:
         return decorator
 
     def add_websocket_route(
-        self,
-        path: str | None = None,
-        endpoint: types.WebSocketHandler | None = None,
-        *,
-        name: str | None = None,
-        route: WebSocketRoute | None = None,
-        pagination: types.Pagination | None = None,
-        tags: dict[str, t.Any] | None = None,
+            self,
+            path: str | None = None,
+            endpoint: types.WebSocketHandler | None = None,
+            *,
+            name: str | None = None,
+            route: WebSocketRoute | None = None,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
     ) -> WebSocketRoute:
         """Register a new websocket route in this router under given path.
 
@@ -196,12 +193,12 @@ class Router:
         return route
 
     def websocket_route(
-        self,
-        path: str,
-        *,
-        name: str | None = None,
-        pagination: types.Pagination | None = None,
-        tags: dict[str, t.Any] | None = None,
+            self,
+            path: str,
+            *,
+            name: str | None = None,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
     ) -> t.Callable[[types.WebSocketHandler], types.WebSocketHandler]:
         """Decorator version for registering a new websocket route in this router under given path.
 
@@ -219,13 +216,13 @@ class Router:
         return decorator
 
     def mount(
-        self,
-        path: str | None = None,
-        app: types.App | None = None,
-        *,
-        name: str | None = None,
-        mount: Mount | None = None,
-        tags: dict[str, t.Any] | None = None,
+            self,
+            path: str | None = None,
+            app: types.App | None = None,
+            *,
+            name: str | None = None,
+            mount: Mount | None = None,
+            tags: dict[str, t.Any] | None = None,
     ) -> Mount:
         """Register a new mount point containing an ASGI app in this router under given path.
 

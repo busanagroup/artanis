@@ -275,6 +275,9 @@ class ASGIEndPoint(ControllerABC):
         self.configure()
         self.register_listener(parent)
 
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
+        ...
+
     def resolve_route(self, scope: types.Scope) -> tuple[BaseRoute, types.Scope]:
         klass: type[ControllerABC] | None = None
         child_scope: types.Scope = types.Scope({})

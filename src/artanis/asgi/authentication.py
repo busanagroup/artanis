@@ -22,7 +22,9 @@ from artanis.asgi import schemas, http
 from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
 from artanis.asgi.asgiservice import ASGIService
 from artanis.asgi.auth.jwt import jwt
+from artanis.asgi.auth.validator import APIAccessValidator
 from artanis.config import Configuration
+from artanis.exceptions import HTTPException
 
 
 class User(pydantic.BaseModel):
@@ -63,12 +65,14 @@ class AuthEndPoint(ASGIEndPoint):
                     Successful ping.
         """
         config: Configuration = Configuration.get_default_instance(create_instance=False)
+        if not config.server_is_ready:
+            raise HTTPException()
         jwt_secret = config.get_property_value(config.JWT_SECRET_KEY, str(uuid.UUID(int=0)))
         jwt_token = jwt.JWT(
             {"alg": "HS256", "typ": "JWT"},
             {
                 "data": {
-                    "user_id": 123,
+                    "user_id": "admin",
                     "permissions": ["access:secure"],
                 },
                 "iat": 0,
@@ -78,7 +82,7 @@ class AuthEndPoint(ASGIEndPoint):
         token_string = jwt_token.encode(jwt_secret.encode()).decode()
         # APIResponse(status_code=http.HTTPStatus.OK, schema=types.Schema[UserToken],
         #                            content={'token': token_string})
-        retval = {"token": token_string}
+        retval = {"access_token": token_string}
         UserToken.model_validate(retval)
         return retval
 
@@ -100,6 +104,7 @@ class MVCEndPoint(ASGIEndPoint):
 
 class APIEndPoint(ASGIEndPoint):
     base_modules = "ecf.api"
+    access_validator = APIAccessValidator()
 
 
 class AuthAppService(ASGIService):

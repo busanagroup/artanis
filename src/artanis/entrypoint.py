@@ -16,11 +16,13 @@
 
 
 import asyncio
+from typing import Callable
 
 from artanis import patch
 from artanis.config import Configuration
-from artanis.sqlentity.sqlapool import do_monitor_queue
 from artanis.utils import import_function
+
+do_monitor_queue: Callable | None = None
 
 
 async def artanis_startup(config: Configuration):
@@ -46,6 +48,9 @@ async def artanis_shutdown(config: Configuration):
 
 
 async def artanis_monitor(config: Configuration):
+    global do_monitor_queue
+    if not do_monitor_queue:
+        do_monitor_queue = import_function("artanis.sqlentity.sqlapool:do_monitor_queue")
     try:
         await do_monitor_queue()
     except:
