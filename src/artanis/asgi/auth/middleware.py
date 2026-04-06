@@ -20,6 +20,7 @@ import typing as t
 
 from artanis import exceptions
 from artanis.asgi import auth
+from artanis.asgi.auth.validator import AccessValidator
 from artanis.asgi.http import APIErrorResponse, Request
 from artanis.exceptions import HTTPException
 
@@ -45,9 +46,45 @@ class AuthenticationMiddleware:
             await self.app(scope, receive, send)
             return
 
-        response = await self._get_response(scope, receive)
+        response = await self.get_auth_response(scope, receive)
 
         await response(scope, receive, send)
+
+    async def get_auth_response(self, scope: "types.Scope", receive: "types.Receive") -> "Response | ASGIService":
+        app: ASGIService = scope["app"]
+        try:
+            route, route_scope = app.router.resolve_route(scope)
+            permissions = set(route.tags.get(self._tag, []))
+        except (exceptions.MethodNotAllowedException, exceptions.NotFoundException):
+            permissions = []
+
+        if not (required_permissions := set(permissions)):
+            return self.app
+
+        try:
+            token: auth.AccessToken = await app.injector.value(
+                auth.AccessToken, {"request": Request(scope, receive=receive)}
+            )
+        except HTTPException as e:
+            logger.debug("JWT error: %s", e.detail)
+            return APIErrorResponse(status_code=e.status_code, detail=e.detail)
+
+        user_permissions = set(token.payload.data.get("permissions", [])) | {
+            y for x in token.payload.data.get("roles", {}).values() for y in x
+        }
+        if not (user_permissions >= required_permissions):
+            logger.debug("User does not have the required permissions: %s", required_permissions)
+            return APIErrorResponse(status_code=http.HTTPStatus.FORBIDDEN, detail="Insufficient permissions")
+
+        validator: AccessValidator = route_scope.get('access_validator', None)
+        try:
+            if validator:
+                await validator.validate(route_scope, token)
+        except HTTPException:
+            return APIErrorResponse(status_code=http.HTTPStatus.FORBIDDEN, detail="Insufficient permissions")
+
+        return self.app
+
 
     def _get_permissions(self, app: "ASGIService", scope: "types.Scope") -> set[str]:
         try:

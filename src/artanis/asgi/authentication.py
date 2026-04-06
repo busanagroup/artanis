@@ -18,7 +18,7 @@ import uuid
 
 import pydantic
 
-from artanis.asgi import schemas
+from artanis.asgi import schemas, http
 from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
 from artanis.asgi.asgiservice import ASGIService
 from artanis.asgi.auth.jwt import jwt
@@ -69,7 +69,7 @@ class AuthEndPoint(ASGIEndPoint):
             {
                 "data": {
                     "user_id": 123,
-                    "permissions": ["read:secure"],
+                    "permissions": ["access:secure"],
                 },
                 "iat": 0,
             },
@@ -83,6 +83,21 @@ class AuthEndPoint(ASGIEndPoint):
         return retval
 
 
+class MVCDescriptor(Descriptor):
+    handle_request = True
+    default_tags = {}
+
+
+class MVCEndPoint(ASGIEndPoint):
+    descriptor: Descriptor = MVCDescriptor()
+    base_modules = "ecf.mvc"
+
+    @published
+    def hello_world(self, request: http.Request):
+        print(request)
+        return {'hello': 'world'}
+
+
 class APIEndPoint(ASGIEndPoint):
     base_modules = "ecf.api"
 
@@ -92,6 +107,7 @@ class AuthAppService(ASGIService):
     def configure_services(self, config):
         self.mount('/auth', AuthEndPoint(config=config, parent=self))
         self.mount('/api', APIEndPoint(config=config, parent=self))
+        self.mount('/mvc', MVCEndPoint(config=config, parent=self))
 
 
 app = AuthAppService.get_default_instance()

@@ -13,16 +13,21 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
 
-from artanis.asgi.asgiendpoint import Descriptor
-from artanis.config import Configuration
-from ecf.core.ecfcmn import BaseController
+from artanis.asgi.auth import AccessToken
+from artanis.asgi.types import Scope
 
 
-class MVCBaseService(BaseController):
-    __config = Configuration.get_default_instance(create_instance=False)
+class AccessValidator:
+
+    async def validate(self, scope: Scope, token: AccessToken): ...
 
 
-class MVCService(MVCBaseService):
-    description: str
+class APIAccessValidator(AccessValidator):
+
+    async def validate(self, scope: Scope, token: AccessToken): ...
+
+
+class MVCAccessValidator(AccessValidator):
+
+    async def validate(self, scope: Scope, token: AccessToken): ...

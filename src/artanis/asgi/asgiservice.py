@@ -52,6 +52,7 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
     resources: ResourcesModule
     schema: SchemaModule
     models: ModelsModule
+    sqlalchemy: SQLAlchemyModule
 
     def __init__(
             self,
@@ -78,7 +79,6 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         self._injector = injector.Injector(Context)
 
         default_components = []
-
         if (worker := ResourceWorker() if ResourceWorker else None) and WorkerComponent:
             default_components.append(WorkerComponent(worker=worker))
 
@@ -86,7 +86,7 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
             ResourcesModule(worker=worker),
             SchemaModule(openapi, schema="/openapi.json", docs="/docs"),
             ModelsModule(),
-            SQLAlchemyModule(config, single_connection=False),
+            SQLAlchemyModule(config, single_connection=True),
         ]
         self.modules = Modules(app=self, modules={*default_modules, *([])})
 

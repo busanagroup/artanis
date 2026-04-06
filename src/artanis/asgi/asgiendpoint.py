@@ -14,8 +14,6 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
-
 import inspect
 import typing as t
 from pathlib import PurePosixPath
@@ -26,6 +24,7 @@ from artanis.abc.configurable import Configurable
 from artanis.abc.service import StartableService
 from artanis.abc.startable import StartableListener
 from artanis.asgi import url, types, endpoints
+from artanis.asgi.auth.validator import AccessValidator
 from artanis.asgi.routing import BaseRoute, Route
 from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
 from artanis.utils import get_name, import_function, get_route_path
@@ -67,7 +66,7 @@ def has_published_method(cls):
 
 
 class ControllerABC(Configurable):
-    descriptor: Descriptor
+    descriptor: Descriptor = Descriptor()
     has_published_methods: bool = False
 
     def __init__(
@@ -104,7 +103,6 @@ class ControllerABC(Configurable):
 
 
 class Published(BaseRoute):
-
     def __init__(
             self,
             path: str | url.Path | None = None,
@@ -199,7 +197,6 @@ class Published(BaseRoute):
         return {method: self.endpoint for method in self.methods}
 
 
-
 def published(
         func: t.Callable[..., t.Any] | None = None,
         path: str | url.Path | None = None,
@@ -263,6 +260,7 @@ class EndPointRepository(dict[str, type[ControllerABC] | None]):
 
 
 class ASGIEndPoint(ControllerABC):
+    access_validator: AccessValidator = None
     base_modules: str = None
 
     def __init__(self, *args, **kwargs):
@@ -278,8 +276,9 @@ class ASGIEndPoint(ControllerABC):
         self.register_listener(parent)
 
     def resolve_route(self, scope: types.Scope) -> tuple[BaseRoute, types.Scope]:
-
         klass: type[ControllerABC] | None = None
+        child_scope: types.Scope = types.Scope({})
+        child_scope['access_validator'] = self.access_validator
         if self.all_classes:
             route_path = get_route_path(scope)
             posix = "".join(PurePosixPath(route_path).parts[:2])
@@ -317,7 +316,7 @@ class ASGIEndPoint(ControllerABC):
             for route in instance.published_methods:
                 match = route.match(scope)
                 if match == BaseRoute.Match.full:
-                    route_scope = types.Scope({**scope, **route.route_scope(scope)})
+                    route_scope = types.Scope({**scope, **route.route_scope(scope), **child_scope})
                     route._build(self.parent)
                     return route, route_scope
                 elif match == route.Match.partial:
@@ -325,7 +324,7 @@ class ASGIEndPoint(ControllerABC):
                     partial_allowed_methods |= route.methods
 
             if partial:
-                route_scope = types.Scope({**scope, **partial.route_scope(scope)})
+                route_scope = types.Scope({**scope, **partial.route_scope(scope), **child_scope})
                 raise exceptions.MethodNotAllowedException(
                     route_scope.get("root_path", "") + route_scope["path"], route_scope["method"],
                     partial_allowed_methods
@@ -340,7 +339,7 @@ class ASGIEndPoint(ControllerABC):
         for route in self.published_methods:
             match = route.match(scope)
             if match == BaseRoute.Match.full:
-                route_scope = types.Scope({**scope, **route.route_scope(scope)})
+                route_scope = types.Scope({**scope, **route.route_scope(scope), **child_scope})
                 route._build(self.parent)
                 return route, route_scope
             elif match == route.Match.partial:
@@ -348,7 +347,7 @@ class ASGIEndPoint(ControllerABC):
                 partial_allowed_methods |= route.methods
 
         if partial:
-            route_scope = types.Scope({**scope, **partial.route_scope(scope)})
+            route_scope = types.Scope({**scope, **partial.route_scope(scope), **child_scope})
             raise exceptions.MethodNotAllowedException(
                 route_scope.get("root_path", "") + route_scope["path"], route_scope["method"], partial_allowed_methods
             )
