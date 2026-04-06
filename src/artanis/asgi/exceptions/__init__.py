@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 from starlette.responses import HTMLResponse
+
 from artanis.asgi import types
 
 

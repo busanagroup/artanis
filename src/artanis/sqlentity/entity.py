@@ -20,7 +20,7 @@ import types
 from sqlalchemy.types import *
 
 from artanis.config import Configuration
-from artanis.sqlentity.sqlorm import Session, Entity, Field
+from artanis.sqlentity.sqlorm import Session, Entity
 from artanis.utils import import_ecf_module
 
 __config: Configuration = Configuration.get_default_instance(create_instance=False)

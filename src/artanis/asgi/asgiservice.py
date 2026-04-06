@@ -28,7 +28,6 @@ from artanis.asgi import routing, http, types, websockets, url
 from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent, AuthenticationMiddleware
 from artanis.asgi.components import asgi, validation
 from artanis.asgi.events import Events
-from artanis.asgi.exceptions import exception_handlers
 from artanis.asgi.middlewares import MiddlewareStack, Middleware
 from artanis.asgi.pagination import paginator
 from artanis.asgi.routing import WebSocketRoute
