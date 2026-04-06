@@ -14,7 +14,7 @@ __author__ = 'widodo'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2017 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity.entity import *
 
 
 class efmxob(Entity):

@@ -19,7 +19,7 @@ from typing import Callable
 
 from taskiq.kicker import AsyncKicker
 
-from artanis import sqlentity
+from artanis.sqlentity import entity
 from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
 from artanis.taskiq.broker import task_broker
@@ -60,57 +60,57 @@ class SupportClass(ControllerABC):
 
     @staticmethod
     async def record_exist(table_name: str, *args, **kwargs):
-        return await sqlentity.record_exist(table_name, *args, **kwargs)
+        return await entity.record_exist(table_name, *args, **kwargs)
 
     @staticmethod
     async def validate_existence(entity_obj):
-        return await sqlentity.validate_existence(entity_obj)
+        return await entity.validate_existence(entity_obj)
 
     @staticmethod
     async def ensure_record_exist(self, entity_obj, msg):
-        record_status = await sqlentity.validate_existence(entity_obj)
+        record_status = await entity.validate_existence(entity_obj)
         validators.Assertion(messages={'assert': msg}).to_python(record_status)
 
     @staticmethod
     async def ensure_record_not_exist(self, entity_obj, msg):
-        record_status = await sqlentity.validate_existence(entity_obj)
+        record_status = await entity.validate_existence(entity_obj)
         validators.Assertion(messages={'assert': msg}).to_python(not record_status)
 
     @staticmethod
     def get_entity(table_name: str):
-        return sqlentity.get_entity(table_name)
+        return entity.get_entity(table_name)
 
     @staticmethod
     async def get_program_redirection(cono: str, prgcode: str, dvcode: str):
-        csyinf = sqlentity.get_entity('csyinf')
+        csyinf = entity.get_entity('csyinf')
         obj = await csyinf.get(cono, ' ' * 3, 'PRGRDRC', prgcode, dvcode)
         return prgcode if (obj is None) or (obj.cinft241 in [None, '']) else obj.cinft241
 
     @staticmethod
     def get_entity_field_info(entity, field_name: str):
-        return sqlentity.get_entity_field_info(entity, field_name)
+        return entity.get_entity_field_info(entity, field_name)
 
     @staticmethod
     def get_field_list(cls):
-        return sqlentity.get_field_list(cls)
+        return entity.get_field_list(cls)
 
     @staticmethod
     async def get_field_values(obj, adict=None):
-        adict = sqlentity.get_field_list(obj.__class__) if adict is None else adict
-        await sqlentity.get_field_values(obj, adict)
+        adict = entity.get_field_list(obj.__class__) if adict is None else adict
+        await entity.get_field_values(obj, adict)
         return adict
 
     @staticmethod
     async def set_field_values(adict, obj):
-        await sqlentity.set_field_values(adict, obj)
+        await entity.set_field_values(adict, obj)
 
     @staticmethod
     async def get_recordset(table_name: str, *args, **kwargs):
-        return await sqlentity.get_recordset(table_name, *args, **kwargs)
+        return await entity.get_recordset(table_name, *args, **kwargs)
 
     @staticmethod
     async def get_audit_recordset(table_name: str, *args, **kwargs):
-        return await sqlentity.get_audit_recordset(table_name, *args, **kwargs)
+        return await entity.get_audit_recordset(table_name, *args, **kwargs)
 
     @staticmethod
     def get_unmapped_fields(fields, model):

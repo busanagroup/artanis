@@ -71,7 +71,7 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
     ):
         super().__init__(config=config)
         self.debug = debug
-        self.exception_handlers = exception_handlers
+        self.exception_handlers = None  # exception_handlers
         self.parent = parent
         self._shutdown = False
         self._status = types.AppStatus.NOT_STARTED

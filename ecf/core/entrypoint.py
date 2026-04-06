@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from artanis import utils
-from artanis.component.rdbms import configure_database, setup_all, unconfigure_database
+from artanis.sqlentity.entrypoint import configure_database, setup_all, unconfigure_database
 from artanis.config import Configuration
 
 

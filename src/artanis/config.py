@@ -207,11 +207,11 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_DB_POOL_IDLE: None,
 
             self.JWT_SECRET_KEY : str(uuid.uuid5(uuid.NAMESPACE_OID, 'Artanis')),
-            self.JWT_HEADER_KEY : "Authorization",  # Authorization header identifie
+            self.JWT_HEADER_KEY : "Authorization",  # Authorization header identity
             self.JWT_HEADER_PREFIX : "Bearer",  # Bearer prefix
             self.JWT_ALGORITHM : "HS256",  # Algorithm used to sign the token
-            self.JWT_TOKEN_EXPIRATION : "300",  # 5 minutes in seconds
-            self.JWT_REFRESH_EXPIRATION : "2592000",  # 30 days in seconds
+            self.JWT_TOKEN_EXPIRATION : "1800",  # 30 minutes in seconds
+            self.JWT_REFRESH_EXPIRATION : "7200",  # 2 hours in seconds
             self.JWT_ACCESS_COOKIE_KEY : "access_token",
             self.JWT_REFRESH_COOKIE_KEY : "refresh_token",
         }

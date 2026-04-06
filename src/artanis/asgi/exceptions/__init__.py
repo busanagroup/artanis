@@ -14,59 +14,57 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-
-from starlette.exceptions import HTTPException
-from starlette.requests import Request
 from starlette.responses import HTMLResponse
+from artanis.asgi import types
 
 
-async def bad_request(request: Request, exc: HTTPException):
+async def bad_request(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_400 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=400)
 
-async def unauthorized(request: Request, exc: HTTPException):
+async def unauthorized(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_401 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=401)
 
-async def forbidden(request: Request, exc: HTTPException):
+async def forbidden(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_403 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=403)
 
-async def not_found(request: Request, exc: HTTPException):
+async def not_found(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_404 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=404)
 
-async def method_not_allowed(request: Request, exc: HTTPException):
+async def method_not_allowed(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_405 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=405)
 
-async def request_time_out(request: Request, exc: HTTPException):
+async def request_time_out(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_408 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=408)
 
-async def server_error(request: Request, exc: HTTPException):
+async def server_error(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_500 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=500)
 
-async def not_implemented(request: Request, exc: HTTPException):
+async def not_implemented(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_501 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=501)
 
-async def bad_gateway(request: Request, exc: HTTPException):
+async def bad_gateway(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_502 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=502)
 
-async def service_unavailable(request: Request, exc: HTTPException):
+async def service_unavailable(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_503 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=503)
 
-async def gateway_timeout(request: Request, exc: HTTPException):
+async def gateway_timeout(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_504 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=504)
 
-async def http_version_not_supported(request: Request, exc: HTTPException):
+async def http_version_not_supported(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_505 import HTML_PAGE
-    return HTMLResponse(content=HTML_PAGE, status_code=exc.status_code)
+    return HTMLResponse(content=HTML_PAGE, status_code=505)
 
 
 exception_handlers = {

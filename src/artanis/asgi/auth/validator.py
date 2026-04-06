@@ -23,7 +23,8 @@ from artanis.exceptions import HTTPException
 
 class AccessValidator:
 
-    async def validate(self, scope: Scope, token: AccessToken): ...
+    async def validate(self, scope: Scope, token: AccessToken):
+        return True
 
     @property
     def sqlentity(self):
@@ -62,4 +63,34 @@ class APIAccessValidator(AccessValidator):
 
 class MVCAccessValidator(AccessValidator):
 
-    async def validate(self, scope: Scope, token: AccessToken): ...
+    async def validate_access(self, usrname: str, objname: str, acctype: str) -> bool:
+        efumob = self.get_entity('efumob')
+        efmxob = self.get_entity('efmxob')
+        res = await efumob.verify_user_access(usrname, objname, acctype, acctp=False)
+        return res if not res else await efmxob.verify_user_access(usrname, objname, acctype, acctp=False)
+
+    async def verify_auth(self, usrname: str, objname: str, acctype: str) -> bool:
+        efumob = self.get_entity('efumob')
+        efmxob = self.get_entity('efmxob')
+        efugrp = self.get_entity('efugrp')
+        res = await efumob.check_public_access(objname, acctype)
+        if not res:
+            grps = await efugrp.get_user_group(usrname)
+            for grp in grps:
+                res = await efumob.check_user_access(grp, objname, acctype)
+                if res:
+                    break
+            if res:
+                for grp in grps:
+                    res = await efmxob.check_user_access(grp, objname, acctype)
+                    if not res:
+                        break
+        else:
+            res = await efmxob.check_user_access(usrname, objname, acctype)
+        return res
+
+    async def validate(self, scope: Scope, token: AccessToken):
+        service_name = scope.get('module_path', '')[1:]
+        func_name = scope.get('path')[1:]
+        user_name = token.payload.data.get('user_id')
+        return False
