@@ -25,7 +25,7 @@ from artanis.asgi.auth.jwt.jws import JWS
 logger = logging.getLogger(__name__)
 
 
-__all__ = ["JWT"]
+__all__ = ["JWT", "Header", "Payload"]
 
 VALIDATORS = [
     claims.IssValidator,
