@@ -25,6 +25,7 @@ from artanis.sqlentity import entity
 from artanis.taskiq.broker import task_broker
 from artanis.taskiq.tasks import TaskType
 from artanis.utils import import_function
+
 from ecf.core.ecfexceptions import ECFServiceError
 
 
