@@ -37,7 +37,7 @@ class efurob(Entity):
 
     @classmethod
     async def check_user_access(cls, user_name: str, service_name: str, func_name: str):
-        user_name = user_name if not isinstance(user_name, str) else user_name.upper()
+        user_name = user_name if not isinstance(user_name, str) else user_name
         return True if (await cls.get_by(urmusrnm=user_name, urmobjnm='*', urmfncnm='*')) is not None else \
             True if (await cls.get_by(urmusrnm=user_name, urmobjnm='*', urmfncnm=func_name)) is not None else \
                 True if (await cls.get_by(urmusrnm=user_name, urmobjnm=service_name, urmfncnm='*')) is not None else \
