@@ -17,6 +17,7 @@ import http
 import logging
 import re
 import typing as t
+import datetime
 
 from artanis import exceptions
 from artanis.asgi import auth
@@ -30,7 +31,6 @@ if t.TYPE_CHECKING:
     from artanis.asgi.http import Response
 
 __all__ = ["AuthenticationMiddleware"]
-
 
 logger = logging.getLogger(__name__)
 
@@ -69,22 +69,33 @@ class AuthenticationMiddleware:
             logger.debug("JWT error: %s", e.detail)
             return APIErrorResponse(status_code=e.status_code, detail=e.detail)
 
+        if datetime.datetime.fromtimestamp(token.payload.exp) < datetime.datetime.now():
+            return APIErrorResponse(
+                status_code=http.HTTPStatus.UNAUTHORIZED,
+                detail="Token expired"
+            )
+
         user_permissions = set(token.payload.data.get("permissions", [])) | {
             y for x in token.payload.data.get("roles", {}).values() for y in x
         }
         if not (user_permissions >= required_permissions):
             logger.debug("User does not have the required permissions: %s", required_permissions)
-            return APIErrorResponse(status_code=http.HTTPStatus.FORBIDDEN, detail="Insufficient permissions")
+            return APIErrorResponse(
+                status_code=http.HTTPStatus.FORBIDDEN,
+                detail="Insufficient permissions"
+            )
 
         validator: AccessValidator = route_scope.get('access_validator', None)
         try:
             if validator:
                 await validator.validate(route_scope, token)
         except HTTPException:
-            return APIErrorResponse(status_code=http.HTTPStatus.FORBIDDEN, detail="Insufficient permissions")
+            return APIErrorResponse(
+                status_code=http.HTTPStatus.FORBIDDEN,
+                detail="Insufficient permissions"
+            )
 
         return self.app
-
 
     def _get_permissions(self, app: "ASGIService", scope: "types.Scope") -> set[str]:
         try:

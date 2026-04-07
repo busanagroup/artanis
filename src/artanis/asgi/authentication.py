@@ -22,7 +22,6 @@ from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
 from artanis.asgi.asgiservice import ASGIService
 from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.asgi.auth.validator import APIAccessValidator
-from artanis.asgi.http import APIResponse
 from artanis.config import Configuration
 from artanis.exceptions import HTTPException
 
@@ -39,11 +38,6 @@ class AccessToken(pydantic.BaseModel):
 
 
 class RefreshToken(pydantic.BaseModel):
-    token: str
-
-
-class RefreshedToken(pydantic.BaseModel):
-    access_token: str
     refresh_token: str
 
 
@@ -51,7 +45,6 @@ UserRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(User)]
 AccessTokenResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(AccessToken)]
 
 RefreshTokenRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(RefreshToken)]
-RefreshTokenResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(RefreshedToken)]
 
 
 class AuthDescriptor(Descriptor):
@@ -69,7 +62,7 @@ class AuthEndPoint(ASGIEndPoint):
     async def do_refresh(
             self,
             refresh: RefreshTokenRequest
-    ) -> RefreshedToken:
+    ) -> AccessTokenResponse:
         """
         tags:
             - Public
@@ -82,7 +75,37 @@ class AuthEndPoint(ASGIEndPoint):
                 description:
                     Successful ping.
         """
-        ...
+        config: Configuration = self.get_configuration()
+        if not config.server_is_ready:
+            raise HTTPException(
+                status_code=500,
+                detail="Server is not ready",
+                headers={"WWW-Authenticate": self.auth_handler.token_type}
+            )
+        refresh_token = refresh.get("refresh_token")
+        token = self.auth_handler.decode_refresh_token(refresh_token)
+        username = token.payload.data.get("user_id")
+        now = self.auth_handler.now()
+        access_token = self.auth_handler.create_access_token(
+            data=dict(
+                user_id=username,
+                permissions=["access:secure"]
+            ),
+            now=now
+        )
+        refresh_token = self.auth_handler.create_refresh_token(
+            data=dict(
+                user_id=username,
+            ),
+            now=now
+        )
+        retval = dict(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type=self.auth_handler.token_type
+        )
+        AccessToken.model_validate(retval)
+        return retval
 
     @published(path="/login", methods=["POST"])
     async def do_login(
@@ -103,15 +126,27 @@ class AuthEndPoint(ASGIEndPoint):
         """
         config: Configuration = self.get_configuration()
         if not config.server_is_ready:
-            raise HTTPException(status_code=500)
+            raise HTTPException(
+                status_code=500,
+                detail="Server is not ready",
+                headers={"WWW-Authenticate": self.auth_handler.token_type}
+            )
         User.model_validate(user)
         username = user.get("username")
         password = user.get("password")
         if not username or not password:
-            raise HTTPException(status_code=401)
+            raise HTTPException(
+                status_code=401,
+                detail="Insufficient permission",
+                headers={"WWW-Authenticate": self.auth_handler.token_type}
+            )
         result = await self.auth_handler.safe_execute(self.auth_handler.verify_user_auth, username, password)
         if not result:
-            raise HTTPException(status_code=401)
+            raise HTTPException(
+                status_code=401,
+                detail="Insufficient permission",
+                headers={"WWW-Authenticate": self.auth_handler.token_type}
+            )
         now = self.auth_handler.now()
         access_token = self.auth_handler.create_access_token(
             data=dict(
@@ -133,8 +168,7 @@ class AuthEndPoint(ASGIEndPoint):
         )
 
         AccessToken.model_validate(retval)
-        return APIResponse(status_code=http.HTTPStatus.OK, schema=types.Schema[AccessToken],
-                           content=retval)
+        return retval
 
 
 class MVCDescriptor(Descriptor):

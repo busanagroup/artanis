@@ -16,9 +16,11 @@ import typing as t
 from datetime import datetime, timedelta, UTC
 from importlib import import_module
 
+from artanis.asgi.auth import RefreshToken
 from artanis.asgi.auth.jwt import jwt
 from artanis.asgi.auth.jwt.jwt import Header, Payload
 from artanis.config import Configuration
+from artanis.exceptions import HTTPException
 
 
 class AuthenticationHandler:
@@ -33,6 +35,30 @@ class AuthenticationHandler:
     @staticmethod
     def now() -> datetime:
         return datetime.now(UTC)
+
+    def decode_token(self, token: str) -> RefreshToken:
+        access_token = RefreshToken.decode(token.encode(), self.secret_key)
+        if datetime.fromtimestamp(access_token.payload.exp) < datetime.now():
+            raise HTTPException(
+                status_code=401,
+                detail="Token expired",
+                headers={"WWW-Authenticate": self.token_type})
+        user_id = access_token.payload.data.get("user_id")
+        if user_id in [None, '']:
+            raise HTTPException(
+                status_code=403,
+                detail="Invalid credential",
+                headers={"WWW-Authenticate": self.token_type})
+        return access_token
+
+    def decode_refresh_token(self, token: str) -> RefreshToken:
+        refresh_token = self.decode_token(token)
+        if refresh_token.payload.jti != "refresh":
+            raise HTTPException(
+                status_code=406,
+                detail="Token submitted was not a refresh token",
+                headers={"WWW-Authenticate": self.token_type})
+        return refresh_token
 
     def create_access_token(
             self,
