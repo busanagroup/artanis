@@ -25,7 +25,8 @@ from artanis.abc.objlock import SyncLock
 from artanis.abc.service import StartableService
 from artanis.abc.singleton import Singleton
 from artanis.asgi import routing, http, types, websockets, url
-from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent, AuthenticationMiddleware
+from artanis.asgi.auth import types as authtypes, AccessTokenComponent, RefreshTokenComponent, AuthenticationMiddleware
+from artanis.asgi.auth.components import UserInfoComponent
 from artanis.asgi.components import asgi, validation
 from artanis.asgi.events import Events
 from artanis.asgi.middlewares import MiddlewareStack, Middleware
@@ -104,7 +105,8 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
                         header_prefix=config.get_property_value(config.JWT_HEADER_PREFIX),
                         header_key=config.get_property_value(config.JWT_REFRESH_COOKIE_KEY),
                         cookie_key=config.get_property_value(config.JWT_REFRESH_COOKIE_KEY)
-                    )
+                    ),
+                    UserInfoComponent(),
                 ])], lifespan=None, app=self
         )
         self.middleware = MiddlewareStack(
@@ -343,6 +345,7 @@ class Context(injection.Context):
         "websocket_message": types.Message,
         "websocket_encoding": types.Encoding,
         "websocket_code": types.Code,
+        "user_info": authtypes.UserInfo,
     }
 
     hashable = (

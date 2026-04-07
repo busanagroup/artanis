@@ -17,7 +17,7 @@ import http
 import logging
 
 from artanis.asgi.auth import exceptions, jwt, types
-from artanis.asgi.types import Headers
+from artanis.asgi.types import Headers, Scope
 from artanis.asgi.types.http import Cookies
 from artanis.exceptions import HTTPException
 from artanis.injection import Component
@@ -88,12 +88,12 @@ class BaseTokenComponent(Component):
 
 class AccessTokenComponent(BaseTokenComponent):
     def __init__(
-        self,
-        secret: bytes,
-        *,
-        header_prefix: str = "Bearer",
-        header_key: str = "access_token",
-        cookie_key: str = "access_token",
+            self,
+            secret: bytes,
+            *,
+            header_prefix: str = "Bearer",
+            header_key: str = "access_token",
+            cookie_key: str = "access_token",
     ):
         super().__init__(secret, header_prefix=header_prefix, header_key=header_key, cookie_key=cookie_key)
 
@@ -104,15 +104,22 @@ class AccessTokenComponent(BaseTokenComponent):
 
 class RefreshTokenComponent(BaseTokenComponent):
     def __init__(
-        self,
-        secret: bytes,
-        *,
-        header_prefix: str = "Bearer",
-        header_key: str = "refresh_token",
-        cookie_key: str = "refresh_token",
+            self,
+            secret: bytes,
+            *,
+            header_prefix: str = "Bearer",
+            header_key: str = "refresh_token",
+            cookie_key: str = "refresh_token",
     ):
         super().__init__(secret, header_prefix=header_prefix, header_key=header_key, cookie_key=cookie_key)
 
     def resolve(self, headers: Headers, cookies: Cookies) -> types.RefreshToken:
         token = self._resolve_token(headers, cookies)
         return types.RefreshToken(token.header, token.payload)
+
+
+class UserInfoComponent(Component):
+
+    @staticmethod
+    def resolve(scope: Scope) -> types.UserInfo:
+        return types.UserInfo(username=scope["user_info"]["username"])

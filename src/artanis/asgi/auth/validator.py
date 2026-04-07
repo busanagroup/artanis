@@ -23,8 +23,8 @@ from artanis.exceptions import HTTPException
 
 class AccessValidator:
 
-    async def validate(self, scope: Scope, token: AccessToken):
-        return True
+    async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
+        return None
 
     @property
     def sqlentity(self):
@@ -53,7 +53,7 @@ class APIAccessValidator(AccessValidator):
                     break
         return res
 
-    async def validate(self, scope: Scope, token: AccessToken):
+    async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
         service_name = scope.get('module_path', '')[1:]
         func_name = scope.get('path')[1:]
         user_name = token.payload.data.get('user_id')
@@ -61,6 +61,7 @@ class APIAccessValidator(AccessValidator):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions")
+        return dict(user_info=dict(username=user_name))
 
 
 class MVCAccessValidator(AccessValidator):
@@ -91,10 +92,10 @@ class MVCAccessValidator(AccessValidator):
             res = await efmxob.check_user_access(usrname, objname, acctype)
         return res
 
-    async def validate(self, scope: Scope, token: AccessToken):
+    async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
         access_model = scope.get('auth_access_model', 0)
         if access_model == 0:
-            return
+            return None
         access_type = scope.get('auth_access_type', 'S')
         service_name = scope.get('module_path', '')[1:]
         user_name = token.payload.data.get('user_id')
@@ -103,3 +104,4 @@ class MVCAccessValidator(AccessValidator):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions")
+        return dict(user_info = dict(username=user_name))
