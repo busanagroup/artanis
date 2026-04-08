@@ -53,7 +53,7 @@ export interface LogoProps {
   size?: Size
 }
 
-export default function Logo({ logo, color, size = 'md' }: LogoProps) {
+export default function Logo({ logo, color, size = '2xl' }: LogoProps) {
   const { text, icon } = logos[logo]
   const colorClasses = color ? colors[color] : ''
 

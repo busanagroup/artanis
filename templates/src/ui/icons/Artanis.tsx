@@ -2,7 +2,13 @@ import React from 'react'
 
 export default function Artanis({ ...props }: React.ComponentProps<'svg'>) {
   return (
-    <svg viewBox="0 0 1024 1024" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg
+      viewBox="0 0 42 34"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-full w-full"
+      {...props}
+    >
       <path
         d="M178.972 180.074c-.731-11.29 13.598-31.171 23.406-48.748 11.825 17.927 19.582 35.663 24.735 51.043 8.656-8.31 8.387-12.203 9.985-19.601-20.932-35.079-24.43-49.53-35.505-72.826-8.676 24.73-17.028 39.682-33.82 70.9-.3 7.07 7.64 19.68 11.199 19.232z"
         fill="#0f0"
@@ -17,7 +23,7 @@ export default function Artanis({ ...props }: React.ComponentProps<'svg'>) {
       <path
         d="M249.09 117.85c13.543 21.731 25.811 44.716 23.862 51.806-2.428 15.99-8.781 22.418-15.254 27.779-28.225 23.377-32.307 27.689-47.155 47.084 5.658-11.307 3.054-21.622 39.764-69.245 7.597-12.227 1.277-38.013-1.217-57.425z"
         fill="#0f0"
-        fill-opacity="1"
+        fillOpacity="1"
         stroke="#0f0"
         transform="matrix(.24298 0 0 .18094 -28.854 -16.037)"
       />
