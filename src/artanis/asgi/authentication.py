@@ -21,8 +21,8 @@ from artanis.asgi import schemas
 from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
 from artanis.asgi.asgiservice import ASGIService
 from artanis.asgi.auth.handler import AuthenticationHandler
-from artanis.asgi.auth.types import UserInfo
 from artanis.asgi.auth.validator import APIAccessValidator
+from artanis.asgi.http import Request
 from artanis.config import Configuration
 from artanis.exceptions import HTTPException
 
@@ -182,8 +182,8 @@ class MVCEndPoint(ASGIEndPoint):
     base_modules = "ecf.mvc"
 
     @published
-    def hello_world(self, user_info: UserInfo):
-        return {'hello': user_info.username}
+    def hello_world(self, request: Request):
+        return {'hello': "world"}
 
 
 class APIEndPoint(ASGIEndPoint):
