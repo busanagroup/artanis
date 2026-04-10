@@ -15,7 +15,4 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from ecf.core.mvcsvc import MVCService
 
-class CMN200(MVCService):
-
-    def hello(self):
-        print("Hello world")
+class CMN200(MVCService): ...

@@ -41,6 +41,7 @@ class SchemaModule(Module):
         self.openapi = openapi
         self.schema_path = schema
         self.docs_path = docs
+        self._schema_dict = None
 
     def register_schema(self, name: str, schema: t.Any) -> None:
         """Register a new schema.
@@ -65,7 +66,9 @@ class SchemaModule(Module):
 
         :return: API schema.
         """
-        return self.schema_generator.get_api_schema(self.app.routes)
+        if not self._schema_dict:
+            self._schema_dict = self.schema_generator.get_api_schema(self.app.routes)
+        return self._schema_dict
 
     @property
     def schema_library(self) -> schemas.Module:

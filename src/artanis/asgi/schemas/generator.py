@@ -35,7 +35,7 @@ __all__ = ["SchemaRegistry", "SchemaGenerator"]
 class EndpointInfo:
     path: str
     method: str
-    func: t.Callable = dataclasses.field(repr=False)
+    docstring: str
     query_parameters: dict[str, Parameter] = dataclasses.field(repr=False)
     path_parameters: dict[str, Parameter] = dataclasses.field(repr=False)
     body_parameter: Parameter | None = dataclasses.field(repr=False)
@@ -300,7 +300,7 @@ class SchemaGenerator:
                             EndpointInfo(
                                 path=path,
                                 method=method.lower(),
-                                func=route.endpoint,
+                                docstring= route.endpoint.__doc__ if route.docstring is None else route.docstring,
                                 query_parameters=route.parameters.query.get(method, {}),
                                 path_parameters=route.parameters.path.get(method, {}),
                                 body_parameter=route.parameters.body.get(method),
@@ -317,7 +317,7 @@ class SchemaGenerator:
                             EndpointInfo(
                                 path=path,
                                 method=method.lower(),
-                                func=func,
+                                docstring=func.__doc__ if route.docstring is None else route.docstring,
                                 query_parameters=route.parameters.query.get(method.upper(), {}),
                                 path_parameters=route.parameters.path.get(method.upper(), {}),
                                 body_parameter=route.parameters.body.get(method.upper()),
@@ -438,16 +438,16 @@ class SchemaGenerator:
             }
         )
 
-    def _parse_docstring(self, func: t.Callable) -> dict[t.Any, t.Any]:
+    def _parse_docstring(self, docstring: str) -> dict[t.Any, t.Any]:
         """Given a function, parse the docstring as YAML and return a dictionary of info.
 
-        :param func: Function to analyze docstring.
+        :param docstring: Docstring
         :return: Schema extracted.
         """
         try:
             # It's possible to define a standard docstring along with the schema definition, for doing so the schema
             # should start with a line with three dashes "---" as it's the usual notation for starting a yaml file.
-            schema = yaml.safe_load(func.__doc__.split("---")[-1])  # type: ignore[union-attr]
+            schema = yaml.safe_load(docstring.split("---")[-1])  # type: ignore[union-attr]
         except AttributeError:
             schema = None
 
@@ -458,7 +458,7 @@ class SchemaGenerator:
 
     def get_operation_schema(self, endpoint: EndpointInfo) -> openapi.Operation:
         try:
-            docstring_info = self._parse_docstring(endpoint.func)
+            docstring_info = self._parse_docstring(endpoint.docstring)
         except ValueError:
             docstring_info = {}
 
@@ -499,5 +499,4 @@ class SchemaGenerator:
             self.spec.add_schema(schema.name, openapi.Schema(schema.json_schema(self.schemas.names)))
 
         api_schema: dict[str, t.Any] = self.spec.to_dict()
-
         return api_schema

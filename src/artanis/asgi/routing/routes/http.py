@@ -124,6 +124,7 @@ class Route(BaseRoute):
         include_in_schema: bool = True,
         pagination: types.Pagination | None = None,
         tags: dict[str, t.Any] | None = None,
+        docstring: str | None = None
     ) -> None:
         """A route definition of a http endpoint.
 
@@ -155,7 +156,7 @@ class Route(BaseRoute):
             else HTTPFunctionWrapper(endpoint, signature=inspect.signature(endpoint), pagination=pagination)
         )
 
-        super().__init__(path, wrapped_endpoint, name=name, include_in_schema=include_in_schema, tags=tags)
+        super().__init__(path, wrapped_endpoint, name=name, include_in_schema=include_in_schema, tags=tags, docstring=docstring)
 
         self.app: BaseHTTPEndpointWrapper
 
@@ -212,3 +213,6 @@ class Route(BaseRoute):
             return m
 
         return self.Match.full if scope["method"] in self.methods else self.Match.partial
+
+    def __del__(self):
+        print("route deleted")

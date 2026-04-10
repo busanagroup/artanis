@@ -66,7 +66,7 @@ def has_published_method(cls):
 
 
 class ControllerABC(Configurable):
-    descriptor: Descriptor = Descriptor()
+    descriptor: Descriptor = None
     has_published_methods: bool = False
 
     def __init__(
@@ -90,6 +90,10 @@ class ControllerABC(Configurable):
         super().__init_subclass__(**kwargs)
         cls.has_published_methods = has_published_method(cls)
         if hasattr(cls, "descriptor"):
+            klass = Descriptor if cls.descriptor is None else \
+                cls.descriptor if inspect.isclass(cls.descriptor) else \
+                    cls.descriptor.__class__
+            cls.descriptor = klass()
             cls.descriptor.describe(cls.__name__)
         cls.published_methods = []
         for _, func in cls.__dict__.items():
@@ -268,7 +272,6 @@ class ASGIEndPoint(ControllerABC):
         super().__init__(*args, **kwargs)
         self.dynamic_load: bool = True
         self.parent = parent
-        self.__routes = None
         self.apply_lock = False
         self.__class_dir = None
         self.__all_classes = None
@@ -361,30 +364,17 @@ class ASGIEndPoint(ControllerABC):
 
     @property
     def routes(self):
-        if not self.__routes:
-            routes = []
-            config = self.get_configuration()
-            if self.all_classes:
-                for klass in self.all_classes.values():
-                    descriptor = klass.descriptor
-                    if descriptor.handle_request:
-                        if klass.has_published_methods:
-                            instance: ControllerABC = klass(config=config)
-                            for method in instance.published_methods:
-                                path = f"{descriptor.path.path}{method.path.path}"
-                                route = Route(
-                                    path,
-                                    method.endpoint,
-                                    methods=method.methods,
-                                    name=method.name,
-                                    include_in_schema=method.include_in_schema,
-                                    pagination=method.pagination,
-                                    tags=method.tags
-                                )
-                                route._build(self.parent)
-                                routes.append(route)
-                    else:
-                        for method in self.published_methods:
+        routes = []
+        config = self.get_configuration()
+        if self.all_classes:
+            for klass in self.all_classes.values():
+                descriptor = klass.descriptor
+                if descriptor.handle_request:
+                    if klass.has_published_methods:
+                        instance: ControllerABC = klass(config=config)
+                        for method in instance.published_methods:
+                            _doc = method.endpoint.__doc__ if method.endpoint.__doc__ else ''
+                            docstr = f"\ntags:\n    - {instance.__class__.__name__}\n{_doc}"
                             path = f"{descriptor.path.path}{method.path.path}"
                             route = Route(
                                 path,
@@ -393,25 +383,42 @@ class ASGIEndPoint(ControllerABC):
                                 name=method.name,
                                 include_in_schema=method.include_in_schema,
                                 pagination=method.pagination,
-                                tags=method.tags
+                                tags=method.tags,
+                                docstring=docstr
                             )
                             route._build(self.parent)
                             routes.append(route)
-            else:
-                for method in self.published_methods:
-                    route = Route(
-                        method.path.path,
-                        method.endpoint,
-                        methods=method.methods,
-                        name=method.name,
-                        include_in_schema=method.include_in_schema,
-                        pagination=method.pagination,
-                        tags=method.tags,
-                    )
-                    route._build(self.parent)
-                    routes.append(route)
-            self.__routes = routes
-        return self.__routes
+                else:
+                    for method in self.published_methods:
+                        path = f"{descriptor.path.path}{method.path.path}"
+                        _doc = method.endpoint.__doc__ if method.endpoint.__doc__ else ''
+                        docstr = f"\ntags:\n    - {klass.__name__}\n{_doc}"
+                        route = Route(
+                            path,
+                            method.endpoint,
+                            methods=method.methods,
+                            name=method.name,
+                            include_in_schema=method.include_in_schema,
+                            pagination=method.pagination,
+                            tags=method.tags,
+                            docstring=docstr
+                        )
+                        route._build(self.parent)
+                        routes.append(route)
+        else:
+            for method in self.published_methods:
+                route = Route(
+                    method.path.path,
+                    method.endpoint,
+                    methods=method.methods,
+                    name=method.name,
+                    include_in_schema=method.include_in_schema,
+                    pagination=method.pagination,
+                    tags=method.tags,
+                )
+                route._build(self.parent)
+                routes.append(route)
+        return routes
 
     def register_listener(self, parent: StartableService):
         def on_started(sender: StartableService):

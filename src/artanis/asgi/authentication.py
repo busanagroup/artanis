@@ -66,7 +66,7 @@ class AuthEndPoint(ASGIEndPoint):
     ) -> AccessTokenResponse:
         """
         tags:
-            - Public
+            - Authentication
         title:
             Refresh access token
         description:
@@ -115,7 +115,7 @@ class AuthEndPoint(ASGIEndPoint):
     ) -> AccessTokenResponse:
         """
         tags:
-            - Public
+            - Authentication
         title:
             Authenticate user
         description:
@@ -182,7 +182,55 @@ class MVCEndPoint(ASGIEndPoint):
     base_modules = "ecf.mvc"
 
     @published
-    def hello_world(self, request: Request):
+    async def pgmredir(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def verify(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def definitions(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def initialize(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def open(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def get(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def post(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def initexec(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def execute(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def print(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def sync(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def initlookup(self, request: Request):
+        return {'hello': "world"}
+
+    @published
+    async def finalize(self, request: Request):
         return {'hello': "world"}
 
 

@@ -88,6 +88,7 @@ class BaseRoute(abc.ABC):
             name: str | None = None,
             include_in_schema: bool = True,
             tags: dict[str, t.Any] | None = None,
+            docstring: str | None = None,
     ):
         """A route definition of a http endpoint.
 
@@ -104,6 +105,7 @@ class BaseRoute(abc.ABC):
         self.include_in_schema = include_in_schema
         self.tags = tags or {}
         self.parameters = ParametersDescriptor(self)
+        self.docstring = docstring
         super().__init__()
 
     @abc.abstractmethod
