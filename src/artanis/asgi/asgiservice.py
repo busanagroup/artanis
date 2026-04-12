@@ -161,6 +161,13 @@ class ASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
             raise RuntimeError("Cannot add middleware after an application has started")
         self.user_middleware.insert(0, Middleware(middleware_class, *args, **kwargs))
 
+    def add_endpoint(
+            self,
+            endpoint_instance: "ASGIEndPoint",
+            name: str | None = None,
+    ):
+        self.router.mount(endpoint_instance.module_path, app=endpoint_instance, name=name)  # pragma: no cover
+
     def mount(self, path: str, app: ASGIApp, name: str | None = None) -> None:
         self.router.mount(path, app=app, name=name)  # pragma: no cover
 

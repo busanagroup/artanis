@@ -55,6 +55,7 @@ from pydantic import BaseModel
 from starlette.responses import JSONResponse
 from starlette.routing import BaseRoute
 
+
 validation_error_definition = {
     "title": "ValidationError",
     "type": "object",
@@ -535,8 +536,7 @@ def get_openapi(
         openapi_version: str = "3.1.0",
         summary: str | None = None,
         description: str | None = None,
-        routes: Sequence[BaseRoute],
-        webhooks: Sequence[BaseRoute] | None = None,
+        endpoint: "ASGIEndPoint",
         tags: list[dict[str, Any]] | None = None,
         servers: list[dict[str, str | Any]] | None = None,
         terms_of_service: str | None = None,
@@ -545,6 +545,7 @@ def get_openapi(
         separate_input_output_schemas: bool = True,
         external_docs: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    webhooks: Sequence[BaseRoute] = endpoint.webhooks.routes
     info: dict[str, Any] = {"title": title, "version": version}
     if summary:
         info["summary"] = summary
@@ -563,6 +564,7 @@ def get_openapi(
     paths: dict[str, dict[str, Any]] = {}
     webhook_paths: dict[str, dict[str, Any]] = {}
     operation_ids: set[str] = set()
+    routes = endpoint.generate_routes()
     all_fields = get_fields_from_routes(list(routes or []) + list(webhooks or []))
     flat_models = get_flat_models_from_fields(all_fields, known_models=set())
     model_name_map = get_model_name_map(flat_models)
@@ -571,6 +573,7 @@ def get_openapi(
         model_name_map=model_name_map,
         separate_input_output_schemas=separate_input_output_schemas,
     )
+
     for route in routes or []:
         if isinstance(route, routing.APIRoute):
             result = get_openapi_path(

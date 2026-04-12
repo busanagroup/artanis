@@ -48,6 +48,7 @@ class AuthDescriptor(Descriptor):
 
 class AuthEndPoint(ASGIEndPoint):
     descriptor = AuthDescriptor()
+    module_path = "/auth"
 
     @published(path="/hello")
     async def hello(self):
@@ -143,14 +144,16 @@ class AuthEndPoint(ASGIEndPoint):
 
 class MVCDescriptor(Descriptor):
     handle_request = True
+    openapi_support = False
     default_tags = {}
 
 
 class MVCEndPoint(ASGIEndPoint):
     descriptor: Descriptor = MVCDescriptor()
     base_modules = "ecf.mvc"
+    module_path = "/mvc"
 
-    @published
+    @published(path="/pgmredir")
     async def pgmredir(self, request: Request):
         klass = request.scope.get("module_class")
         config: Configuration = self.get_configuration()
@@ -161,66 +164,65 @@ class MVCEndPoint(ASGIEndPoint):
         instance = klass(config=config, request=request)
         return await instance.hello()
 
-    @published
+    @published(path="/verify")
     async def verify(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/definitions")
     async def definitions(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/initialize")
     async def initialize(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/open")
     async def open(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/get")
     async def get(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/post")
     async def post(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/initexec")
     async def initexec(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/execute")
     async def execute(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/print")
     async def print(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/sync")
     async def sync(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/initlookup")
     async def initlookup(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/finalize")
     async def finalize(self, request: Request):
         return {'hello': "world"}
 
 
 class APIEndPoint(ASGIEndPoint):
     base_modules = "ecf.api"
-    # access_validator = APIAccessValidator()
-
+    module_path = "/api"
 
 class AuthAppService(ASGIService):
 
     def configure_services(self, config):
-        self.mount('/auth', AuthEndPoint(config=config, parent=self))
-        self.mount('/api', APIEndPoint(config=config, parent=self))
-        self.mount('/mvc', MVCEndPoint(config=config, parent=self))
+        self.add_endpoint(AuthEndPoint(config=config, parent=self))
+        self.add_endpoint(APIEndPoint(config=config, parent=self))
+        self.add_endpoint(MVCEndPoint(config=config, parent=self))
 
 
 app = AuthAppService.get_default_instance()

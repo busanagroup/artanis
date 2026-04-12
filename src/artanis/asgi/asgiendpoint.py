@@ -20,6 +20,7 @@ import typing as t
 from pathlib import PurePosixPath
 
 from fastapi import APIRouter, params
+from fastapi.routing import APIRoute
 from fastapi._compat import (
     ModelField,
     lenient_issubclass,
@@ -42,6 +43,7 @@ from starlette.websockets import WebSocketClose
 from artanis.abc.configurable import Configurable
 from artanis.abc.service import StartableService
 from artanis.abc.startable import StartableListener
+from artanis.asgi import http
 from artanis.asgi.asgiservice import ASGIService, OpenAPISpec
 from artanis.asgi.openapi.docs import get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
 from artanis.asgi.openapi.utils import get_openapi
@@ -152,7 +154,7 @@ class Published:
             include_in_schema: bool = True,
             response_model: t.Any = Default(None),
             response_class: type[Response] | DefaultPlaceholder = Default(JSONResponse),
-            tags: dict[str, t.Any] | None = None,
+            tags: list[str | enum.Enum] | None = None,
             dependencies: t.Sequence[params.Depends] | None = None,
             description: str | None = None,
             generate_unique_id_function: t.Callable[[t.Any], str] | DefaultPlaceholder = Default(generate_unique_id),
@@ -167,9 +169,10 @@ class Published:
     ):
         self.name = name
         self.path = path if path else f"/{name}"
-        self.methods = {"GET"} if methods is None else set(methods)
+        methods = {"GET"} if methods is None else set(methods)
+        self.methods = {method.upper() for method in methods}
         self.include_in_schema = include_in_schema
-        self.tags = {} if tags is None else tags
+        self.tags = [] if tags is None else tags
         self.dependencies = list(dependencies or [])
         self.stream_item_type: t.Any | None = None
         self.response_model = response_model
@@ -177,8 +180,6 @@ class Published:
         self.endpoint = None
         self.app = None
         self.dependant = None
-        if "GET" in self.methods:
-            self.methods.add("HEAD")
         self.path_regex, self.path_format, self.param_convertors = compile_path(self.path)
         self.description = description
         self.generate_unique_id_function = generate_unique_id_function
@@ -428,6 +429,7 @@ class EndPointRepository(dict[str, type[ControllerABC] | None]):
 
 class ASGIEndPoint(ControllerABC):
     base_modules: str = None
+    module_path: str = None
 
     def __init__(self, *args, **kwargs):
         parent: ASGIService | None = kwargs.pop('parent') if 'parent' in kwargs else None
@@ -616,8 +618,11 @@ class ASGIEndPoint(ControllerABC):
             parent.add_listener(StartableListener(started_func=on_started))
 
     def do_configure(self):
+        if not self.descriptor.openapi_support:
+            return
         openapi_specs = self.parent.openapi_specs if self.parent else OpenAPISpec()
         if openapi_specs.openapi_url:
+
             async def openapi(req: Request) -> JSONResponse:
                 root_path = req.scope.get("root_path", "").rstrip("/")
                 schema: dict[str, t.Any] | None = self.openapi()
@@ -648,7 +653,12 @@ class ASGIEndPoint(ControllerABC):
                     swagger_ui_parameters=openapi_specs.swagger_ui_parameters,
                 )
 
-            self.add_route(openapi_specs.docs_url, swagger_ui_html, include_in_schema=False)
+            async def document_view(req: Request):
+                openapi_url = self.module_path + openapi_specs.openapi_url
+                return http.ArtanisTemplateResponse("schemas/docs.html", {"url": openapi_url})
+
+            self.add_route(openapi_specs.docs_url, document_view, include_in_schema=False)
+            # self.add_route(openapi_specs.docs_url, swagger_ui_html, include_in_schema=False)
 
             if openapi_specs.swagger_ui_oauth2_redirect_url:
                 async def swagger_ui_redirect(req: Request) -> HTMLResponse:
@@ -672,9 +682,40 @@ class ASGIEndPoint(ControllerABC):
                 terms_of_service=openapi_specs.terms_of_service,
                 contact=openapi_specs.contact,
                 license_info=openapi_specs.license_info,
-                routes=self.routes,
-                webhooks=self.webhooks.routes,
+                endpoint=self,
                 separate_input_output_schemas=openapi_specs.separate_input_output_schemas,
                 external_docs=openapi_specs.external_docs,
             )
         return self.openapi_schema
+
+    def generate_routes(self):
+
+        def build_route(instance, use_module_path: bool = True):
+            routes = []
+            descriptor: Descriptor = instance.descriptor
+            method: Published
+            for method in instance.published_methods:
+                path = descriptor.path + method.path if use_module_path else method.path
+                routes.append(APIRoute(
+                    path=path,
+                    methods=method.methods,
+                    response_model=method.response_model,
+                    response_class=method.response_class,
+                    dependencies=method.dependencies,
+                    endpoint=method.endpoint,
+                    include_in_schema=method.include_in_schema,
+                    tags=method.tags,
+                ))
+            return routes
+
+        routes = []
+        if not self.has_published_methods:
+            if self.base_modules:
+                for klass_name in self.all_classes:
+                    klass = self.all_classes.get(klass_name)
+                    config = self.get_configuration()
+                    instance: ControllerABC = klass(config=config)
+                    routes.extend(build_route(instance))
+        else:
+            routes.extend(build_route(self, use_module_path=False))
+        return routes

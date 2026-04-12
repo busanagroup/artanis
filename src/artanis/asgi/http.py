@@ -176,35 +176,6 @@ class FileResponse(starlette.responses.FileResponse, Response):
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
 
-class APIErrorResponse(APIResponse):
-    def __init__(
-            self,
-            detail: t.Any,
-            status_code: int = 400,
-            exception: Exception | None = None,
-            headers: dict[str, str] | None = None,
-            *args,
-            **kwargs,
-    ):
-        content = {
-            "detail": detail,
-            "error": (str(exception.__class__.__name__) if exception is not None else None),
-            "status_code": status_code,
-            "headers": headers,
-        }
-
-        super().__init__(
-            content,
-            schema=t.Annotated[types.Schema, types.SchemaMetadata(schemas.schemas.APIError)],
-            status_code=status_code,
-            *args,
-            **kwargs,
-        )
-
-        self.detail = detail
-        self.exception = exception
-
-
 class HTMLFileResponse(HTMLResponse):
     def __init__(self, path: str, *args, **kwargs):
         try:
@@ -289,12 +260,12 @@ class _ArtanisLoader(jinja2.PackageLoader):
         if spec is None or spec.origin is None:
             raise exceptions.ArtanisError("Artanis package not found")
 
-        templates_path = pathlib.Path(spec.origin).parent.joinpath("asgi", "templates")
+        templates_path = pathlib.Path(spec.origin).parent.joinpath("asgi", "openapi", "templates")
         if not templates_path.exists():
             warnings.warn("Templates folder not found in the Artanis package")
             templates_path.mkdir(exist_ok=True)
 
-        super().__init__(package_name="artanis.asgi", package_path="templates")
+        super().__init__(package_name="artanis.asgi.openapi", package_path="templates")
 
 
 class ArtanisTemplateResponse(HTMLTemplateResponse):
