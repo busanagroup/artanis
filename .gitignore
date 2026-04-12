@@ -4,3 +4,4 @@
 /reff/
 /venv/
 /.pdm-build/
+/templates/node_modules/

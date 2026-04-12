@@ -14,7 +14,7 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2014 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity.sqlorm import *
 
 
 class efuxob(Entity):

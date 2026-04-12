@@ -24,8 +24,8 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker, AsyncEngine
 )
 
-from artanis.sqlentity.sqlapool import AsyncQueuePool
 from artanis.config import Configuration
+from artanis.sqlentity.sqlapool import AsyncQueuePool
 
 
 def create_db_engine(db_url, **kwargs) -> AsyncEngine:
@@ -51,6 +51,9 @@ async def configure_database(config: Configuration):
     config.container.db_session = db_session
     config.container.scoped_session = scoped_session
     config.container.db_metadata = MetaData(schema=db_schema) if db_schema else MetaData()
+
+    from artanis.sqlentity import sqlorm
+    sqlorm.Session = config.container.scoped_session
 
 
 async def setup_all(config: Configuration, create_tables: bool = False):

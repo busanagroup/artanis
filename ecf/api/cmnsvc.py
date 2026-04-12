@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from artanis.asgi.asgiendpoint import published
@@ -23,12 +23,8 @@ from ecf.core.apisvc import *
 
 
 class cmnsvc(APIService):
-
     description = 'Common Service API'
 
     @published(path='/userinfo', methods=["GET"])
-    async def get_user_info(self, request):
+    async def get_user_info(self, request: Request):
         return JSONResponse({'hello': 'world'})
-
-
-

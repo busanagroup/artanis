@@ -15,11 +15,12 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-import sys
 import argparse
+import sys
 from typing import List, Optional
-from artanis.server import Artanis
+
 from artanis.config import Configuration
+from artanis.server import Artanis
 
 
 def __load_config(config_path: str | None = None):

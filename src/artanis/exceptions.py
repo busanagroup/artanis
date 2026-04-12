@@ -15,9 +15,10 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from artanis.helpers import STATUS_CODES
 from enum import Enum
 from typing import Any
+
+from artanis.helpers import STATUS_CODES
 
 
 class ShutdownError(Exception):

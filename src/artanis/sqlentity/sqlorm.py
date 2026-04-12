@@ -18,24 +18,25 @@ from __future__ import annotations
 import datetime as dt
 import typing
 from typing import Optional
-from sqlalchemy import orm, schema
+
 import sqlalchemy.orm.decl_api as decl_api
-from sqlalchemy.orm.util import has_identity
+from sqlalchemy import orm, schema
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import declared_attr, InstrumentedAttribute, Query
+from sqlalchemy.orm.util import has_identity
 from sqlalchemy.sql._typing import _TypeEngineArgument, _T
 from sqlalchemy.types import *
 
-from artanis.config import Configuration
 from artanis.abc.classprops import classproperty
+from artanis.config import Configuration
 
-
-@property
-def Session():
-    return Configuration.get_default_instance(create_instance=False).container.scoped_session
-
+Session: AsyncSession = Configuration.get_default_instance(create_instance=False).container.scoped_session
 
 # -- added by Jaimy for ECF
 __internal_field_prefix__ = ['AUCD', 'AUCT', 'AUDT', 'AUTM', 'AUUS', 'KUID']
+
+
+def _() -> Variant: ...
 
 
 async def update_or_create_entity(cls, data, surrogate=True):

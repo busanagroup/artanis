@@ -19,6 +19,7 @@ __all__ = ['BaseConfigurable', 'Configurable', 'ConfigurableListener',
            'AsyncConfigurable', 'AsyncConfigurableListener']
 
 import asyncio
+
 from artanis.abc.listenable import Listenable, BaseListener
 from artanis.abc.objlock import BaseLocker
 

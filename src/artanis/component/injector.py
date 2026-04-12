@@ -23,6 +23,7 @@ import threading
 import types
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
+from typing import Annotated, NoReturn, _AnnotatedAlias, get_type_hints  # type: ignore[attr-defined]
 from typing import (
     Any,
     Callable,
@@ -43,8 +44,6 @@ from typing import (
     get_args,
     overload,
 )
-
-from typing import Annotated, NoReturn, _AnnotatedAlias, get_type_hints  # type: ignore[attr-defined]
 
 __author__ = 'Alec Thomas <alec@swapoff.org>'
 __version__ = '0.24.0'

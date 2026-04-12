@@ -15,18 +15,18 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from artanis.asgi.asgiendpoint import published, ASGIEndPoint
 from starlette.requests import Request
-from starlette.responses import PlainTextResponse, JSONResponse
+from starlette.responses import JSONResponse
 
 from artanis.asgi.asgiservice import ASGIService
-from artanis.asgi.asgiendpoint import BaseEndPoint, published
 
 
-class MVCEndPoint(BaseEndPoint):
+class MVCEndPoint(ASGIEndPoint):
 
     base_modules = "ecf.mvc"
 
-    @published
+    @published(path="/hello")
     def hello(self, request: Request):
         return JSONResponse({'hello': 'world'})
 

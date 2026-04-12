@@ -19,10 +19,10 @@ __all__ = ['Subsystem', ]
 
 from typing import Type
 
+from artanis.abc.factory import WorkerFactory
+from artanis.abc.objlock import SyncLock
 from artanis.abc.singleton import Singleton
 from artanis.abc.startable import Startable
-from artanis.abc.objlock import SyncLock
-from artanis.abc.factory import WorkerFactory
 
 
 class Subsystem(Startable, Singleton, SyncLock):
