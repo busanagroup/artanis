@@ -21,7 +21,7 @@ from artanis import exceptions
 from artanis.asgi import types
 from artanis.asgi.routing import Mount, Route
 from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
-from artanis.resources import data_structures
+from artanis.resources import datastructures
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService
@@ -115,8 +115,8 @@ class ResourceRoute(Mount):
         :return: Decorated method.
         """
 
-        def wrapper(func: t.Callable) -> data_structures.ResourceMethod:
-            return data_structures.ResourceMethod(
+        def wrapper(func: t.Callable) -> datastructures.ResourceMethod:
+            return datastructures.ResourceMethod(
                 method=func,
                 path=path,
                 methods=set(methods) if methods is not None else {"GET"},

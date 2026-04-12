@@ -13,7 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
+
 
 import io
 import logging
@@ -25,7 +25,6 @@ from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
 from contextlib import contextmanager
-from logging.handlers import TimedRotatingFileHandler
 from typing import (IO, Dict, Iterable, Iterator, Optional, Tuple,
                     Union, Match, NamedTuple, Pattern, Sequence, Any)
 
@@ -208,11 +207,11 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_DB_POOL_IDLE: None,
 
             self.JWT_SECRET_KEY : str(uuid.uuid5(uuid.NAMESPACE_OID, 'Artanis')),
-            self.JWT_HEADER_KEY : "Authorization",  # Authorization header identifie
+            self.JWT_HEADER_KEY : "Authorization",  # Authorization header identity
             self.JWT_HEADER_PREFIX : "Bearer",  # Bearer prefix
             self.JWT_ALGORITHM : "HS256",  # Algorithm used to sign the token
-            self.JWT_TOKEN_EXPIRATION : "300",  # 5 minutes in seconds
-            self.JWT_REFRESH_EXPIRATION : "2592000",  # 30 days in seconds
+            self.JWT_TOKEN_EXPIRATION : "1800",  # 30 minutes in seconds
+            self.JWT_REFRESH_EXPIRATION : "7200",  # 2 hours in seconds
             self.JWT_ACCESS_COOKIE_KEY : "access_token",
             self.JWT_REFRESH_COOKIE_KEY : "refresh_token",
         }
@@ -225,11 +224,11 @@ class Configuration(Singleton, SyncLock, Listenable):
         if subsys_index is not None:
             file_name += f"-{subsys_index}"
         file_name += '.log'
-        file_handler = TimedRotatingFileHandler(file_name, when='D', backupCount=5)
+        # file_handler = TimedRotatingFileHandler(file_name, when='D', backupCount=5)
         logging.basicConfig(
             level=logging.getLevelName(self.get_property_value(self.ARTANIS_LOG_LEVEL, 'INFO').upper()),
             format=self.get_property_value(self.ARTANIS_LOG_FORMAT),
-            handlers=[file_handler, ]
+            # handlers=[file_handler, ]
         )
 
     @contextmanager

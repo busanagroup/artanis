@@ -1,26 +1,40 @@
-import { useMemo } from 'react'
 import type { ReactNode } from 'react'
 import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  LayoutGrid,
-  List,
-  Menu,
-  Pencil,
-  Plus,
-  RefreshCw,
-  Settings,
-  Trash2,
-} from 'lucide-react'
-import { AppButton } from '@/components/global/ui/button'
+  AppstoreOutlined,
+  ApartmentOutlined,
+  BarsOutlined,
+  EditOutlined,
+  LogoutOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  UserOutlined,
+} from '@ant-design/icons'
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  Drawer,
+  Empty,
+  Grid,
+  Input,
+  Space,
+  Spin,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd'
+import { NavTabs } from './components/nav-tabs'
 import { CardView } from './components/card-view'
 import { FormView } from './components/form-view'
 import { ListView } from './components/list-view'
-import { NavTabs } from './components/nav-tabs'
 import { useWorkspaceController } from './hooks/use-workspace-controller'
 import { toHashRoute, type MenuNode } from './hooks/controllers/workspace-utils'
 
+const { Title, Paragraph, Text } = Typography
 
 function renderMenuTree(params: {
   nodes: MenuNode[]
@@ -36,41 +50,41 @@ function renderMenuTree(params: {
     const hasChildren = node.children.length > 0
     const expanded = isExpanded(node.item.name)
     const selected = isSelected(node.item.name)
-    const indent = depth > 0 ? { paddingLeft: `${12 + depth * 10}px` } : undefined
 
     return (
-      <div key={node.item.name}>
+      <div key={node.item.name} className="space-y-2">
         <button
           type="button"
           onClick={() => {
             if (hasChildren) onToggle(node.item.name)
             else onOpen(node)
           }}
-          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${selected ? 'bg-[#7469ec] text-white' : 'text-[#4f5b87] hover:bg-indigo-50'}`}
-          style={indent}
+          className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2.5 text-left text-sm transition-all ${selected
+            ? 'border-[#6a5cff] bg-[linear-gradient(135deg,#6a5cff_0%,#7d4dff_100%)] text-white shadow-[0_14px_34px_rgba(106,92,255,0.22)]'
+            : 'border-transparent bg-white text-[#3e507c] hover:border-[#d9e1f2] hover:bg-[#f8faff]'
+            }`}
+          style={{ marginLeft: depth * 14 }}
         >
-          <span className="truncate">{node.item.title}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            {hasChildren ? <ApartmentOutlined className="text-[12px]" /> : <AppstoreOutlined className="text-[12px]" />}
+            <span className="truncate">{node.item.title}</span>
+          </span>
+
           {hasChildren ? (
-            expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
+            <span className="text-xs">{expanded ? '−' : '+'}</span>
           ) : node.item.hasTag ? (
-            <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">{node.item.tag}</span>
+            <Tag
+              bordered={false}
+              className={`!m-0 !rounded-full !px-2 !py-0.5 !text-[11px] ${selected ? '!bg-white/20 !text-white' : '!bg-[#eef2ff] !text-[#5766a5]'}`}
+            >
+              {node.item.tag}
+            </Tag>
           ) : null}
         </button>
 
-        {hasChildren && expanded
-          ? (
-            <div className="space-y-1">
-              {renderMenuTree({
-                nodes: node.children,
-                depth: depth + 1,
-                isExpanded,
-                isSelected,
-                onToggle,
-                onOpen,
-              })}
-            </div>
-          )
-          : null}
+        {hasChildren && expanded ? (
+          <div className="space-y-2">{renderMenuTree({ ...params, nodes: node.children, depth: depth + 1 })}</div>
+        ) : null}
       </div>
     )
   })
@@ -78,218 +92,311 @@ function renderMenuTree(params: {
 
 export function WorkspaceLayout() {
   const controller = useWorkspaceController()
+  const screens = Grid.useBreakpoint()
+  const isDesktop = Boolean(screens.lg)
 
-  const renderedMenuTree = useMemo(
-    () =>
-      renderMenuTree({
-        nodes: controller.filteredMenuTree,
-        isExpanded: (name) => controller.expandedMenuNames.has(name) || controller.menuSearch.trim().length > 0,
-        isSelected: (name) => controller.state.selectedMenuName === name,
-        onToggle: controller.toggleMenuExpand,
-        onOpen: (node) => controller.openMenuAsTab(node.item),
-      }),
-    [
-      controller.filteredMenuTree,
-      controller.expandedMenuNames,
-      controller.menuSearch,
-      controller.state.selectedMenuName,
-      controller.toggleMenuExpand,
-      controller.openMenuAsTab,
-    ],
+  const menuPanel = (
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-[linear-gradient(180deg,#f8fbff_0%,#eef4ff_100%)]">
+      <div className="shrink-0 border-b border-[#dbe4f2] px-4 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#1d4280_0%,#6a5cff_100%)] text-white shadow-[0_12px_24px_rgba(66,92,184,0.18)]">
+            <ApartmentOutlined className="text-lg" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold text-[#18376d]">Artanis Workspace</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="shrink-0 border-b border-[#dbe4f2] px-4 py-4">
+        <Input
+          allowClear
+          size="large"
+          value={controller.menuSearch}
+          onChange={(event) => controller.setMenuSearch(event.target.value)}
+          placeholder="Cari menu, model, atau fitur..."
+          prefix={<SearchOutlined className="text-[#8e9cc0]" />}
+          className="!rounded-2xl !border-[#d7e0ef] !bg-white"
+        />
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
+        <div className="mb-3 flex items-center justify-between px-1">
+          <Text className="!text-xs !font-semibold !uppercase !tracking-[0.18em] !text-[#8693b2]">Navigation</Text>
+          <Badge count={controller.filteredMenuTree.length} color="#6a5cff" />
+        </div>
+
+        {controller.menuQuery.isLoading ? (
+          <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-4 text-sm text-[#6f7f9f] shadow-sm">
+            <Spin size="small" />
+            <span>Memuat menu workspace...</span>
+          </div>
+        ) : null}
+
+        {!controller.menuQuery.isLoading && controller.filteredMenuTree.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Menu tidak ditemukan."
+            className="rounded-2xl bg-white py-8"
+          />
+        ) : null}
+
+        <nav className="space-y-2">{renderMenuTree({
+          nodes: controller.filteredMenuTree,
+          isExpanded: (name) => controller.expandedMenuNames.has(name) || controller.menuSearch.trim().length > 0,
+          isSelected: (name) => controller.state.selectedMenuName === name,
+          onToggle: controller.toggleMenuExpand,
+          onOpen: (node) => controller.openMenuAsTab(node.item),
+        })}</nav>
+      </div>
+    </div>
   )
 
   return (
-    <main className="grid min-h-screen grid-cols-1 bg-[#f4f6fb] text-slate-800 lg:grid-cols-[264px_1fr]">
-      <aside className={`${controller.state.sidebarOpen ? 'block' : 'hidden'} border-r border-indigo-100 bg-[#eef1f8] lg:block`}>
-        <header className="flex h-14 items-center gap-2 border-b border-indigo-100 px-4">
-          <button
-            type="button"
-            onClick={() => controller.actions.setSidebarOpen(false)}
-            className="rounded-md p-1 text-slate-500 hover:bg-slate-200 lg:hidden"
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f5f8ff_0%,#eef3fb_100%)] text-slate-800">
+      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[300px_1fr]">
+        <aside
+          className={`sticky top-0 hidden h-dvh max-h-dvh overflow-hidden border-r border-white/70 bg-white/65 backdrop-blur-xl transition-[transform,opacity] duration-300 ease-out lg:block ${controller.state.sidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0 pointer-events-none'
+            }`}
+        >
+          {menuPanel}
+        </aside>
+
+        <Drawer
+          placement="left"
+          width={320}
+          onClose={() => controller.actions.setSidebarOpen(false)}
+          open={!isDesktop && controller.state.sidebarOpen}
+          rootClassName="lg:hidden"
+          styles={{
+            body: { padding: 0 },
+            content: {
+              borderTopRightRadius: 24,
+              borderBottomRightRadius: 24,
+              overflow: 'hidden',
+            },
+          }}
+          motion={{
+            motionAppear: true,
+            motionEnter: true,
+            motionLeave: true,
+            motionDeadline: 300,
+          }}
+        >
+          {menuPanel}
+        </Drawer>
+
+        <section className="min-w-0 px-3 py-3 transition-all duration-300 ease-out sm:px-4 sm:py-4">
+          <Card
+            bordered={false}
+            className="overflow-hidden !rounded-[28px] !bg-white/80 !shadow-[0_20px_60px_rgba(111,132,180,0.18)] backdrop-blur"
+            bodyStyle={{ padding: 0 }}
           >
-            <Menu className="h-5 w-5" />
-          </button>
-          <p className="text-2xl font-semibold italic leading-none text-[#2d3f78]">Artanis</p>
-        </header>
+            <div className="border-b border-[#e7edf7] bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(246,249,255,0.96)_100%)] px-4 py-4 sm:px-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-3">
+                  <Tooltip title={controller.state.sidebarOpen ? 'Sembunyikan menu' : 'Buka menu'}>
+                    <Button
+                      type="text"
+                      shape="circle"
+                      size="large"
+                      icon={controller.state.sidebarOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
+                      onClick={() => controller.actions.setSidebarOpen(!controller.state.sidebarOpen)}
+                    />
+                  </Tooltip>
 
-        <div className="p-3">
-          <div className="mb-3">
-            <input
-              value={controller.menuSearch}
-              onChange={(event) => controller.setMenuSearch(event.target.value)}
-              placeholder="Search menu..."
-              className="w-full rounded-lg border border-indigo-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none ring-indigo-300 focus:ring"
-            />
-          </div>
-
-          <nav className="space-y-1">
-            {controller.menuQuery.isLoading ? <p className="px-2 py-1 text-sm text-slate-500">Memuat menu...</p> : null}
-            {!controller.menuQuery.isLoading && controller.filteredMenuTree.length === 0 ? (
-              <p className="px-2 py-1 text-sm text-slate-500">Menu tidak ditemukan.</p>
-            ) : null}
-            {renderedMenuTree}
-          </nav>
-        </div>
-      </aside>
-
-      <section className="grid grid-rows-[52px_44px_1fr]">
-        <header className="flex items-center justify-between border-b border-indigo-100 bg-white px-3">
-          <div className="flex items-center gap-2">
-            {!controller.state.sidebarOpen ? (
-              <button
-                type="button"
-                onClick={() => controller.actions.setSidebarOpen(true)}
-                className="rounded-md p-1 text-slate-500 hover:bg-slate-200"
-              >
-                <Menu className="h-5 w-5" />
-              </button>
-            ) : null}
-            <button type="button" className="rounded-md p-1 text-slate-500 hover:bg-slate-100">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button type="button" onClick={controller.refreshCurrentData} className="rounded-md p-1 text-slate-500 hover:bg-slate-100">
-              <RefreshCw className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-5 text-sm text-[#4f5b87]">
-            {/* {controller.quickQuery.data?.slice(0, 2).map((section) => (
-              <button key={section.title} type="button" className="flex items-center gap-1 hover:text-indigo-700">
-                {section.title}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            ))} */}
-            {/* <button type="button" className="hover:text-indigo-700">
-              <Star className="h-4 w-4" />
-            </button>
-            <button type="button" className="hover:text-indigo-700">
-              <Bell className="h-4 w-4" />
-            </button> */}
-            <AppButton variant="secondary" onClick={() => controller.logoutMutation.mutate()} className="px-3 py-1.5 text-xs">
-              Logout
-            </AppButton>
-          </div>
-        </header>
-
-        <NavTabs
-          tabs={controller.state.openTabs}
-          activeTabId={controller.state.activeTabId}
-          onChange={controller.actions.setActiveTab}
-          onClose={controller.actions.closeTab}
-          getTabHref={(tab, index) => toHashRoute(tab, index + 1, controller.isFormOpen ? 'form' : tab.viewMode)}
-        />
-
-        <div className="px-3 py-2">
-          <section className="overflow-hidden rounded-lg border border-indigo-100 bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-100 px-3 py-2">
-              <div className="flex items-center gap-2 text-slate-500">
-                <button
-                  type="button"
-                  onClick={controller.startCreateRecord}
-                  disabled={!controller.canCreate}
-                  className="rounded p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                  title="Create"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={controller.refreshCurrentData} className="rounded p-1 hover:bg-slate-100">
-                  <RefreshCw className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="flex items-center gap-3 text-sm text-slate-500">
-                {controller.activeTab ? (
-                  <div className="flex items-center gap-1 rounded border border-indigo-100 bg-slate-50 p-0.5">
-                    {controller.activeModes.includes('list') ? (
-                      <button
-                        type="button"
-                        onClick={() => controller.actions.setTabViewMode(controller.activeTab!.id, 'list')}
-                        className={`rounded px-2 py-1 ${controller.activeTab.viewMode === 'list' ? 'bg-white text-indigo-700 shadow-sm' : 'hover:bg-white'}`}
-                      >
-                        <List className="h-4 w-4" />
-                      </button>
-                    ) : null}
-                    {controller.activeModes.includes('cards') ? (
-                      <button
-                        type="button"
-                        onClick={() => controller.actions.setTabViewMode(controller.activeTab!.id, 'cards')}
-                        className={`rounded px-2 py-1 ${controller.activeTab.viewMode === 'cards' ? 'bg-white text-indigo-700 shadow-sm' : 'hover:bg-white'}`}
-                      >
-                        <LayoutGrid className="h-4 w-4" />
-                      </button>
-                    ) : null}
-                    {controller.isFormOpen ? (
-                      <button
-                        type="button"
-                        onClick={controller.cancelFormEdit}
-                        className="rounded bg-white px-2 py-1 text-xs text-indigo-700 shadow-sm"
-                      >
-                        Back to list
-                      </button>
-                    ) : null}
+                  <div>
+                    <Text className="!text-xs !font-semibold !uppercase !tracking-[0.18em] !text-[#8997b6]">Dashboard</Text>
+                    <Title level={3} className="!mb-1 !mt-1 !text-[#18376d]">
+                      {controller.activeTab?.title ?? 'Workspace Overview'}
+                    </Title>
+                    <Paragraph className="!mb-0 !text-sm !text-[#7181a3]">
+                      {controller.activeTab
+                        ? `Kelola data untuk ${controller.activeTab.title} dengan tampilan ${controller.isFormOpen ? 'form' : controller.activeTab.viewMode}.`
+                        : 'Pilih menu di sidebar untuk membuka modul dan mulai bekerja.'}
+                    </Paragraph>
                   </div>
-                ) : null}
+                </div>
+
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                  <div className="flex items-center gap-3 rounded-2xl border border-[#e3eaf5] bg-white px-3 py-2">
+                    <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#e8edff', color: '#4e5bd9' }} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#21396d]">{controller.state.session?.displayName ?? 'Workspace User'}</p>
+                      <p className="truncate text-xs text-[#7e8cab]">{controller.state.session?.login ?? 'active session'}</p>
+                    </div>
+                    <Button
+                      danger
+                      type="text"
+                      icon={<LogoutOutlined />}
+                      loading={controller.logoutMutation.isPending}
+                      onClick={() => controller.logoutMutation.mutate()}
+                    >
+                      Logout
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="overflow-hidden">
-              {controller.activeActionQuery.isLoading ? <p className="px-4 py-3 text-sm text-slate-500">Memuat action view...</p> : null}
-              {controller.activeActionQuery.isError ? <p className="px-4 py-3 text-sm text-red-600">Action gagal dimuat dari server.</p> : null}
-              {!controller.activeTab ? <p className="px-4 py-3 text-sm text-slate-500">Pilih menu kiri untuk membuka dynamic tab view.</p> : null}
-
-              {controller.activeRecordsQuery.isLoading ? <p className="px-4 py-3 text-sm text-slate-500">Memuat data model dari backend...</p> : null}
-              {controller.activeRecordsQuery.isError ? <p className="px-4 py-3 text-sm text-red-600">Data model gagal dimuat dari endpoint ws/rest.</p> : null}
-              {controller.activePermsQuery.isLoading ? <p className="px-4 py-1 text-xs text-slate-500">Memuat perms...</p> : null}
-              {controller.activePermsQuery.isError ? <p className="px-4 py-1 text-xs text-red-600">Perms gagal dimuat.</p> : null}
-              {controller.activeRecordFetchQuery.isLoading && controller.isFormOpen ? (
-                <p className="px-4 py-1 text-xs text-slate-500">Memuat detail record (fetch)...</p>
-              ) : null}
-
-              {!controller.showFormPage && controller.activeTab?.viewMode !== 'cards' && controller.filteredRecords.length ? (
-                <ListView
-                  records={controller.filteredRecords}
-                  visibleColumns={controller.visibleColumns}
-                  selectedRecordId={String(controller.selectedRecord?.id ?? '')}
-                  canEdit={controller.canEdit}
-                  canRemove={controller.canRemove}
-                  renderCell={controller.renderCell}
-                  onEditRecord={controller.startEditForRecord}
-                  onDeleteRecord={(record) => {
-                    controller.selectRecord(record)
-                    controller.deleteRecordMutation.mutate()
-                  }}
-                  onSelectRecord={controller.selectRecord}
+            <div className="border-b border-[#e7edf7] bg-[#fbfcff] px-4 py-3 sm:px-6">
+              <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                <NavTabs
+                  tabs={controller.state.openTabs}
+                  activeTabId={controller.state.activeTabId}
+                  onChange={controller.actions.setActiveTab}
+                  onClose={controller.actions.closeTab}
+                  getTabHref={(tab, index) => toHashRoute(tab, index + 1, controller.isFormOpen ? 'form' : tab.viewMode)}
                 />
-              ) : null}
 
-              {!controller.showFormPage && controller.activeTab?.viewMode === 'cards' && controller.filteredRecords.length ? (
-                <CardView
-                  records={controller.filteredRecords}
-                  visibleColumns={controller.visibleColumns}
-                  selectedRecordId={String(controller.selectedRecord?.id ?? '')}
-                  canEdit={controller.canEdit}
-                  getRecordTitle={controller.getRecordTitle}
-                  onEditRecord={controller.startEditForRecord}
-                  onSelectRecord={controller.selectRecord}
-                />
-              ) : null}
+                <Space wrap size={10}>
+                  <Tooltip title="Buat data baru">
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      disabled={!controller.canCreate}
+                      onClick={controller.startCreateRecord}
+                    >
+                      New Record
+                    </Button>
+                  </Tooltip>
 
-              {controller.showFormPage ? (
-                <FormView
-                  formIntent={controller.activeFormIntent}
-                  formRecord={controller.activeFormRecord ?? {}}
-                  isSaving={controller.saveRecordMutation.isPending}
-                  saveErrorMessage={controller.saveErrorMessage}
-                  getRecordTitle={controller.getRecordTitle}
-                  onSave={() => controller.saveRecordMutation.mutate()}
-                  onCancel={controller.cancelFormEdit}
-                  onUpdateField={controller.updateDraftField}
-                />
-              ) : null}
+                  <Tooltip title="Refresh data aktif">
+                    <Button icon={<ReloadOutlined />} onClick={controller.refreshCurrentData}>
+                      Refresh
+                    </Button>
+                  </Tooltip>
+
+
+                  {controller.isFormOpen ? (
+                    <Button icon={<EditOutlined />} onClick={controller.cancelFormEdit}>
+                      Back to list
+                    </Button>
+                  ) : null}
+                </Space>
+              </div>
             </div>
-          </section>
-        </div>
-      </section>
+
+            <div className="px-4 py-4 sm:px-6 sm:py-5">
+              <Card
+                bordered={false}
+                className="workspace-content-shell !rounded-[24px] !border !border-[#e8eef8] !shadow-none"
+                bodyStyle={{ padding: 0 }}
+              >
+                <div className="flex items-center justify-between gap-3 border-b border-[#e8eef8] px-5 py-4">
+                  <div>
+                    <Text className="!text-xs !font-semibold !uppercase !tracking-[0.14em] !text-[#8a96b3]">Workspace View</Text>
+                    <Title level={5} className="!mb-0 !mt-1 !text-[#223d73]">
+                      {controller.showFormPage
+                        ? controller.activeFormIntent === 'create'
+                          ? 'Create Record'
+                          : 'Edit Record'
+                        : controller.activeTab?.viewMode === 'cards'
+                          ? 'Card Explorer'
+                          : 'Data Grid'}
+                    </Title>
+                  </div>
+
+                  {controller.activePermsQuery.isLoading ? <Tag color="processing">Checking permissions</Tag> : null}
+                  {controller.activePermsQuery.isError ? <Tag color="error">Permissions unavailable</Tag> : null}
+                </div>
+
+                <div className="min-h-[520px] bg-white">
+                  {controller.activeActionQuery.isLoading ? (
+                    <div className="flex min-h-[280px] items-center justify-center">
+                      <Space align="center" size={12}>
+                        <Spin />
+                        <Text className="!text-[#7383a4]">Memuat action view...</Text>
+                      </Space>
+                    </div>
+                  ) : null}
+
+                  {controller.activeActionQuery.isError ? (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description="Action gagal dimuat dari server."
+                      className="py-16"
+                    />
+                  ) : null}
+
+                  {!controller.activeTab ? (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_DEFAULT}
+                      description="Pilih menu di sidebar untuk membuka dynamic tab view."
+                      className="py-16"
+                    />
+                  ) : null}
+
+                  {controller.activeRecordsQuery.isLoading ? (
+                    <div className="flex items-center gap-3 px-5 py-4 text-sm text-[#7383a4]">
+                      <Spin size="small" />
+                      <span>Memuat data model dari backend...</span>
+                    </div>
+                  ) : null}
+
+                  {controller.activeRecordsQuery.isError ? (
+                    <div className="px-5 py-4 text-sm text-[#d14343]">Data model gagal dimuat dari endpoint ws/rest.</div>
+                  ) : null}
+
+                  {controller.activeRecordFetchQuery.isLoading && controller.isFormOpen ? (
+                    <div className="px-5 py-3 text-xs text-[#7383a4]">Memuat detail record...</div>
+                  ) : null}
+
+                  {!controller.showFormPage && !controller.filteredRecords.length && controller.activeTab ? (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description="Belum ada data yang tampil untuk modul ini."
+                      className="py-16"
+                    />
+                  ) : null}
+
+                  {!controller.showFormPage && controller.activeTab?.viewMode !== 'cards' && controller.filteredRecords.length ? (
+                    <ListView
+                      records={controller.filteredRecords}
+                      visibleColumns={controller.visibleColumns}
+                      selectedRecordId={String(controller.selectedRecord?.id ?? '')}
+                      canEdit={controller.canEdit}
+                      canRemove={controller.canRemove}
+                      renderCell={controller.renderCell}
+                      onEditRecord={controller.startEditForRecord}
+                      onDeleteRecord={(record) => {
+                        controller.selectRecord(record)
+                        controller.deleteRecordMutation.mutate()
+                      }}
+                      onSelectRecord={controller.selectRecord}
+                    />
+                  ) : null}
+
+                  {!controller.showFormPage && controller.activeTab?.viewMode === 'cards' && controller.filteredRecords.length ? (
+                    <CardView
+                      records={controller.filteredRecords}
+                      visibleColumns={controller.visibleColumns}
+                      selectedRecordId={String(controller.selectedRecord?.id ?? '')}
+                      canEdit={controller.canEdit}
+                      getRecordTitle={controller.getRecordTitle}
+                      onEditRecord={controller.startEditForRecord}
+                      onSelectRecord={controller.selectRecord}
+                    />
+                  ) : null}
+
+                  {controller.showFormPage ? (
+                    <FormView
+                      formIntent={controller.activeFormIntent}
+                      formRecord={controller.activeFormRecord ?? {}}
+                      isSaving={controller.saveRecordMutation.isPending}
+                      saveErrorMessage={controller.saveErrorMessage}
+                      getRecordTitle={controller.getRecordTitle}
+                      onSave={() => controller.saveRecordMutation.mutate()}
+                      onCancel={controller.cancelFormEdit}
+                      onUpdateField={controller.updateDraftField}
+                    />
+                  ) : null}
+                </div>
+              </Card>
+            </div>
+          </Card>
+        </section>
+      </div>
     </main>
   )
 }

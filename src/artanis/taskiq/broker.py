@@ -13,26 +13,23 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
+
 
 import asyncio
 
 from taskiq import TaskiqEvents, TaskiqState
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
-from artanis.abc.objloader import ObjectLoader
-from artanis.abc.objlock import SyncLock
-from artanis.abc.service import StartableService
-from artanis.abc.singleton import Singleton
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_startup, artanis_shutdown, artanis_monitor
+from artanis.taskiq.base import BaseBrokerService
 
 
-class ArtanisTaskBroker(ListQueueBroker, StartableService, Singleton, SyncLock, ObjectLoader):
+class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
 
     def __init__(self, *args, config: Configuration = None, queue_name: str = "arttask", **kwargs):
         self.redis_url = "/".join([config.get_property_value(config.ARTANIS_REDIS_URL, None), '0'])
-        super(ArtanisTaskBroker, self).__init__(self.redis_url, *args, queue_name=queue_name,**kwargs)
+        super(ArtanisTaskBroker, self).__init__(self.redis_url, *args, queue_name=queue_name, **kwargs)
         for base in ArtanisTaskBroker.__bases__:
             if base is not ListQueueBroker:
                 base.__init__(self, *args, **kwargs)  # type: ignore
@@ -44,7 +41,9 @@ class ArtanisTaskBroker(ListQueueBroker, StartableService, Singleton, SyncLock, 
         self.with_result_backend(RedisAsyncResultBackend(redis_url=self.redis_url,
                                                          keep_results=False,
                                                          result_ex_time=600))
+        self.configure_lifespan(config)
 
+    def configure_lifespan(self, config: Configuration):
         async def internal_scheduler():
             try:
                 while True:
@@ -65,6 +64,9 @@ class ArtanisTaskBroker(ListQueueBroker, StartableService, Singleton, SyncLock, 
 
         self.add_event_handler(TaskiqEvents.WORKER_STARTUP, process_startup)
         self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, process_shutdown)
+        for mod in self.modules.values():
+            self.add_event_handler(TaskiqEvents.WORKER_STARTUP, mod.on_startup)
+            self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, mod.on_shutdown)
 
     def get_redis_pool(self):
         return self.connection_pool
@@ -85,6 +87,7 @@ class ArtanisTaskBroker(ListQueueBroker, StartableService, Singleton, SyncLock, 
             finally:
                 cls.get_class_locker().release()
         return cls.VM_DEFAULT
+
 
 class ArtanisJobBroker(ArtanisTaskBroker):
 
@@ -115,6 +118,7 @@ class ArtanisJobBroker(ArtanisTaskBroker):
 
         self.add_event_handler(TaskiqEvents.WORKER_STARTUP, process_startup)
         self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, process_shutdown)
+
 
 broker = ArtanisJobBroker.get_default_instance()
 task_broker = ArtanisTaskBroker.get_default_instance()

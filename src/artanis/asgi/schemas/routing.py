@@ -17,7 +17,7 @@ import typing as t
 
 from artanis import exceptions
 from artanis.asgi import types
-from artanis.asgi.schemas.data_structures import Field, Parameter, Parameters
+from artanis.asgi.schemas.datastructures import Field, Parameter, Parameters
 from artanis.injection.resolver import Return
 
 if t.TYPE_CHECKING:

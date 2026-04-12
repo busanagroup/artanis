@@ -1,0 +1,207 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2026 Busana Apparel Group. All rights reserved.
+#
+# This product and it's source code is protected by patents, copyright laws and
+# international copyright treaties, as well as other intellectual property
+# laws and treaties. The product is licensed, not sold.
+#
+# The source code and sample programs in this package or parts hereof
+# as well as the documentation shall not be copied, modified or redistributed
+# without permission, explicit or implied, of the author.
+#
+# This module is part of Artanis Enterprise Platform and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import dataclasses
+import inspect
+import sys
+import typing as t
+from pathlib import Path
+
+if t.TYPE_CHECKING:
+    from artanis.asgi import http
+    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.routing import Route, WebSocketRoute
+
+
+@dataclasses.dataclass(frozen=True)
+class RequestParams:
+    path: dict[str, t.Any]
+    query: dict[str, t.Any]
+
+
+@dataclasses.dataclass(frozen=True)
+class RequestClient:
+    host: str
+    port: int
+
+
+@dataclasses.dataclass(frozen=True)
+class Request:
+    path: str
+    method: str
+    params: RequestParams
+    headers: dict[str, str]
+    cookies: dict[str, str]
+    client: RequestClient | None = None
+
+    @classmethod
+    def from_request(cls, request: "http.Request") -> "Request":
+        return cls(
+            path=request.url.path,
+            method=request.method,
+            params=RequestParams(query=dict(request.query_params), path=dict(request.path_params)),
+            headers=dict(request.headers),
+            cookies=dict(request.cookies),
+            client=RequestClient(host=request.client.host, port=request.client.port) if request.client else None,
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class Frame:
+    filename: str
+    function: str
+    line: int
+    vendor: str | None
+    code: str
+
+    @classmethod
+    def from_frame_info(cls, frame: inspect.FrameInfo) -> "Frame":
+        filename = Path(frame.filename).resolve()
+        for sys_path in sys.path:
+            try:
+                relative_filename = filename.relative_to(sys_path)
+                break
+            except ValueError:  # pragma: no cover # Just a safety mechanism
+                ...
+        else:  # pragma: no cover # Just a safety mechanism
+            raise ValueError(f"Filename '{filename}' not found in sys.path")
+
+        try:
+            vendor = str(filename.relative_to(sys.exec_prefix).parts[3])
+        except ValueError:
+            vendor = None
+
+        with open(filename) as f:
+            code = f.read()
+
+        return cls(
+            filename=str(relative_filename),
+            function=frame.function,
+            line=frame.lineno,
+            vendor=vendor,
+            code=code,
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class Error:
+    error: str
+    description: str
+    traceback: list[Frame]
+
+    @classmethod
+    def from_exception(cls, exc: Exception, context: int = 10) -> "Error":
+        frames = inspect.getinnerframes(exc.__traceback__, context) if exc.__traceback__ else []
+        exc_cls = exc if inspect.isclass(exc) else exc.__class__
+        return cls(
+            error=(
+                f"{exc_cls.__module__}.{exc_cls.__name__}"
+                if exc_cls.__module__ not in ("builtins", "__main__")
+                else exc_cls.__name__
+            ),
+            description=str(exc),
+            traceback=[Frame.from_frame_info(frame=frame) for frame in frames],
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class Environment:
+    platform: str
+    python: str
+    python_version: str
+    path: list[str]
+
+    @classmethod
+    def from_system(cls) -> "Environment":
+        return cls(platform=sys.platform, python=sys.executable, python_version=sys.version, path=sys.path)
+
+
+@dataclasses.dataclass(frozen=True)
+class Endpoint:
+    path: str
+    endpoint: str
+    module: str | None
+    file: str
+    line: int
+    name: str | None = None
+
+    @classmethod
+    def from_route(cls, route: "Route | WebSocketRoute") -> "Endpoint":
+        handler = route.app.handler
+        module = inspect.getmodule(route.app.handler)
+        filename = Path(inspect.getfile(route.app.handler)).resolve()
+        for sys_path in sys.path:
+            try:
+                relative_filename = filename.relative_to(sys_path)
+                break
+            except ValueError:  # pragma: no cover # Just a safety mechanism
+                ...
+        else:  # pragma: no cover # Just a safety mechanism
+            raise ValueError(f"Filename '{filename}' not found in sys.path")
+
+        return cls(
+            path=str(route.path),
+            endpoint=handler.__name__,
+            module=module.__name__ if module else None,
+            file=str(relative_filename),
+            line=inspect.getsourcelines(route.app.handler)[1],
+            name=route.name,
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class App:
+    apps: list["App"]
+    endpoints: list[Endpoint]
+    path: str
+    name: str | None = None
+
+    @classmethod
+    def from_app(cls, app: t.Any, path: str = "/", name: str | None = None) -> "App":
+        apps: list[App] = []
+        endpoints: list[Endpoint] = []
+        for route in app.routes:
+            try:
+                apps.append(App.from_app(route.app, path=route.path.path, name=route.name))
+            except AttributeError:
+                endpoints.append(Endpoint.from_route(route))
+
+        return cls(apps=apps, endpoints=endpoints, path=path, name=name)
+
+
+@dataclasses.dataclass(frozen=True)
+class ErrorContext:
+    request: Request
+    environment: Environment
+    error: Error
+
+    @classmethod
+    def build(cls, request: "http.Request", exc: Exception) -> "ErrorContext":
+        return cls(
+            request=Request.from_request(request),
+            environment=Environment.from_system(),
+            error=Error.from_exception(exc),
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class NotFoundContext:
+    request: Request
+    environment: Environment
+    app: App
+
+    @classmethod
+    def build(cls, request: "http.Request", app: "ASGIService") -> "NotFoundContext":
+        return cls(request=Request.from_request(request), environment=Environment.from_system(), app=App.from_app(app))

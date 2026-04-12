@@ -24,7 +24,7 @@ from artanis.exceptions import DependencyNotInstalled
 
 if t.TYPE_CHECKING:
     from artanis.asgi.schemas.adapter import Adapter
-    from artanis.asgi.schemas.data_structures import Parameter
+    from artanis.asgi.schemas.datastructures import Parameter
 
 __all__ = [
     "Module",

@@ -35,12 +35,12 @@ logger = logging.getLogger(__name__)
 
 class BaseEndpointWrapper(abc.ABC):
     def __init__(
-        self,
-        handler: types.Handler,
-        /,
-        *,
-        signature: inspect.Signature | None = None,
-        pagination: types.Pagination | None = None,
+            self,
+            handler: types.Handler,
+            /,
+            *,
+            signature: inspect.Signature | None = None,
+            pagination: types.Pagination | None = None,
     ):
         """Wraps a function or endpoint into ASGI application.
 
@@ -81,13 +81,14 @@ class BaseRoute(abc.ABC):
         full = enum.auto()
 
     def __init__(
-        self,
-        path: str | url.Path,
-        app: types.App,
-        *,
-        name: str | None = None,
-        include_in_schema: bool = True,
-        tags: dict[str, t.Any] | None = None,
+            self,
+            path: str | url.Path,
+            app: types.App,
+            *,
+            name: str | None = None,
+            include_in_schema: bool = True,
+            tags: dict[str, t.Any] | None = None,
+            docstring: str | None = None,
     ):
         """A route definition of a http endpoint.
 
@@ -104,20 +105,22 @@ class BaseRoute(abc.ABC):
         self.include_in_schema = include_in_schema
         self.tags = tags or {}
         self.parameters = ParametersDescriptor(self)
+        self.docstring = docstring
         super().__init__()
 
     @abc.abstractmethod
-    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None: ...
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
+        ...
 
     def __hash__(self) -> int:
         return hash((self.app, self.path, self.name))
 
     def __eq__(self, other: t.Any) -> bool:
         return (
-            isinstance(other, BaseRoute)
-            and self.path == other.path
-            and self.app == other.app
-            and self.name == other.name
+                isinstance(other, BaseRoute)
+                and self.path == other.path
+                and self.app == other.app
+                and self.name == other.name
         )
 
     def __repr__(self) -> str:

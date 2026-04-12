@@ -26,7 +26,7 @@ from artanis.injection.types import BUILTIN_TYPES
 if t.TYPE_CHECKING:
     from artanis.injection.components import Component, Components
 
-__all__ = ["Empty", "Return", "Parameter", "Resolver"]
+__all__ = ["Empty", "Return", "Parameter", "Resolver", "ResolutionTree"]
 
 
 class Empty: ...

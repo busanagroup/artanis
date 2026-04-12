@@ -16,12 +16,12 @@
 import dataclasses
 import typing as t
 
-from artanis.abc.workers.sqlalchemy import SQLAlchemyWorker
+from artanis.ddd.workers.sqlalchemy import SQLAlchemyWorker
 from artanis.exceptions import ApplicationError
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgiservice import ASGIService
-    from artanis.abc.repositories.sqlalchemy import SQLAlchemyTableRepository
+    from artanis.ddd.repositories.sqlalchemy import SQLAlchemyTableRepository
 
 
 @dataclasses.dataclass

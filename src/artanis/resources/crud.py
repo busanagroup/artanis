@@ -17,9 +17,9 @@ import typing as t
 from http import HTTPStatus
 
 from artanis import exceptions
-from artanis.abc import exceptions as abc_exceptions
 from artanis.asgi import http, schemas, types
-from artanis.resources import data_structures
+from artanis.ddd import exceptions as ddd_exceptions
+from artanis.resources import datastructures
 from artanis.resources.rest import RESTResource, RESTResourceType
 from artanis.resources.routing import ResourceRoute
 from artanis.resources.workers import ResourceWorker
@@ -33,8 +33,8 @@ class CreateMixin:
         cls,
         name: str,
         verbose_name: str,
-        rest_schemas: data_structures.Schemas,
-        rest_model: data_structures.Model,
+        rest_schemas: datastructures.Schemas,
+        rest_model: datastructures.Model,
         **kwargs,
     ) -> dict[str, t.Any]:
         @ResourceRoute.method("/", methods=["POST"], name="create")
@@ -50,7 +50,7 @@ class CreateMixin:
                 repository = worker.repositories[self._meta.name]
                 try:
                     result = await repository.create(resource)
-                except abc_exceptions.IntegrityError as e:
+                except ddd_exceptions.IntegrityError as e:
                     raise exceptions.HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(e))
 
             return http.APIResponse(  # type: ignore[return-value]
@@ -82,8 +82,8 @@ class RetrieveMixin:
         cls,
         name: str,
         verbose_name: str,
-        rest_schemas: data_structures.Schemas,
-        rest_model: data_structures.Model,
+        rest_schemas: datastructures.Schemas,
+        rest_model: datastructures.Model,
         **kwargs,
     ) -> dict[str, t.Any]:
         @ResourceRoute.method("/{resource_id}/", methods=["GET"], name="retrieve")
@@ -124,8 +124,8 @@ class UpdateMixin:
         cls,
         name: str,
         verbose_name: str,
-        rest_schemas: data_structures.Schemas,
-        rest_model: data_structures.Model,
+        rest_schemas: datastructures.Schemas,
+        rest_model: datastructures.Model,
         **kwargs,
     ) -> dict[str, t.Any]:
         @ResourceRoute.method("/{resource_id}/", methods=["PUT"], name="update")
@@ -178,8 +178,8 @@ class PartialUpdateMixin:
         cls,
         name: str,
         verbose_name: str,
-        rest_schemas: data_structures.Schemas,
-        rest_model: data_structures.Model,
+        rest_schemas: datastructures.Schemas,
+        rest_model: datastructures.Model,
         **kwargs,
     ) -> dict[str, t.Any]:
         @ResourceRoute.method("/{resource_id}/", methods=["PATCH"], name="partial-update")
@@ -227,7 +227,7 @@ class PartialUpdateMixin:
 
 class DeleteMixin:
     @classmethod
-    def _add_delete(cls, name: str, verbose_name: str, rest_model: data_structures.Model, **kwargs) -> dict[str, t.Any]:
+    def _add_delete(cls, name: str, verbose_name: str, rest_model: datastructures.Model, **kwargs) -> dict[str, t.Any]:
         @ResourceRoute.method("/{resource_id}/", methods=["DELETE"], name="delete")
         async def delete(self, worker: ResourceWorker, resource_id: rest_model.primary_key.type):  # type: ignore
             try:
@@ -261,7 +261,7 @@ class DeleteMixin:
 class ListMixin:
     @classmethod
     def _add_list(
-        cls, name: str, verbose_name: str, rest_schemas: data_structures.Schemas, **kwargs
+        cls, name: str, verbose_name: str, rest_schemas: datastructures.Schemas, **kwargs
     ) -> dict[str, t.Any]:
         @ResourceRoute.method("/", methods=["GET"], name="list", pagination="page_number")
         async def list(
@@ -302,8 +302,8 @@ class ReplaceMixin:
         cls,
         name: str,
         verbose_name: str,
-        rest_schemas: data_structures.Schemas,
-        rest_model: data_structures.Model,
+        rest_schemas: datastructures.Schemas,
+        rest_model: datastructures.Model,
         **kwargs,
     ) -> dict[str, t.Any]:
         @ResourceRoute.method("/", methods=["PUT"], name="replace")
@@ -345,8 +345,8 @@ class PartialReplaceMixin:
         cls,
         name: str,
         verbose_name: str,
-        rest_schemas: data_structures.Schemas,
-        rest_model: data_structures.Model,
+        rest_schemas: datastructures.Schemas,
+        rest_model: datastructures.Model,
         **kwargs,
     ) -> dict[str, t.Any]:
         @ResourceRoute.method("/", methods=["PATCH"], name="partial-replace")

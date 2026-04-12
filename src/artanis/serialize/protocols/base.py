@@ -19,7 +19,7 @@ import typing as t
 
 from artanis.asgi import types
 from artanis.serialize.compression import Compression
-from artanis.serialize.data_structures import ModelArtifact
+from artanis.serialize.datastructures import ModelArtifact
 
 __all__ = ["BaseProtocol", "Protocol"]
 
@@ -31,7 +31,7 @@ class BaseProtocol(abc.ABC):
 
     @abc.abstractmethod
     def dump(self, m: ModelArtifact, /, *, compression: Compression, **kwargs) -> bytes:
-        """Serializes a :class:`~artanis.serialize.data_structures.ModelArtifact` into bytes according to the protocol.
+        """Serializes a :class:`~artanis.serialize.datastructures.ModelArtifact` into bytes according to the protocol.
 
         :param m: The model artifact to serialize.
         :param compression: The compression algorithm to use for the resulting bytes.
@@ -42,7 +42,7 @@ class BaseProtocol(abc.ABC):
 
     @abc.abstractmethod
     def load(self, b: bytes, /, *, compression: Compression, **kwargs) -> ModelArtifact:
-        """Deserializes bytes into a :class:`~artanis.serialize.data_structures.ModelArtifact` according to the protocol.
+        """Deserializes bytes into a :class:`~artanis.serialize.datastructures.ModelArtifact` according to the protocol.
 
         :param b: The bytes representing the serialized model artifact.
         :param compression: The compression algorithm used on the bytes.

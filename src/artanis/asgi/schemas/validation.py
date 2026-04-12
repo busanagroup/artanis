@@ -16,7 +16,7 @@ import inspect
 from functools import wraps
 
 from artanis import exceptions
-from artanis.asgi.schemas.data_structures import Schema
+from artanis.asgi.schemas.datastructures import Schema
 from artanis.asgi.schemas.exceptions import SchemaValidationError
 
 __all__ = ["output_validation"]

@@ -16,7 +16,7 @@
 import re
 import typing as t
 
-from artanis.resources import data_structures
+from artanis.resources import datastructures
 from artanis.resources.exceptions import ResourceAttributeError
 
 __all__ = ["Resource", "ResourceType"]
@@ -42,7 +42,7 @@ class ResourceType(type):
             except AttributeError as e:
                 raise ResourceAttributeError(str(e), name)
 
-            namespace.setdefault("_meta", data_structures.Metadata()).name = resource_name
+            namespace.setdefault("_meta", datastructures.Metadata()).name = resource_name
             namespace["_meta"].verbose_name = verbose_name
 
             # Create methods and routes
@@ -124,9 +124,9 @@ class ResourceType(type):
             "_methods": {
                 name: m
                 for name, m in namespace.items()
-                if isinstance(m, data_structures.ResourceMethod) and not name.startswith("_")
+                if isinstance(m, datastructures.ResourceMethod) and not name.startswith("_")
             },
-            **{name: m.func.method for name, m in namespace.items() if isinstance(m, data_structures.ResourceMethod)},
+            **{name: m.func.method for name, m in namespace.items() if isinstance(m, datastructures.ResourceMethod)},
         }
 
     @classmethod
@@ -159,5 +159,5 @@ class Resource(metaclass=ResourceType):
     name: str
     verbose_name: str
 
-    _methods: dict[str, data_structures.ResourceMethod]
-    _meta: data_structures.Metadata
+    _methods: dict[str, datastructures.ResourceMethod]
+    _meta: datastructures.Metadata

@@ -13,22 +13,26 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
 
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 
-from artanis.asgi.asgiendpoint import BaseEndPoint, published
+from artanis.asgi import http
+from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
 from artanis.asgi.asgiservice import ASGIService
 
 
-class MVCEndPoint(BaseEndPoint):
+class MVCDescriptor(Descriptor):
+    handle_request = True
+    default_tags = {}
 
+
+class MVCEndPoint(ASGIEndPoint):
+    descriptor: Descriptor = MVCDescriptor()
     base_modules = "ecf.mvc"
 
     @published
-    def hello(self, request: Request):
-        return JSONResponse({'hello': 'world'})
+    def hello_world(self, request: http.Request):
+        print(request)
+        return {'hello': 'world'}
 
 
 class MVCAppService(ASGIService):

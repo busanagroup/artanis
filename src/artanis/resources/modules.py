@@ -18,13 +18,13 @@ import typing as t
 
 from artanis import exceptions
 from artanis.asgi import types
-from artanis.asgi.modules import Module
+from artanis.modules import Module
 from artanis.resources.resource import Resource
 from artanis.resources.routing import ResourceRoute
 
 if t.TYPE_CHECKING:
     try:
-        from artanis.abc.repositories.sqlalchemy import SQLAlchemyTableRepository
+        from artanis.ddd.repositories.sqlalchemy import SQLAlchemyTableRepository
         from artanis.resources.workers import ResourceWorker
     except exceptions.DependencyNotInstalled:
         ...

@@ -19,7 +19,8 @@ import re
 import typing as t
 
 from artanis import exceptions
-from artanis.asgi import authentication
+from artanis.asgi import auth
+from artanis.asgi.auth.validator import AccessValidator
 from artanis.asgi.http import APIErrorResponse, Request
 from artanis.exceptions import HTTPException
 
@@ -29,7 +30,6 @@ if t.TYPE_CHECKING:
     from artanis.asgi.http import Response
 
 __all__ = ["AuthenticationMiddleware"]
-
 
 logger = logging.getLogger(__name__)
 
@@ -45,28 +45,24 @@ class AuthenticationMiddleware:
             await self.app(scope, receive, send)
             return
 
-        response = await self._get_response(scope, receive)
+        response = await self.get_auth_response(scope, receive)
 
         await response(scope, receive, send)
 
-    def _get_permissions(self, app: "ASGIService", scope: "types.Scope") -> set[str]:
+    async def get_auth_response(self, scope: "types.Scope", receive: "types.Receive") -> "Response | ASGIService":
+        app: ASGIService = scope["app"]
         try:
-            route, _ = app.router.resolve_route(scope)
+            route, route_scope = app.router.resolve_route(scope)
             permissions = set(route.tags.get(self._tag, []))
         except (exceptions.MethodNotAllowedException, exceptions.NotFoundException):
             permissions = []
 
-        return set(permissions)
-
-    async def _get_response(self, scope: "types.Scope", receive: "types.Receive") -> "Response | ASGIService":
-        app: ASGIService = scope["app"]
-
-        if not (required_permissions := self._get_permissions(app, scope)):
+        if not (required_permissions := set(permissions)):
             return self.app
 
         try:
-            token: authentication.AccessToken = await app.injector.value(
-                authentication.AccessToken, {"request": Request(scope, receive=receive)}
+            token: auth.AccessToken = await app.injector.value(
+                auth.AccessToken, {"request": Request(scope, receive=receive)}
             )
         except HTTPException as e:
             logger.debug("JWT error: %s", e.detail)
@@ -77,6 +73,24 @@ class AuthenticationMiddleware:
         }
         if not (user_permissions >= required_permissions):
             logger.debug("User does not have the required permissions: %s", required_permissions)
-            return APIErrorResponse(status_code=http.HTTPStatus.FORBIDDEN, detail="Insufficient permissions")
+            return APIErrorResponse(
+                status_code=http.HTTPStatus.FORBIDDEN,
+                detail="Insufficient permissions"
+            )
+
+        validator: AccessValidator = route_scope.get('access_validator', None)
+        if not validator:
+            return self.app
+
+        try:
+            child_scope = await validator.validate(route_scope, token)
+            if child_scope:
+                scope.update(child_scope)
+        except HTTPException as exc:
+            return APIErrorResponse(
+                status_code=exc.status_code,
+                detail=exc.detail,
+                headers=exc.headers,
+            )
 
         return self.app

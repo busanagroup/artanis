@@ -13,9 +13,6 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
-
-from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
 from artanis.asgi.asgiendpoint import published
@@ -26,7 +23,7 @@ class cmnsvc(APIService):
 
     description = 'Common Service API'
 
-    @published(path='/userinfo', methods=["GET"])
+    @published(path='/userinfo')
     async def get_user_info(self):
         return JSONResponse({'hello': 'world'})
 

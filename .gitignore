@@ -6,3 +6,4 @@
 /.pdm-build/
 /research/
 /env/
+/templates/node_modules/

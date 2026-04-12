@@ -1,5 +1,8 @@
-import { Pencil } from 'lucide-react'
+import { EditOutlined } from '@ant-design/icons'
+import { Button, Card, Empty, Tag, Typography } from 'antd'
 import type { RecordItem } from './list-view'
+
+const { Text } = Typography
 
 type CardViewProps = {
   records: RecordItem[]
@@ -20,36 +23,57 @@ export function CardView({
   onEditRecord,
   onSelectRecord,
 }: CardViewProps) {
+  if (!records.length) {
+    return <Empty description="Belum ada data untuk ditampilkan." className="py-16" />
+  }
+
   return (
-    <div className="grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 p-5 sm:grid-cols-2 2xl:grid-cols-3">
       {records.map((record, index) => {
         const selected = String(record.id ?? '') === String(selectedRecordId ?? '')
+
         return (
-          <div
+          <Card
             key={String(record.id ?? index)}
-            className={`rounded-lg border p-3 transition-colors ${selected ? 'border-indigo-300 bg-indigo-50' : 'border-indigo-100 hover:bg-slate-50'}`}
+            hoverable
+            bordered={false}
+            className={`!rounded-[24px] !border !shadow-none transition-all ${
+              selected
+                ? '!border-[#9dacff] !bg-[linear-gradient(180deg,#f4f3ff_0%,#ffffff_100%)]'
+                : '!border-[#e7edf7] !bg-white'
+            }`}
+            bodyStyle={{ padding: 20 }}
+            onClick={() => onSelectRecord(record)}
           >
-            <div className="mb-2 flex items-start justify-between gap-2">
-              <p className="text-sm font-semibold text-[#33437a]">{getRecordTitle(record)}</p>
-              <button
-                type="button"
-                onClick={() => onEditRecord(record)}
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Tag color={selected ? 'purple' : 'blue'} className="!mb-3 !rounded-full !px-3 !py-1">
+                  {selected ? 'Selected' : 'Record'}
+                </Tag>
+                <p className="truncate text-base font-semibold text-[#2a4278]">{getRecordTitle(record)}</p>
+              </div>
+
+              <Button
+                type="text"
+                shape="circle"
+                icon={<EditOutlined />}
                 disabled={!canEdit}
-                className="rounded p-1 text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                title="Edit card"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onEditRecord(record)
+                }}
+              />
             </div>
-            <div onClick={() => onSelectRecord(record)} className="space-y-1 text-xs text-slate-600">
+
+            <div className="space-y-3">
               {visibleColumns.slice(0, 4).map((column) => (
-                <p key={`${String(record.id ?? index)}-${column}`} className="flex justify-between gap-3">
-                  <span className="text-slate-500">{column}</span>
-                  <span className="truncate">{String(record[column] ?? '-')}</span>
-                </p>
+                <div key={`${String(record.id ?? index)}-${column}`} className="rounded-2xl bg-[#f7f9ff] px-3 py-2.5">
+                  <Text className="!text-[11px] !font-semibold !uppercase !tracking-[0.12em] !text-[#8a96b3]">{column}</Text>
+                  <p className="mt-1 truncate text-sm text-[#425381]">{String(record[column] ?? '-')}</p>
+                </div>
               ))}
             </div>
-          </div>
+          </Card>
         )
       })}
     </div>

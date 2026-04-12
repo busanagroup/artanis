@@ -23,7 +23,7 @@ import typing as t
 import weakref
 
 from artanis.serialize.compression import Compression
-from artanis.serialize.data_structures import Metadata, ModelArtifact
+from artanis.serialize.datastructures import Metadata, ModelArtifact
 from artanis.serialize.model_serializers import ModelSerializer
 from artanis.serialize.protocols.base import BaseProtocol
 

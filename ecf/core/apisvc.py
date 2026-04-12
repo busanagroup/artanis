@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from artanis.asgi.asgiendpoint import Descriptor
 from artanis.config import Configuration
-
 from ecf.core.ecfcmn import BaseController
 
 
@@ -27,7 +26,7 @@ class APIDescriptor(Descriptor):
 
 class APIBaseService(BaseController):
     __config = Configuration.get_default_instance(create_instance=False)
-    descriptor = APIDescriptor()
+    descriptor = APIDescriptor
 
 
 class APIService(APIBaseService):
