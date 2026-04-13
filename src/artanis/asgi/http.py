@@ -45,7 +45,6 @@ __all__ = [
     "RedirectResponse",
     "StreamingResponse",
     "FileResponse",
-    "APIErrorResponse",
     "HTMLFileResponse",
     "HTMLTemplatesEnvironment",
     "HTMLTemplateResponse",

@@ -18,6 +18,9 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
+from starlette.exceptions import HTTPException as StarletteHTTPException, \
+    WebSocketException as StarletteWebSocketException
+
 from artanis.helpers import STATUS_CODES
 
 
@@ -147,3 +150,9 @@ class ValidationError(ArtanisException):
 
 
 class InitError(ArtanisException): ...
+
+
+class HTTPException(StarletteHTTPException): ...
+
+
+class WebSocketException(StarletteWebSocketException): ...
