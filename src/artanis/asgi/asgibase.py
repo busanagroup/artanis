@@ -23,6 +23,7 @@ from artanis.abc.objlock import SyncLock
 from artanis.abc.service import StartableService
 from artanis.abc.singleton import Singleton
 from artanis.asgi import types, routing, http, websockets
+from artanis.asgi.components import asgi, validation
 from artanis.asgi.events import Events
 from artanis.asgi.middlewares import MiddlewareStack
 from artanis.asgi.pagination import paginator
@@ -36,7 +37,6 @@ from artanis.modules import Modules, Module
 from artanis.resources import ResourcesModule, ResourceRoute, resource as rsc
 from artanis.resources.workers import ResourceWorker
 from artanis.sqlentity.module import SQLAlchemyModule
-from artanis.asgi.components import asgi, validation
 
 if t.TYPE_CHECKING:
     from artanis.asgi.middlewares import Middleware
