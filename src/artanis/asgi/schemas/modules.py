@@ -97,4 +97,4 @@ class SchemaModule(Module):
         return http.OpenAPIResponse(self.schema)
 
     def docs_view(self) -> http.HTMLResponse:
-        return http._ArtanisTemplateResponse("schemas/docs.html", {"url": self.schema_path})
+        return http.ArtanisTemplateResponse("schemas/docs.html", {"url": self.schema_path})

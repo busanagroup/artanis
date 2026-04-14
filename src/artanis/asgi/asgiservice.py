@@ -33,7 +33,7 @@ from artanis.injection import Components
 from artanis.resources import  ResourceRoute, resource as rsc
 from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent
-from artanis.asgi.middlewares import Middleware, CORSMiddleware
+from artanis.asgi.middlewares import Middleware, CORSMiddleware, GZipMiddleware
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
 
@@ -56,34 +56,37 @@ class ASGIService(BaseASGIService):
             schema_library: str | None = "pydantic",
     ):
         config: Configuration = config or Configuration.get_default_instance(create_instance=False)
+        app_name = config.get_property_value(Configuration.ARTANIS_APP_NAME, '')
+        openapi = {
+            "info": {
+                "title": app_name,
+                "version": "0.1.0",
+                "summary": f"{app_name} application",
+                "description": "The future is ours",
+            },
+        }
         super().__init__(
             config=config,
             debug=debug,
-            openapi={
-                "info": {
-                    "title": "Artanis",
-                    "version": "0.1.0",
-                    "summary": "Artanis application",
-                    "description": "The future is ours",
-                },
-            },
+            openapi=openapi,
             schema_library=schema_library,
             parent=parent
         )
         jwt_secret = config.get_property_value(config.JWT_SECRET_KEY, str(uuid.UUID(int=0)))
-        access_token = AccessTokenComponent(
-            jwt_secret.encode(),
-            header_prefix=config.get_property_value(config.JWT_HEADER_PREFIX),
-            header_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY),
-            cookie_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY)
-        )
-        refresh_token = RefreshTokenComponent(
-            jwt_secret.encode(),
-            header_prefix=config.get_property_value(Configuration.JWT_HEADER_PREFIX),
-            header_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY),
-            cookie_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY)
-        )
-        components = [access_token, refresh_token]
+        components = [
+            AccessTokenComponent(
+                jwt_secret.encode(),
+                header_prefix=config.get_property_value(config.JWT_HEADER_PREFIX),
+                header_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY),
+                cookie_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY)
+            ),
+            RefreshTokenComponent(
+                jwt_secret.encode(),
+                header_prefix=config.get_property_value(Configuration.JWT_HEADER_PREFIX),
+                header_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY),
+                cookie_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY)
+            )
+        ]
         self.add_component_set(components)
 
     def configure_lifespan(self, config):
@@ -112,6 +115,11 @@ class ASGIService(BaseASGIService):
 
     def configure_middlewares(self, config):
         cors = config.get_property_value(config.ARTANIS_SECURITY_CORS_ORIGINS, '')
+        self.add_middleware(Middleware(
+            GZipMiddleware,
+            minimum_size=2048,
+            compresslevel=7,
+        ))
         self.add_middleware(Middleware(
             CORSMiddleware,
             allow_origins=cors.split(','),

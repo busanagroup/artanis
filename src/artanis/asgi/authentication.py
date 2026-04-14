@@ -16,13 +16,15 @@
 import typing as t
 
 import pydantic
+from starlette.staticfiles import StaticFiles
 
-from artanis.asgi import schemas
+from artanis.asgi import schemas, http
+from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
 from artanis.asgi.asgiservice import ASGIService
 from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.asgi.auth.validator import APIAccessValidator
-from artanis.asgi.http import Request
+from artanis.asgi.http import Request, ArtanisStaticFiles
 from artanis.config import Configuration
 from artanis.exceptions import HTTPException
 
@@ -233,6 +235,17 @@ class MVCEndPoint(ASGIEndPoint):
     async def finalize(self, request: Request):
         return {'hello': "world"}
 
+    @staticmethod
+    def register_static(app: BaseASGIService):
+        app.add_route("/", MVCEndPoint.frontend_view, include_in_schema=False)
+        app.mount("/assets",
+                  app=ArtanisStaticFiles("asgi", "templates", "frontend", "assets"),
+                  name="assets")
+
+    @staticmethod
+    async def frontend_view():
+        return http.ArtanisTemplateResponse("frontend/index.html", context=None)
+
 
 class APIEndPoint(ASGIEndPoint):
     base_modules = "ecf.api"
@@ -245,6 +258,7 @@ class AuthAppService(ASGIService):
         self.mount('/auth', AuthEndPoint(config=config, parent=self))
         self.mount('/api', APIEndPoint(config=config, parent=self))
         self.mount('/mvc', MVCEndPoint(config=config, parent=self))
+        MVCEndPoint.register_static(self)
 
 
 app = AuthAppService.get_default_instance()

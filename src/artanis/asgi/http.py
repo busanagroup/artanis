@@ -30,6 +30,7 @@ import jinja2
 import starlette.requests
 import starlette.responses
 import starlette.schemas
+import starlette.staticfiles
 
 from artanis import exceptions
 from artanis.asgi import schemas, types, url
@@ -51,6 +52,8 @@ __all__ = [
     "HTMLTemplatesEnvironment",
     "HTMLTemplateResponse",
     "OpenAPIResponse",
+    "ArtanisTemplateResponse",
+    "ArtanisStaticFiles",
 ]
 
 Method = enum.StrEnum(
@@ -297,7 +300,7 @@ class HTMLTemplateResponse(HTMLResponse):
         super().__init__(self.templates.get_template(template).render(**context), *args, **kwargs)
 
 
-class _ArtanisLoader(jinja2.PackageLoader):
+class TemplateLoader(jinja2.PackageLoader):
     def __init__(self):
         spec = importlib.util.find_spec("artanis")
         if spec is None or spec.origin is None:
@@ -311,8 +314,8 @@ class _ArtanisLoader(jinja2.PackageLoader):
         super().__init__(package_name="artanis.asgi", package_path="templates")
 
 
-class _ArtanisTemplateResponse(HTMLTemplateResponse):
-    templates = HTMLTemplatesEnvironment(loader=_ArtanisLoader())
+class ArtanisTemplateResponse(HTMLTemplateResponse):
+    templates = HTMLTemplatesEnvironment(loader=TemplateLoader())
 
 
 class OpenAPIResponse(starlette.schemas.OpenAPIResponse, Response):
@@ -326,3 +329,16 @@ class OpenAPIResponse(starlette.schemas.OpenAPIResponse, Response):
             raise ValueError("The schema must be a dictionary")
 
         return json.dumps(content).encode("utf-8")
+
+class ArtanisStaticFiles(starlette.staticfiles.StaticFiles):
+    def __init__(self, *args) -> None:
+        spec = importlib.util.find_spec("artanis")
+        if spec is None or spec.origin is None:
+            raise exceptions.ApplicationError("Artanis package not found")
+
+        templates_path = pathlib.Path(spec.origin).parent.joinpath(*args)
+        if not templates_path.exists():
+            warnings.warn("Templates folder not found in the Artanis package")
+            templates_path.mkdir(exist_ok=True)
+        super().__init__(directory=templates_path)
+    

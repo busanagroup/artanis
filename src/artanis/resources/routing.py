@@ -76,7 +76,7 @@ class ResourceRoute(Mount):
             name=self.resource._meta.name,
         )
 
-        self.app: ASGIService
+        self.app: BaseASGIService
 
     def _build(self, app: "BaseASGIService ") -> None:
         """Build step for resource routes.

@@ -70,11 +70,12 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
             default_components.append(WorkerComponent(worker=worker))
 
         openapi_support = openapi is not None
+        app_name = config.get_property_value(Configuration.ARTANIS_APP_NAME, '')
         openapi = openapi or {
                 "info": {
-                    "title": "Artanis",
+                    "title": app_name,
                     "version": "0.1.0",
-                    "summary": "Artanis application",
+                    "summary": f"{app_name} application",
                     "description": "The future is ours",
                 },
             }
