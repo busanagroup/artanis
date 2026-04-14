@@ -55,22 +55,6 @@ class ASGIService(BaseASGIService):
             schema_library=schema_library,
             parent=parent
         )
-        jwt_secret = config.get_property_value(config.JWT_SECRET_KEY, str(uuid.UUID(int=0)))
-        components = [
-            AccessTokenComponent(
-                jwt_secret.encode(),
-                header_prefix=config.get_property_value(config.JWT_HEADER_PREFIX),
-                header_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY),
-                cookie_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY)
-            ),
-            RefreshTokenComponent(
-                jwt_secret.encode(),
-                header_prefix=config.get_property_value(Configuration.JWT_HEADER_PREFIX),
-                header_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY),
-                cookie_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY)
-            )
-        ]
-        self.add_component_set(components)
 
     def configure_lifespan(self, config):
         async def internal_scheduler():
@@ -111,19 +95,21 @@ class ASGIService(BaseASGIService):
             allow_headers=["*"],
         ))
 
-    @classmethod
-    def _configure_singleton(cls, *args, **kwargs):
-        if cls.has_singleton_instance():
-            cls.VM_DEFAULT.configure()
+    def configure_components(self, config):
+        jwt_secret = config.get_property_value(config.JWT_SECRET_KEY, str(uuid.UUID(int=0)))
+        components = [
+            AccessTokenComponent(
+                jwt_secret.encode(),
+                header_prefix=config.get_property_value(config.JWT_HEADER_PREFIX),
+                header_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY),
+                cookie_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY)
+            ),
+            RefreshTokenComponent(
+                jwt_secret.encode(),
+                header_prefix=config.get_property_value(Configuration.JWT_HEADER_PREFIX),
+                header_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY),
+                cookie_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY)
+            )
+        ]
+        self.add_component_set(components)
 
-    @classmethod
-    def get_default_instance(cls, *args, create_instance=True, **kwargs):
-        if create_instance and not cls.has_singleton_instance():
-            cls.get_class_locker().acquire()
-            try:
-                config = Configuration.get_default_instance(create_instance=False)
-                cls.VM_DEFAULT = cls(*args, config=config, **kwargs)
-                cls._configure_singleton()
-            finally:
-                cls.get_class_locker().release()
-        return cls.VM_DEFAULT

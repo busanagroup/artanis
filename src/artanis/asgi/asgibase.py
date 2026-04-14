@@ -99,6 +99,7 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         config = self.get_configuration()
         self.configure_lifespan(config)
         self.configure_modules(config)
+        self.configure_components(config)
         self.configure_services(config)
         self.configure_middlewares(config)
         self.configure_application(config)
@@ -108,6 +109,9 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         ...
 
     def configure_modules(self, config):
+        ...
+
+    def configure_components(self, config):
         ...
 
     def configure_services(self, config):
