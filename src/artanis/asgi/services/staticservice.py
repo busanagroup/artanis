@@ -20,7 +20,7 @@ from artanis.asgi.services.staticendpoint import StaticEndPoint
 class StaticAppService(ASGIService):
 
     def configure_services(self, config):
-        StaticEndPoint.register(self)
+        StaticEndPoint.register(self, config)
 
 
 app = StaticAppService.get_default_instance()

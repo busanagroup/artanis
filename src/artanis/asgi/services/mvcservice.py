@@ -20,7 +20,7 @@ from artanis.asgi.services.mvcendpoint import MVCEndPoint
 class MVCAppService(ASGIService):
 
     def configure_services(self, config):
-        MVCEndPoint.register(self)
+        MVCEndPoint.register(self, config)
 
 
 app = MVCAppService.get_default_instance()

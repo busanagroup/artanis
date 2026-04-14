@@ -17,11 +17,13 @@ from artanis.asgi import http
 from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import ASGIEndPoint
 from artanis.asgi.http import ArtanisStaticFiles
+from artanis.config import Configuration
 
 
 class StaticEndPoint(ASGIEndPoint):
+
     @classmethod
-    def register(cls, app: BaseASGIService):
+    def register(cls, app: BaseASGIService, config: Configuration):
         app.add_route("/", cls.frontend_view, include_in_schema=False)
         app.mount("/assets", ArtanisStaticFiles("asgi", "templates", "frontend", "assets"), name="assets")
 

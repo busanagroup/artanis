@@ -16,10 +16,13 @@
 
 
 from artanis.asgi.asgiservice import ASGIService
+from artanis.asgi.services.wsendpoint import WebsocketEndPoint
 
 
 class WebSocketAppService(ASGIService):
-    ...
+
+    def configure_services(self, config):
+        WebsocketEndPoint.register(self, config)
 
 
 app = WebSocketAppService.get_default_instance()

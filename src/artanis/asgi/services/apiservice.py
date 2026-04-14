@@ -20,7 +20,7 @@ from artanis.asgi.services.apiendpoint import APIEndPoint
 class APIAppService(ASGIService):
 
     def configure_services(self, config):
-        APIEndPoint.register(self)
+        APIEndPoint.register(self, config)
 
 
 app = APIAppService.get_default_instance()

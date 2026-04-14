@@ -17,6 +17,7 @@ from starlette.requests import Request
 
 from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
+from artanis.config import Configuration
 
 
 class MVCDescriptor(Descriptor):
@@ -29,8 +30,7 @@ class MVCEndPoint(ASGIEndPoint):
     base_modules = "ecf.mvc"
 
     @classmethod
-    def register(cls, app: BaseASGIService):
-        config = app.get_configuration()
+    def register(cls, app: BaseASGIService, config: Configuration):
         app.mount('/mvc', cls(config=config, parent=app))
 
     @published

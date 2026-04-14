@@ -59,8 +59,7 @@ class AuthEndPoint(ASGIEndPoint):
         self.auth_handler = AuthenticationHandler(self.get_configuration())
 
     @classmethod
-    def register(cls, app: BaseASGIService):
-        config = app.get_configuration()
+    def register(cls, app: BaseASGIService, config: Configuration):
         app.mount('/auth', AuthEndPoint(config=config, parent=app))
 
     @published(path="/refresh", methods=["POST"])

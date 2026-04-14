@@ -23,10 +23,10 @@ from artanis.asgi.services.staticendpoint import StaticEndPoint
 class AuthAppService(ASGIService):
 
     def configure_services(self, config):
-        AuthEndPoint.register(self)
-        MVCEndPoint.register(self)
-        StaticEndPoint.register(self)
-        APIEndPoint.register(self)
+        AuthEndPoint.register(self,config)
+        MVCEndPoint.register(self, config)
+        StaticEndPoint.register(self, config)
+        APIEndPoint.register(self, config)
 
 
 app = AuthAppService.get_default_instance()

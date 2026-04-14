@@ -16,6 +16,7 @@
 from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import ASGIEndPoint
 from artanis.asgi.auth.validator import APIAccessValidator
+from artanis.config import Configuration
 
 
 class APIEndPoint(ASGIEndPoint):
@@ -23,6 +24,5 @@ class APIEndPoint(ASGIEndPoint):
     access_validator = APIAccessValidator()
 
     @classmethod
-    def register(cls, app: BaseASGIService):
-        config = app.get_configuration()
+    def register(cls, app: BaseASGIService, config: Configuration):
         app.mount('/api', cls(config=config, parent=app))
