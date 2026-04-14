@@ -341,4 +341,10 @@ class ArtanisStaticFiles(starlette.staticfiles.StaticFiles):
             warnings.warn("Templates folder not found in the Artanis package")
             templates_path.mkdir(exist_ok=True)
         super().__init__(directory=templates_path)
+
+    def resolve_route(self, scope: types.Scope):
+        return self, scope
+
+
+
     

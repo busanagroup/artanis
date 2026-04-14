@@ -238,9 +238,7 @@ class MVCEndPoint(ASGIEndPoint):
     @staticmethod
     def register_static(app: BaseASGIService):
         app.add_route("/", MVCEndPoint.frontend_view, include_in_schema=False)
-        app.mount("/assets",
-                  app=ArtanisStaticFiles("asgi", "templates", "frontend", "assets"),
-                  name="assets")
+        app.mount("/assets", ArtanisStaticFiles("asgi", "templates", "frontend", "assets"), name="assets")
 
     @staticmethod
     async def frontend_view():
