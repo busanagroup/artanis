@@ -1,4 +1,4 @@
-import { GridColumnMenuFilter, GridColumnMenuCheckboxFilter, type GridColumnMenuProps } from '@progress/kendo-react-grid';
+import { GridColumnMenuFilter, type GridColumnMenuProps } from '@progress/kendo-react-grid';
 
 
 export const ColumnMenu = (props: GridColumnMenuProps) => {
@@ -8,11 +8,3 @@ export const ColumnMenu = (props: GridColumnMenuProps) => {
         </div>
     );
 };
-
-// export const ColumnMenuCheckboxFilter = (props: GridColumnMenuProps) => {
-//     return (
-//         <div>
-//             <GridColumnMenuCheckboxFilter {...props} data={products} expanded={true} />
-//         </div>
-//     );
-// };
