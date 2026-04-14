@@ -279,7 +279,11 @@ class ASGIEndPoint(ControllerABC):
         self.register_listener(parent)
 
     async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
-        ...
+        if scope["type"] not in ("http", "websocket"):
+            raise ValueError(f"Wrong scope type ({scope['type']})")
+
+        route, route_scope = self.resolve_route(scope)
+        await route(route_scope, receive, send)
 
     def resolve_route(self, scope: types.Scope) -> tuple[BaseRoute, types.Scope]:
         klass: type[ControllerABC] | None = None
