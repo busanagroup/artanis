@@ -36,6 +36,7 @@ from artanis.modules import Modules, Module
 from artanis.resources import ResourcesModule, ResourceRoute, resource as rsc
 from artanis.resources.workers import ResourceWorker
 from artanis.sqlentity.module import SQLAlchemyModule
+from artanis.asgi.components import asgi, validation
 
 if t.TYPE_CHECKING:
     from artanis.asgi.middlewares import Middleware

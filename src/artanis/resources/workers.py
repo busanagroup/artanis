@@ -20,6 +20,7 @@ from artanis.ddd.workers.sqlalchemy import SQLAlchemyWorker
 from artanis.exceptions import ApplicationError
 
 if t.TYPE_CHECKING:
+    from artanis.asgi.asgibase import BaseASGIService
     from artanis.ddd.repositories.sqlalchemy import SQLAlchemyTableRepository
 
 
@@ -36,12 +37,12 @@ class Repositories:
 
 
 class ResourceWorker(SQLAlchemyWorker):
-    """The worker used by ASGIService Resources."""
+    """The worker used by BaseASGIService Resources."""
 
-    def __init__(self, app: "ASGIService | None" = None):
+    def __init__(self, app: "BaseASGIService | None" = None):
         """Initialize the worker.
 
-        This special worker is used to handle the repositories created by ASGIService Resources.
+        This special worker is used to handle the repositories created by BaseASGIService Resources.
 
         :param app: The application instance.
         """
