@@ -13,8 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-
+from artanis.config import Configuration
 from artanis.subsys.asgisubsys import ASGISubsystem, ASGIWorkerFactory
 
 
@@ -23,13 +22,14 @@ class StaticWorkerFactory(ASGIWorkerFactory):
 
 
 class StaticSubsystem(ASGISubsystem):
+    config_service_enabled = Configuration.ARTANIS_STATIC_ENABLED
+    config_bind_type = Configuration.ARTANIS_STATIC_BINDTYPE
+    config_bind = Configuration.ARTANIS_STATIC_BIND
+    config_process_instances = Configuration.ARTANIS_STATIC_INSTANCES
+
+    class_factory = StaticWorkerFactory
     subsystem_name = 'statsub'
 
-    def register_factory(self, parent):
-        if not self.factory:
-            self.factory = StaticWorkerFactory(self)
-            parent.factories.append(self.factory)
-
-    @classmethod
-    def subsystem_is_enabled(cls, config) -> bool:
-        return False
+    def do_configure(self):
+        super().do_configure()
+        self.asgi_config.application_path = 'artanis.asgi.services.staticservice:app'

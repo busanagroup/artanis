@@ -29,6 +29,9 @@ from artanis.asgi.routing import BaseRoute, Route
 from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
 from artanis.utils import get_name, import_function, get_route_path
 
+if t.TYPE_CHECKING:
+    from artanis.asgi.asgibase import BaseASGIService
+
 __all__ = ["ASGIEndPoint", "published", "Descriptor", "ControllerABC"]
 
 
@@ -277,6 +280,10 @@ class ASGIEndPoint(ControllerABC):
         self.__all_classes = None
         self.configure()
         self.register_listener(parent)
+
+    @classmethod
+    def register(cls, app: BaseASGIService):
+        raise NotImplementedError
 
     async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
         if scope["type"] not in ("http", "websocket"):

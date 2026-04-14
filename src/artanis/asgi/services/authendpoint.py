@@ -13,20 +13,17 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+
 import typing as t
 
 import pydantic
-from starlette.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException
 
-from artanis.asgi import schemas, http
+from artanis.asgi import schemas
 from artanis.asgi.asgibase import BaseASGIService
-from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
-from artanis.asgi.asgiservice import ASGIService
+from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
 from artanis.asgi.auth.handler import AuthenticationHandler
-from artanis.asgi.auth.validator import APIAccessValidator
-from artanis.asgi.http import Request, ArtanisStaticFiles
 from artanis.config import Configuration
-from artanis.exceptions import HTTPException
 
 
 class User(pydantic.BaseModel):
@@ -60,6 +57,11 @@ class AuthEndPoint(ASGIEndPoint):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.auth_handler = AuthenticationHandler(self.get_configuration())
+
+    @classmethod
+    def register(cls, app: BaseASGIService):
+        config = app.get_configuration()
+        app.mount('/auth', AuthEndPoint(config=config, parent=app))
 
     @published(path="/refresh", methods=["POST"])
     async def do_refresh(
@@ -172,91 +174,3 @@ class AuthEndPoint(ASGIEndPoint):
 
         AccessToken.model_validate(retval)
         return retval
-
-
-class MVCDescriptor(Descriptor):
-    handle_request = True
-    default_tags = {}
-
-
-class MVCEndPoint(ASGIEndPoint):
-    descriptor: Descriptor = MVCDescriptor()
-    base_modules = "ecf.mvc"
-
-    @published
-    async def pgmredir(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def verify(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def definitions(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def initialize(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def open(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def get(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def post(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def initexec(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def execute(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def print(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def sync(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def initlookup(self, request: Request):
-        return {'hello': "world"}
-
-    @published
-    async def finalize(self, request: Request):
-        return {'hello': "world"}
-
-    @staticmethod
-    def register_static(app: BaseASGIService):
-        app.add_route("/", MVCEndPoint.frontend_view, include_in_schema=False)
-        app.mount("/assets", ArtanisStaticFiles("asgi", "templates", "frontend", "assets"), name="assets")
-
-    @staticmethod
-    async def frontend_view():
-        return http.ArtanisTemplateResponse("frontend/index.html", context=None)
-
-
-class APIEndPoint(ASGIEndPoint):
-    base_modules = "ecf.api"
-    access_validator = APIAccessValidator()
-
-
-class AuthAppService(ASGIService):
-
-    def configure_services(self, config):
-        self.mount('/auth', AuthEndPoint(config=config, parent=self))
-        self.mount('/api', APIEndPoint(config=config, parent=self))
-        self.mount('/mvc', MVCEndPoint(config=config, parent=self))
-        MVCEndPoint.register_static(self)
-
-
-app = AuthAppService.get_default_instance()

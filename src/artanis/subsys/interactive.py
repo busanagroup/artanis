@@ -35,4 +35,4 @@ class MVCSubsystem(ASGISubsystem):
 
     def do_configure(self):
         super().do_configure()
-        self.asgi_config.application_path = 'artanis.asgi.interactive:app'
+        self.asgi_config.application_path = 'artanis.asgi.services.mvcservice:app'

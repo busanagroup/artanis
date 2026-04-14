@@ -13,16 +13,20 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from artanis.asgi.asgiservice import ASGIService
+from artanis.asgi.services.apiendpoint import APIEndPoint
+from artanis.asgi.services.authendpoint import AuthEndPoint
+from artanis.asgi.services.mvcendpoint import MVCEndPoint
+from artanis.asgi.services.staticendpoint import StaticEndPoint
 
 
-from artanis.subsys.authentication import AuthSubsystem
-from artanis.subsys.batchjob import BatchJobSubsystem
-from artanis.subsys.interactive import MVCSubsystem
-from artanis.subsys.litetask import LiteTaskSubsystem
-from artanis.subsys.restapi import APISubsystem
-from artanis.subsys.scheduler import SchedulerSubsystem
-from artanis.subsys.static import StaticSubsystem
+class AuthAppService(ASGIService):
 
-__all__ = [AuthSubsystem, MVCSubsystem, APISubsystem,
-           SchedulerSubsystem, BatchJobSubsystem, LiteTaskSubsystem,
-           StaticSubsystem]
+    def configure_services(self, config):
+        AuthEndPoint.register(self)
+        MVCEndPoint.register(self)
+        StaticEndPoint.register(self)
+        APIEndPoint.register(self)
+
+
+app = AuthAppService.get_default_instance()

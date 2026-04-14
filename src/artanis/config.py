@@ -102,6 +102,10 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_SPV_ENABLED: str = 'artanis.supervisor.enabled'
 
     ARTANIS_STATIC_ENABLED: str = 'artanis.static.enabled'
+    ARTANIS_STATIC_BINDTYPE: str = 'artanis.static.bindtype'
+    ARTANIS_STATIC_BIND: str = 'artanis.static.bind'
+    ARTANIS_STATIC_INSTANCES: str = 'artanis.static.instances'
+
     ARTANIS_REDIS_URL: str = 'artanis.redis.url'
     ARTANIS_LOG_PATH: str = 'artanis.log.filename'
     ARTANIS_LOG_FORMAT: str = 'artanis.log.format'
@@ -171,12 +175,12 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_AUTH_BIND: '0.0.0.0:8001',
 
             self.ARTANIS_API_ENABLED: 'false',
-            self.ARTANIS_API_INSTANCES: '2',
+            self.ARTANIS_API_INSTANCES: '1',
             self.ARTANIS_API_BINDTYPE: 'tcp',
             self.ARTANIS_API_BIND: '0.0.0.0:8002',
 
             self.ARTANIS_MVC_ENABLED: 'false',
-            self.ARTANIS_MVC_INSTANCES: '2',
+            self.ARTANIS_MVC_INSTANCES: '1',
             self.ARTANIS_MVC_BINDTYPE: 'tcp',
             self.ARTANIS_MVC_BIND: '0.0.0.0:8003',
 
@@ -185,12 +189,16 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_WS_BINDTYPE: 'tcp',
             self.ARTANIS_WS_BIND: '0.0.0.0:8004',
 
-            self.ARTANIS_TASK_ENABLED: 'true',
+            self.ARTANIS_STATIC_ENABLED: 'false',
+            self.ARTANIS_STATIC_INSTANCES: '1',
+            self.ARTANIS_STATIC_BINDTYPE: 'tcp',
+            self.ARTANIS_STATIC_BIND: '0.0.0.0:8005',
+
+            self.ARTANIS_TASK_ENABLED: 'false',
             self.ARTANIS_TASK_INSTANCES: '1',
             self.ARTANIS_TASK_MAXTASK: '32',
             self.ARTANIS_TASK_MONITOR: 'true',
 
-            self.ARTANIS_STATIC_ENABLED: 'false',
             self.ARTANIS_SPV_ENABLED: 'true',
 
             self.ARTANIS_REDIS_URL: 'redis://127.0.0.1:6379',

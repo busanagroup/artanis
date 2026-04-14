@@ -13,31 +13,16 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from artanis.asgi.asgibase import BaseASGIService
+from artanis.asgi.asgiendpoint import ASGIEndPoint
+from artanis.asgi.auth.validator import APIAccessValidator
 
 
-from artanis.asgi import http
-from artanis.asgi.asgiendpoint import ASGIEndPoint, published, Descriptor
-from artanis.asgi.asgiservice import ASGIService
+class APIEndPoint(ASGIEndPoint):
+    base_modules = "ecf.api"
+    access_validator = APIAccessValidator()
 
-
-class MVCDescriptor(Descriptor):
-    handle_request = True
-    default_tags = {}
-
-
-class MVCEndPoint(ASGIEndPoint):
-    descriptor: Descriptor = MVCDescriptor()
-    base_modules = "ecf.mvc"
-
-    @published
-    def hello_world(self, request: http.Request):
-        print(request)
-        return {'hello': 'world'}
-
-
-class MVCAppService(ASGIService):
-    def configure_services(self, config):
-        self.mount('/mvc', MVCEndPoint(config=config, parent=self))
-
-
-app = MVCAppService.get_default_instance()
+    @classmethod
+    def register(cls, app: BaseASGIService):
+        config = app.get_configuration()
+        app.mount('/api', cls(config=config, parent=app))

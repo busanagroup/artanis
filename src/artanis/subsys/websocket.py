@@ -35,4 +35,4 @@ class WebsocketSubsystem(ASGISubsystem):
 
     def do_configure(self):
         super().do_configure()
-        self.asgi_config.application_path = 'artanis.asgi.websocket:app'
+        self.asgi_config.application_path = 'artanis.asgi.services.wsservice:app'

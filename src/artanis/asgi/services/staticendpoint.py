@@ -13,16 +13,18 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from artanis.asgi import http
+from artanis.asgi.asgibase import BaseASGIService
+from artanis.asgi.asgiendpoint import ASGIEndPoint
+from artanis.asgi.http import ArtanisStaticFiles
 
 
-from artanis.subsys.authentication import AuthSubsystem
-from artanis.subsys.batchjob import BatchJobSubsystem
-from artanis.subsys.interactive import MVCSubsystem
-from artanis.subsys.litetask import LiteTaskSubsystem
-from artanis.subsys.restapi import APISubsystem
-from artanis.subsys.scheduler import SchedulerSubsystem
-from artanis.subsys.static import StaticSubsystem
+class StaticEndPoint(ASGIEndPoint):
+    @classmethod
+    def register(cls, app: BaseASGIService):
+        app.add_route("/", cls.frontend_view, include_in_schema=False)
+        app.mount("/assets", ArtanisStaticFiles("asgi", "templates", "frontend", "assets"), name="assets")
 
-__all__ = [AuthSubsystem, MVCSubsystem, APISubsystem,
-           SchedulerSubsystem, BatchJobSubsystem, LiteTaskSubsystem,
-           StaticSubsystem]
+    @staticmethod
+    async def frontend_view():
+        return http.ArtanisTemplateResponse("frontend/index.html", context=None)
