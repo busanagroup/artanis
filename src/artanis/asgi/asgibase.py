@@ -69,6 +69,7 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         if (worker := ResourceWorker() if ResourceWorker else None) and WorkerComponent:
             default_components.append(WorkerComponent(worker=worker))
 
+        openapi_support = openapi is not None
         openapi = openapi or {
                 "info": {
                     "title": "Artanis",
@@ -88,7 +89,7 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         self.app = self.router = routing.Router(components=default_components, app=self)
         self.middleware = MiddlewareStack(app=self, middleware=[], debug=debug)
         self.schema.schema_library = schema_library
-        self.schema.add_routes()
+        self.schema.add_routes(openapi_support=openapi_support)
         self.events = Events.build()
         self.paginator = paginator
 
