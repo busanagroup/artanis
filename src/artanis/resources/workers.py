@@ -20,7 +20,6 @@ from artanis.ddd.workers.sqlalchemy import SQLAlchemyWorker
 from artanis.exceptions import ApplicationError
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
     from artanis.ddd.repositories.sqlalchemy import SQLAlchemyTableRepository
 
 

@@ -115,6 +115,8 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_DB_POOL_ACTIVE: str = 'artanis.db.pool.active'
     ARTANIS_DB_POOL_IDLE: str = 'artanis.db.pool.idle'
 
+    ARTANIS_SECURITY_CORS_ORIGINS: str = 'artanis.security.cors.origins'
+
     ARTANIS_DB_EXTCONN_COUNT: str = 'artanis.db.extconn.count'
 
     JWT_SECRET_KEY : str = 'artanis.jwt.secret.key'
@@ -205,6 +207,8 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_DB_POOL_SIZE: None,
             self.ARTANIS_DB_POOL_ACTIVE: None,
             self.ARTANIS_DB_POOL_IDLE: None,
+
+            self.ARTANIS_SECURITY_CORS_ORIGINS: '',
 
             self.JWT_SECRET_KEY : str(uuid.uuid5(uuid.NAMESPACE_OID, 'Artanis')),
             self.JWT_HEADER_KEY : "Authorization",  # Authorization header identity

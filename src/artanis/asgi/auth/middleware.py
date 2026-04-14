@@ -25,7 +25,7 @@ from artanis.asgi.http import APIErrorResponse, Request
 from artanis.exceptions import HTTPException
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
     from artanis.asgi import types
     from artanis.asgi.http import Response
 
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class AuthenticationMiddleware:
     def __init__(self, app: "types.App", *, tag: str = "permissions", ignored: list[str] = []):
-        self.app: ASGIService = t.cast("ASGIService", app)
+        self.app: BaseASGIService = t.cast("BaseASGIService", app)
         self._tag = tag
         self._ignored = [re.compile(x) for x in ignored]
 
@@ -49,8 +49,8 @@ class AuthenticationMiddleware:
 
         await response(scope, receive, send)
 
-    async def get_auth_response(self, scope: "types.Scope", receive: "types.Receive") -> "Response | ASGIService":
-        app: ASGIService = scope["app"]
+    async def get_auth_response(self, scope: "types.Scope", receive: "types.Receive") -> "Response | BaseASGIService":
+        app: BaseASGIService = scope["app"]
         try:
             route, route_scope = app.router.resolve_route(scope)
             permissions = set(route.tags.get(self._tag, []))

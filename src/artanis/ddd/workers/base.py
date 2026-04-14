@@ -23,7 +23,7 @@ from artanis.ddd.repositories import BaseRepository
 from artanis.exceptions import ApplicationError
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class AbstractWorker(abc.ABC):
     unit of work that will be used to interact with the repositories and entities of the application.
     """
 
-    def __init__(self, app: "ASGIService | None" = None):
+    def __init__(self, app: "BaseASGIService | None" = None):
         """Initialize the worker.
 
         It will receive the application instance as a parameter.
@@ -51,7 +51,7 @@ class AbstractWorker(abc.ABC):
         self._lock = asyncio.Lock()
 
     @property
-    def app(self) -> "ASGIService":
+    def app(self) -> "BaseASGIService":
         """Application instance.
 
         :return: Application instance.
@@ -62,7 +62,7 @@ class AbstractWorker(abc.ABC):
         return self._app
 
     @app.setter
-    def app(self, app: "ASGIService") -> None:
+    def app(self, app: "BaseASGIService") -> None:
         """Set the application instance.
 
         :param app: Application instance.

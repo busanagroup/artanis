@@ -26,7 +26,7 @@ from artanis.asgi.routing.routes.websocket import WebSocketRoute
 from artanis.injection import Component, Components
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import ASGIService
 
 __all__ = ["Router"]
 
@@ -38,9 +38,9 @@ class Router:
             self,
             routes: t.Sequence[BaseRoute] | None = None,
             *,
-            app: "ASGIService",
+            app: "BaseASGIService",
             components: t.Sequence["Component"] | set["Component"] | None = None,
-            lifespan: t.Callable[["ASGIService | None"], t.AsyncContextManager] | None = None,
+            lifespan: t.Callable[["BaseASGIService | None"], t.AsyncContextManager] | None = None,
     ):
         """A router for containing all routes and mount points.
 
@@ -84,6 +84,9 @@ class Router:
         :param component: Component to register.
         """
         self.components = Components(self.components + (component,))
+
+    def add_component_set(self, components: t.Sequence[Component] | set[Component] | None = None):
+        self.components = Components([*self.components, *(components or [])])
 
     def add_route(
             self,

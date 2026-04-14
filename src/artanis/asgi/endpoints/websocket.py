@@ -22,7 +22,7 @@ from artanis.asgi import types, websockets
 from artanis.asgi.endpoints.base import BaseEndpoint
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["WebSocketEndpoint"]
 
@@ -65,7 +65,7 @@ class WebSocketEndpoint(BaseEndpoint, types.WebSocketEndpointProtocol):
 
     async def dispatch(self) -> None:
         """Dispatch a request."""
-        app: ASGIService = self.state["app"]
+        app: BaseASGIService = self.state["app"]
         websocket = self.state["websocket"]
 
         on_connect = await app.injector.inject(self.on_connect, self.state)

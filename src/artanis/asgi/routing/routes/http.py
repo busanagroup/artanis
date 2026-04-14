@@ -23,7 +23,7 @@ from artanis.asgi.routing.routes.base import BaseEndpointWrapper, BaseRoute
 from artanis.asgi.schemas.datastructures import Schema
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["Route"]
 
@@ -78,7 +78,7 @@ class HTTPFunctionWrapper(BaseHTTPEndpointWrapper):
         :param receive: ASGI receive.
         :param send: ASGI send.
         """
-        app: ASGIService = scope["app"]
+        app: BaseASGIService = scope["app"]
         scope["path"] = scope.get("root_path", "").rstrip("/") + scope["path"]
         scope["root_path"] = ""
         route, route_scope = app.router.resolve_route(scope)
@@ -214,5 +214,3 @@ class Route(BaseRoute):
 
         return self.Match.full if scope["method"] in self.methods else self.Match.partial
 
-    def __del__(self):
-        print("route deleted")

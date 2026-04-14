@@ -18,7 +18,7 @@ import typing as t
 from artanis.ddd.workers.base import BaseWorker
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
     from artanis.client import Client
 
 __all__ = ["HTTPWorker"]
@@ -32,7 +32,7 @@ class HTTPWorker(BaseWorker):
 
     _client: "Client"
 
-    def __init__(self, url: str | t.Callable[[], str], app: "ASGIService | None" = None, **client_kwargs: t.Any):
+    def __init__(self, url: str | t.Callable[[], str], app: "BaseASGIService | None" = None, **client_kwargs: t.Any):
         super().__init__(app=app)
         self._url = url
         self._client_kwargs = client_kwargs

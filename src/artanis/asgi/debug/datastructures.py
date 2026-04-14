@@ -21,7 +21,7 @@ from pathlib import Path
 
 if t.TYPE_CHECKING:
     from artanis.asgi import http
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
     from artanis.asgi.routing import Route, WebSocketRoute
 
 
@@ -203,5 +203,5 @@ class NotFoundContext:
     app: App
 
     @classmethod
-    def build(cls, request: "http.Request", app: "ASGIService") -> "NotFoundContext":
+    def build(cls, request: "http.Request", app: "BaseASGIService") -> "NotFoundContext":
         return cls(request=Request.from_request(request), environment=Environment.from_system(), app=App.from_app(app))

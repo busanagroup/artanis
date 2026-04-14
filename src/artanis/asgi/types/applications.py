@@ -17,7 +17,7 @@ import enum
 import typing as t
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
     from artanis.asgi.routing import Router
 
 
@@ -33,15 +33,15 @@ class AppStatus(enum.Enum):
     FAILED = enum.auto()
 
 
-def is_asgi_instance(obj: t.Any) -> t.TypeGuard["ASGIService"]:
+def is_asgi_instance(obj: t.Any) -> t.TypeGuard["BaseASGIService"]:
     """Checks if an object is an instance of Artanis.
 
     :param obj: The object to check.
     :return: True if the object is an instance of Artanis, False otherwise.
     """
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
-    return isinstance(obj, ASGIService)
+    return isinstance(obj, BaseASGIService)
 
 
 def is_router_instance(obj: t.Any) -> t.TypeGuard["Router"]:

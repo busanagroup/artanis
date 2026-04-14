@@ -21,7 +21,7 @@ from artanis import concurrency, exceptions
 from artanis.asgi import types
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["Lifespan"]
 
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class Lifespan(types.AppClass):
-    def __init__(self, lifespan: t.Callable[["ASGIService | None"], t.AsyncContextManager] | None = None):
+    def __init__(self, lifespan: t.Callable[["BaseASGIService | None"], t.AsyncContextManager] | None = None):
         """A class that handles the lifespan of an application.
 
         It is responsible for calling the startup and shutdown events and the user defined lifespan.
@@ -93,21 +93,21 @@ class Lifespan(types.AppClass):
 
             logger.debug("End lifespan for app '%s' with status '%s'", app, app.status)
 
-    async def _startup(self, app: "ASGIService") -> None:
+    async def _startup(self, app: "BaseASGIService") -> None:
         if app.events.startup:
             await concurrency.run_task_group(*(f() for f in app.events.startup))
 
         if self.lifespan:
             await self.lifespan(app).__aenter__()
 
-    async def _shutdown(self, app: "ASGIService") -> None:
+    async def _shutdown(self, app: "BaseASGIService") -> None:
         if self.lifespan:
             await self.lifespan(app).__aexit__(None, None, None)
 
         if app.events.shutdown:
             await concurrency.run_task_group(*(f() for f in app.events.shutdown))
 
-    async def _child_propagation(self, app: "ASGIService", scope: types.Scope, message: types.Message) -> None:
+    async def _child_propagation(self, app: "BaseASGIService", scope: types.Scope, message: types.Message) -> None:
         async def child_receive() -> types.Message:
             return message
 

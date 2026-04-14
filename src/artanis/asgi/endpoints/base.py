@@ -18,7 +18,7 @@ import typing as t
 from artanis.asgi import types
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["BaseEndpoint"]
 
@@ -31,7 +31,7 @@ class BaseEndpoint(types.EndpointProtocol):
         :param receive: ASGI receive function.
         :param send: ASGI send function.
         """
-        app: ASGIService = scope["app"]
+        app: BaseASGIService = scope["app"]
         scope["path"] = scope.get("root_path", "").rstrip("/") + scope["path"]
         scope["root_path"] = ""
         route, route_scope = app.router.resolve_route(scope)

@@ -18,7 +18,7 @@ import typing as t
 from collections import defaultdict
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["Module", "Modules"]
 
@@ -27,7 +27,7 @@ class _BaseModule:
     name: str
 
     def __init__(self) -> None:
-        self.app: ASGIService
+        self.app: BaseASGIService
 
     async def on_startup(self) -> None: ...
 
@@ -45,7 +45,7 @@ class Module(_BaseModule, metaclass=_ModuleMeta): ...
 
 
 class Modules(dict[str, Module]):
-    def __init__(self, app: "ASGIService ", modules: t.Sequence[Module] | set[Module] | None):
+    def __init__(self, app: BaseASGIService, modules: t.Sequence[Module] | set[Module] | None):
         modules_map: dict[str, list[Module]] = defaultdict(list)
         for module in modules or []:
             module.app = app
@@ -57,6 +57,11 @@ class Modules(dict[str, Module]):
         )
 
         super().__init__({name: mods[0] for name, mods in modules_map.items()})
+
+    def add_module(self, app: BaseASGIService, module: Module) -> None:
+        assert not (module.name in self), "Module name '{}' is already defined.".format(module.name)
+        module.app = app
+        self[module.name] = module
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, list | tuple | set):

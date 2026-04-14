@@ -24,7 +24,7 @@ from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
 from artanis.resources import datastructures
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
     from artanis.resources import Resource
 
 __all__ = ["ResourceRoute", "resource_method"]
@@ -38,9 +38,9 @@ class ResourceRoute(Mount):
         *,
         include_in_schema: bool = True,
         tags: dict[str, t.Any] | None = None,
-        parent: "ASGIService ",
+        parent: "BaseASGIService ",
     ):
-        from artanis.asgi.asgiservice import ASGIService
+        from artanis.asgi.asgibase import BaseASGIService
 
         tags = tags or {}
 
@@ -52,7 +52,7 @@ class ResourceRoute(Mount):
 
         super().__init__(
             path=path,
-            app=ASGIService (
+            app=BaseASGIService (
                 routes=[
                     Route(
                         path=route.meta.path,
@@ -78,7 +78,7 @@ class ResourceRoute(Mount):
 
         self.app: ASGIService
 
-    def _build(self, app: "ASGIService ") -> None:
+    def _build(self, app: "BaseASGIService ") -> None:
         """Build step for resource routes.
 
         Add this resource's repository to ASGIService 's worker.

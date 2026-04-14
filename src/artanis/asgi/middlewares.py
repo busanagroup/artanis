@@ -27,9 +27,9 @@ from artanis import concurrency
 from artanis.asgi.debug.middleware import ExceptionMiddleware, ServerErrorMiddleware
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
     from artanis.asgi import types
     from artanis.asgi.http import Request, Response
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = [
     "BaseHTTPMiddleware",
@@ -47,10 +47,10 @@ try:
     import starlette.middleware.sessions
 
     class SessionMiddleware(starlette.middleware.sessions.SessionMiddleware):
-        def __init__(self, app: "types.App", *args, **kwargs):
+        def __init__(self, app: types.App, *args, **kwargs):
             super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-        async def __call__(self, scope: "types.Scope", receive: "types.Receive", send: "types.Send") -> None:  # type: ignore[overrid]
+        async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
             return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 except ModuleNotFoundError:
@@ -58,42 +58,42 @@ except ModuleNotFoundError:
 
 
 class BaseHTTPMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
-    def __init__(self, app: "types.App", *args, **kwargs):
+    def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: "types.Scope", receive: "types.Receive", send: "types.Send") -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
 class CORSMiddleware(starlette.middleware.cors.CORSMiddleware):
-    def __init__(self, app: "types.App", *args, **kwargs):
+    def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: "types.Scope", receive: "types.Receive", send: "types.Send") -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
 class GZipMiddleware(starlette.middleware.gzip.GZipMiddleware):
-    def __init__(self, app: "types.App", *args, **kwargs):
+    def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: "types.Scope", receive: "types.Receive", send: "types.Send") -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
 class HTTPSRedirectMiddleware(starlette.middleware.httpsredirect.HTTPSRedirectMiddleware):
-    def __init__(self, app: "types.App", *args, **kwargs):
+    def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: "types.Scope", receive: "types.Receive", send: "types.Send") -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
 class TrustedHostMiddleware(starlette.middleware.trustedhost.TrustedHostMiddleware):
-    def __init__(self, app: "types.App", *args, **kwargs):
+    def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: "types.Scope", receive: "types.Receive", send: "types.Send") -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
@@ -102,7 +102,7 @@ class Middleware:
         self.middleware = middleware
         self.kwargs = kwargs
 
-    def __call__(self, app: "types.App") -> "types.MiddlewareClass | types.App":
+    def __call__(self, app: types.App) -> "types.MiddlewareClass | types.App":
         return self.middleware(app, **self.kwargs)
 
     def __repr__(self) -> str:
@@ -117,7 +117,8 @@ class Middleware:
 
 
 class MiddlewareStack:
-    def __init__(self, app: "ASGIService ", middleware: t.Sequence[Middleware] = [], debug: bool = False):
+    def __init__(self, app: BaseASGIService, middleware: t.Sequence[Middleware] | None = None, debug: bool = False):
+        middleware: t.Sequence[Middleware] = middleware or []
         self.app = app
         self.middleware = list(reversed(middleware))
         self.debug = debug
@@ -127,7 +128,7 @@ class MiddlewareStack:
     @property
     def stack(
         self,
-    ) -> "types.MiddlewareClass | types.App":
+    ) -> types.MiddlewareClass | types.App | None:
         if self._stack is None:
             self._stack = functools.reduce(
                 lambda app, middleware: middleware(app=app),
@@ -146,7 +147,7 @@ class MiddlewareStack:
         self._stack = None
 
     def add_exception_handler(
-        self, key: int | type[Exception], handler: t.Callable[["Request", Exception], "Response"]
+        self, key: int | type[Exception], handler: t.Callable[[Request, Exception], Response]
     ):
         """Adds a new handler for an exception type or a HTTP status code.
 
@@ -164,5 +165,5 @@ class MiddlewareStack:
         self.middleware.append(middleware)
         del self.stack
 
-    async def __call__(self, scope: "types.Scope", receive: "types.Receive", send: "types.Send") -> None:
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
         await concurrency.run(self.stack, scope, receive, send)

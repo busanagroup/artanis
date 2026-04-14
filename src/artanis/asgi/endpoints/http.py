@@ -20,7 +20,7 @@ from artanis.asgi import http, types
 from artanis.asgi.endpoints.base import BaseEndpoint
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["HTTPEndpoint"]
 
@@ -77,6 +77,6 @@ class HTTPEndpoint(BaseEndpoint, types.HTTPEndpointProtocol):
 
     async def dispatch(self) -> None:
         """Dispatch a request."""
-        app: ASGIService = self.state["app"]
+        app: BaseASGIService = self.state["app"]
         handler = await app.injector.inject(self.handler, self.state)
         return await concurrency.run(handler)

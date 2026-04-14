@@ -21,7 +21,7 @@ from artanis.asgi.schemas.datastructures import Field, Parameter, Parameters
 from artanis.injection.resolver import Return
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
     from artanis.injection.resolver import Parameter as InjectionParameter
     from artanis.asgi.routing import BaseRoute
 
@@ -31,17 +31,17 @@ __all__ = ["ParametersDescriptor"]
 class ParametersDescriptor:
     def __init__(self, route: "BaseRoute") -> None:
         self._route = route
-        self._parent_app: ASGIService  | None = None
+        self._parent_app: BaseASGIService  | None = None
 
     @property
-    def _app(self) -> "ASGIService ":
+    def _app(self) -> "BaseASGIService":
         if self._parent_app is None:
             raise exceptions.ApplicationError("ParametersResolver not initialised")
 
         return self._parent_app
 
     @_app.setter
-    def _app(self, app: "ASGIService "):
+    def _app(self, app: "BaseASGIService"):
         self._parent_app = app
 
     @property
@@ -104,6 +104,6 @@ class ParametersDescriptor:
             method: Parameter.build("response", return_value) for method, return_value in self._return_values.items()
         }
 
-    def _build(self, app: "ASGIService ") -> "ParametersDescriptor":
+    def _build(self, app: "BaseASGIService ") -> "ParametersDescriptor":
         self._app = app
         return self

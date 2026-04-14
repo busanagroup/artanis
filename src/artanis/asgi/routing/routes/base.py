@@ -26,7 +26,7 @@ from artanis.asgi.pagination import paginator
 from artanis.asgi.schemas.routing import ParametersDescriptor
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["BaseEndpointWrapper", "BaseRoute"]
 
@@ -126,12 +126,12 @@ class BaseRoute(abc.ABC):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(path={self.path!r}, name={(self.name or '')!r})"
 
-    def _build(self, app: "ASGIService") -> None:
+    def _build(self, app: "BaseASGIService") -> None:
         """Build step for routes.
 
         Just build the parameters' descriptor part of RouteParametersMixin.
 
-        :param app: ASGIService app.
+        :param app: BaseASGIService app.
         """
         self.parameters._build(app)
 

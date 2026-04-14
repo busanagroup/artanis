@@ -17,8 +17,8 @@
 
 __all__ = ['BaseLocker', 'SyncLock', 'AsyncLock']
 
-from asyncio import Lock
-from threading import RLock
+import asyncio
+import threading
 
 
 class BaseLocker(object):
@@ -40,6 +40,10 @@ class BaseLocker(object):
     def lock(self):
         return self.get_lock()
 
+    @property
+    def threading_lock(self) -> type[threading.Lock]:
+        return threading.Lock
+
 
 class SyncLock(BaseLocker):
     class_locker = None
@@ -50,13 +54,13 @@ class SyncLock(BaseLocker):
 
     def get_lock(self):
         if not self._lock:
-            self._lock = RLock()
+            self._lock = threading.RLock()
         return self._lock
 
     @classmethod
     def get_class_locker(cls):
         if not cls.class_locker:
-            cls.class_locker = RLock()
+            cls.class_locker = threading.RLock()
         return cls.class_locker
 
 
@@ -69,7 +73,7 @@ class AsyncLock(BaseLocker):
 
     def get_lock(self):
         if not self._lock:
-            self._lock = Lock()
+            self._lock = asyncio.Lock()
         return self._lock
 
     def is_async(self):
@@ -78,5 +82,5 @@ class AsyncLock(BaseLocker):
     @classmethod
     def get_class_locker(cls):
         if not cls.class_locker:
-            cls.class_locker = Lock()
+            cls.class_locker = asyncio.Lock()
         return cls.class_locker

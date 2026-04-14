@@ -21,7 +21,9 @@ from types import TracebackType
 
 from artanis import exceptions
 from artanis.asgi import types
-from artanis.asgi.asgiservice import ASGIService
+
+if t.TYPE_CHECKING:
+    from artanis.asgi.asgibase import BaseASGIService
 
 try:
     import httpx
@@ -37,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 class LifespanContextManager:
-    def __init__(self, app: "ASGIService", timeout: float = 60.0):
+    def __init__(self, app: "BaseASGIService", timeout: float = 60.0):
         self.app = app
         self.timeout = timeout
         self._startup_complete = asyncio.Event()
@@ -126,7 +128,7 @@ class _BaseClient(httpx.AsyncClient):
 
 
 class _AppClient(_BaseClient):
-    def __init__(self, /, app: "ASGIService", **kwargs):
+    def __init__(self, /, app: "BaseASGIService", **kwargs):
         self.lifespan = LifespanContextManager(app)
         self.app = app
 
@@ -170,19 +172,19 @@ class Client(httpx.AsyncClient):
     @t.overload
     def __init__(self, /, *, app: None = None, models: None = None, **kwargs): ...
     @t.overload
-    def __init__(self, /, *, app: "ASGIService", **kwargs): ...
+    def __init__(self, /, *, app: "BaseASGIService", **kwargs): ...
     @t.overload
     def __init__(self, /, *, models: t.Sequence[tuple[str, str, str]], **kwargs): ...
     def __init__(
         self,
         /,
         *,
-        app: "ASGIService | None" = None,
+        app: "BaseASGIService | None" = None,
         models: t.Sequence[tuple[str, str, str]] | None = None,
         **kwargs,
     ):
         if models:
-            app = ASGIService(schema=None, docs=None) if not app else app
+            app = BaseASGIService(schema=None, docs=None) if not app else app
             for name, url, path in models:
                 app.models.add_model(url, path, name)
 

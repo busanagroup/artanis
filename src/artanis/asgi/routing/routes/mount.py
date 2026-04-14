@@ -21,7 +21,7 @@ from artanis.asgi import types, url
 from artanis.asgi.routing.routes.base import BaseRoute
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["Mount"]
 
@@ -52,12 +52,12 @@ class Mount(BaseRoute):
         ):
             await self.handle(types.Scope({**scope, **self.route_scope(scope)}), receive, send)
 
-    def _build(self, app: "ASGIService") -> None:
+    def _build(self, app: "BaseASGIService") -> None:
         """Build step for routes.
 
         Just build the parameters' descriptor part of RouteParametersMixin.
 
-        :param app: ASGIService app.
+        :param app: BaseASGIService app.
         """
         super()._build(app)
 
@@ -92,10 +92,10 @@ class Mount(BaseRoute):
         """Build route scope from given scope.
 
         It generates an updated scope parameters for the route:
-        * app: The app of this mount point. If it's mounting a ASGIService app, it will replace the app with this one
+        * app: The app of this mount point. If it's mounting a BaseASGIService app, it will replace the app with this one
         * path_params: The matched path parameters of this mount point
         * endpoint: The endpoint of this mount point
-        * root_path: The root path of this mount point (if it's mounting a ASGIService app, it will be empty)
+        * root_path: The root path of this mount point (if it's mounting a BaseASGIService app, it will be empty)
         * path: The remaining path to be matched
 
         :param scope: ASGI scope.

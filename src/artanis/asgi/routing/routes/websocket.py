@@ -22,7 +22,7 @@ from artanis.asgi import types, endpoints, websockets
 from artanis.asgi.routing.routes.base import BaseRoute, BaseEndpointWrapper
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgiservice import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
 
 __all__ = ["WebSocketRoute"]
 
@@ -40,7 +40,7 @@ class WebSocketFunctionWrapper(BaseWebSocketEndpointWrapper):
         :param receive: ASGI receive.
         :param send: ASGI send.
         """
-        app: ASGIService = scope["app"]
+        app: BaseASGIService = scope["app"]
         scope["path"] = scope.get("root_path", "").rstrip("/") + scope["path"]
         scope["root_path"] = ""
         route, route_scope = app.router.resolve_route(scope)
