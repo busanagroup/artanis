@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { useAppActions, useAppState } from '@/store/app-store'
-import { fetchActionView, fetchMetaView, fetchModelPerms, fetchModelRecords } from '@/services/api/workspace/menu-api'
+import { fetchActionView, fetchModelPerms, fetchModelRecords } from '@/services/api/workspace/menu-api'
 import type { ColumnFilter, FilterClause } from './workspace-utils'
 import { extractVisibleColumns, getModesFromAction } from './workspace-utils'
 
@@ -34,17 +34,6 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
   })
 
   const activeModes = useMemo(() => getModesFromAction(activeActionQuery.data), [activeActionQuery.data])
-
-  // const metaView = useQuery({
-  //   queryKey: ['meta-view', activeActionQuery.data?.model],
-  //   queryFn: ({ signal }) => fetchMetaView(activeActionQuery.data!.model, 40, signal),
-  //   enabled: Boolean(activeActionQuery.data?.model),
-  //   staleTime: 60 * 1000,
-  //   gcTime: 10 * 60 * 1000,
-  //   refetchOnWindowFocus: false,
-  //   refetchOnReconnect: false,
-  // })
-
 
   const activeRecordsQuery = useQuery({
     queryKey: ['records', activeActionQuery.data?.model],
