@@ -22,6 +22,7 @@ from artanis import exceptions
 from artanis.asgi import auth
 from artanis.asgi.auth.validator import AccessValidator
 from artanis.asgi.http import APIErrorResponse, Request
+from artanis.asgi.routing import Route
 from artanis.exceptions import HTTPException
 
 if t.TYPE_CHECKING:
@@ -54,7 +55,7 @@ class AuthenticationMiddleware:
         try:
             route, route_scope = app.router.resolve_route(scope)
             permissions = set(route.tags.get(self._tag, []))
-        except (exceptions.MethodNotAllowedException, exceptions.NotFoundException):
+        except (exceptions.MethodNotAllowedException, exceptions.NotFoundException, AttributeError):
             permissions = []
 
         if not (required_permissions := set(permissions)):
