@@ -15,13 +15,16 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from artanis.asgi import http
 from artanis.asgi.asgibase import BaseASGIService
-from artanis.asgi.asgiendpoint import ASGIEndPoint
+from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor
 from artanis.asgi.http import ArtanisStaticFiles
 from artanis.config import Configuration
 
+class StaticDescriptor(Descriptor):
+    default_tags = {}
 
 class StaticEndPoint(ASGIEndPoint):
     base_path = "/"
+    descriptor = StaticDescriptor
 
     @classmethod
     def register(cls, app: BaseASGIService, config: Configuration):
