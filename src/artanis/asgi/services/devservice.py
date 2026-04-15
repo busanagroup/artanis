@@ -14,13 +14,19 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from artanis.asgi.asgiservice import ASGIService
+from artanis.asgi.services.apiendpoint import APIEndPoint
 from artanis.asgi.services.authendpoint import AuthEndPoint
+from artanis.asgi.services.mvcendpoint import MVCEndPoint
+from artanis.asgi.services.staticendpoint import StaticEndPoint
 
 
-class AuthAppService(ASGIService):
+class DevelAppService(ASGIService):
 
     def configure_services(self, config):
         AuthEndPoint.register(self,config)
+        MVCEndPoint.register(self, config)
+        StaticEndPoint.register(self, config)
+        APIEndPoint.register(self, config)
 
 
-app = AuthAppService.get_default_instance()
+app = DevelAppService.get_default_instance()

@@ -80,6 +80,11 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_AUTH_BIND: str = 'artanis.auth.bind'
     ARTANIS_AUTH_INSTANCES: str = 'artanis.auth.instances'
 
+    ARTANIS_DEV_ENABLED: str = 'artanis.dev.enabled'
+    ARTANIS_DEV_BINDTYPE: str = 'artanis.dev.bindtype'
+    ARTANIS_DEV_BIND: str = 'artanis.dev.bind'
+    ARTANIS_DEV_INSTANCES: str = 'artanis.dev.instances'
+
     ARTANIS_API_ENABLED: str = 'artanis.api.enabled'
     ARTANIS_API_BINDTYPE: str = 'artanis.api.bindtype'
     ARTANIS_API_BIND: str = 'artanis.api.bind'
@@ -166,10 +171,16 @@ class Configuration(Singleton, SyncLock, Listenable):
                    .parent.parent.resolve())
         values: Dict[str, Optional[str]] = {
 
+
             self.ARTANIS_APP_NAME: 'Artanis',
             self.ARTANIS_CMP_NAME: 'Busana Apparel Group',
 
-            self.ARTANIS_AUTH_ENABLED: 'true',
+            self.ARTANIS_DEV_ENABLED: 'true',
+            self.ARTANIS_DEV_INSTANCES: '1',
+            self.ARTANIS_DEV_BINDTYPE: 'tcp',
+            self.ARTANIS_DEV_BIND: '0.0.0.0:8000',
+
+            self.ARTANIS_AUTH_ENABLED: 'false',
             self.ARTANIS_AUTH_INSTANCES: '1',
             self.ARTANIS_AUTH_BINDTYPE: 'tcp',
             self.ARTANIS_AUTH_BIND: '0.0.0.0:8001',
