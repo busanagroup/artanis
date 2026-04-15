@@ -88,7 +88,7 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         ]
         self.modules = Modules(app=self, modules=default_modules)
         self.app = self.router = routing.Router(components=default_components, app=self)
-        self.middleware = MiddlewareStack(app=self, middleware=[], debug=debug)
+        self.middleware = MiddlewareStack(app=self, debug=debug)
         self.schema.schema_library = schema_library
         self.schema.add_routes(openapi_support=openapi_support)
         self.events = Events.build()

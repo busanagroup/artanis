@@ -15,20 +15,21 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from starlette.requests import Request
 
-from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
-from artanis.config import Configuration
+from artanis.asgi.auth import UserInfo
+from artanis.asgi.auth.validator import MVCAccessValidator
 
 
 class MVCDescriptor(Descriptor):
     handle_request = True
-    default_tags = {}
+    # default_tags = {}
 
 
 class MVCEndPoint(ASGIEndPoint):
     descriptor: Descriptor = MVCDescriptor()
     base_modules = "ecf.mvc"
     base_path = "/mvc"
+    access_validator = MVCAccessValidator()
 
     @published
     async def pgmredir(self, request: Request):
@@ -39,8 +40,8 @@ class MVCEndPoint(ASGIEndPoint):
         return {'hello': "world"}
 
     @published
-    async def definitions(self, request: Request):
-        return {'hello': "world"}
+    async def definitions(self, userinfo: UserInfo, request: Request):
+        return {'hello': f"{userinfo.username}"}
 
     @published
     async def initialize(self, request: Request):

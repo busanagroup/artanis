@@ -93,12 +93,12 @@ class MVCAccessValidator(AccessValidator):
         return res
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
+        user_name = token.payload.data.get('user_id')
         access_model = scope.get('auth_access_model', 0)
         if access_model == 0:
-            return None
+            return dict(user_info = dict(username=user_name))
         access_type = scope.get('auth_access_type', 'S')
         service_name = scope.get('module_path', '')[1:]
-        user_name = token.payload.data.get('user_id')
         func = self.validate_access if access_model == 1 else self.verify_auth
         if not await self.safe_execute(func, user_name, service_name, access_type):
             raise HTTPException(

@@ -120,6 +120,6 @@ class RefreshTokenComponent(BaseTokenComponent):
 
 class UserInfoComponent(Component):
 
-    @staticmethod
-    def resolve(scope: Scope) -> types.UserInfo:
-        return types.UserInfo(username=scope["user_info"]["username"])
+    def resolve(self, scope: Scope) -> types.UserInfo:
+        username = scope["user_info"]["username"] if "user_info" in scope else None
+        return types.UserInfo(username=username)

@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from artanis.asgi.auth.jwt import JWT
 
-__all__ = ["AccessToken", "RefreshToken"]
+__all__ = ["AccessToken", "RefreshToken", "UserInfo"]
 
 
 class AccessToken(JWT): ...
@@ -28,4 +28,4 @@ class RefreshToken(JWT): ...
 
 @dataclass
 class UserInfo:
-    username: str
+    username: str | None

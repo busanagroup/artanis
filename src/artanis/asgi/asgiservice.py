@@ -19,7 +19,8 @@ import logging
 import uuid
 
 from artanis.asgi.asgibase import BaseASGIService
-from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent
+from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent, AuthenticationMiddleware
+from artanis.asgi.auth.components import UserInfoComponent
 from artanis.asgi.middlewares import Middleware, CORSMiddleware, GZipMiddleware
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
@@ -83,6 +84,9 @@ class ASGIService(BaseASGIService):
     def configure_middlewares(self, config):
         cors = config.get_property_value(config.ARTANIS_SECURITY_CORS_ORIGINS, '')
         self.add_middleware(Middleware(
+            AuthenticationMiddleware
+        ))
+        self.add_middleware(Middleware(
             GZipMiddleware,
             minimum_size=2048,
             compresslevel=7,
@@ -109,7 +113,8 @@ class ASGIService(BaseASGIService):
                 header_prefix=config.get_property_value(Configuration.JWT_HEADER_PREFIX),
                 header_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY),
                 cookie_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY)
-            )
+            ),
+            UserInfoComponent(),
         ]
         self.add_component_set(components)
 
