@@ -53,6 +53,7 @@ class AuthDescriptor(Descriptor):
 class AuthEndPoint(ASGIEndPoint):
     descriptor = AuthDescriptor()
     base_path = "/auth"
+    openapi_support = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

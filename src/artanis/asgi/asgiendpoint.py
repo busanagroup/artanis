@@ -23,11 +23,13 @@ from artanis import exceptions, concurrency
 from artanis.abc.configurable import Configurable
 from artanis.abc.service import StartableService
 from artanis.abc.startable import StartableListener
-from artanis.asgi import url, types, endpoints
+from artanis.asgi import url, types, endpoints, routing
 from artanis.asgi.auth.validator import AccessValidator
 from artanis.asgi.routing import BaseRoute, Route
 from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
+from artanis.asgi.schemas.modules import SchemaModule
 from artanis.config import Configuration
+from artanis.modules import Module, Modules
 from artanis.utils import get_name, import_function, get_route_path
 
 if t.TYPE_CHECKING:
@@ -270,18 +272,70 @@ class EndPointRepository(dict[str, type[ControllerABC] | None]):
 class ASGIEndPoint(ControllerABC):
     access_validator: AccessValidator = None
     base_modules: str = None
+    openapi_support: bool = False
     base_path: str
+
+    schema: SchemaModule
 
     def __init__(self, *args, **kwargs):
         parent: StartableService = kwargs.pop('parent') if 'parent' in kwargs else None
+        self.openapi_support: bool = kwargs.pop('openapi_support') \
+            if 'openapi_support' in kwargs else self.openapi_support
         super().__init__(*args, **kwargs)
         self.dynamic_load: bool = True
         self.parent = parent
         self.apply_lock = False
         self.__class_dir = None
         self.__all_classes = None
+        schema = "/openapi.json"
+        default_modules = [
+            SchemaModule(self.parent.openapi, schema=schema, schema_url=f"{self.base_path}{schema}", docs="/docs"),
+        ]
+        self.router = []
+        self.modules = Modules(app=self, modules=default_modules)
+        self.schema.schema_library = self.schema_library
+        self.schema.add_routes(openapi_support=self.openapi_support)
         self.configure()
         self.register_listener(parent)
+
+    def add_module(self, module: Module):
+        self.modules.add_module(self, module)
+
+    def add_route(
+            self,
+            path: str | None = None,
+            endpoint: types.HTTPHandler | None = None,
+            methods: list[str] | None = None,
+            *,
+            name: str | None = None,
+            include_in_schema: bool = True,
+            route: routing.Route | None = None,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
+    ) -> routing.Route:
+        if path is not None and endpoint is not None:
+            route = Route(
+                path,
+                endpoint=endpoint,
+                methods=methods,
+                name=name,
+                include_in_schema=include_in_schema,
+                pagination=pagination,
+                tags=tags,
+            )
+
+        if route is None:
+            raise exceptions.ApplicationError("Either 'path' and 'endpoint', or 'route' variables are needed")
+
+        self.router.append(route)
+        route._build(self.app)
+        return route
+
+    def __getattr__(self, item: str) -> t.Any:
+        try:
+            return self.modules.__getitem__(item)
+        except KeyError:
+            return None  # type: ignore[return-value]
 
     async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
         if scope["type"] not in ("http", "websocket"):
@@ -294,6 +348,23 @@ class ASGIEndPoint(ControllerABC):
         klass: type[ControllerABC] | None = None
         child_scope: types.Scope = types.Scope({})
         child_scope['access_validator'] = self.access_validator
+        partial_allowed_methods: set[str] = set()
+        partial = None
+        for route in self.router:
+            match = route.match(scope)
+            if match == BaseRoute.Match.full:
+                route_scope = types.Scope({**scope, **route.route_scope(scope), **child_scope})
+                return route, route_scope
+            elif match == route.Match.partial:
+                partial = route
+                partial_allowed_methods |= route.methods
+
+        if partial:
+            route_scope = types.Scope({**scope, **partial.route_scope(scope), **child_scope})
+            raise exceptions.MethodNotAllowedException(
+                route_scope.get("root_path", "") + route_scope["path"], route_scope["method"], partial_allowed_methods
+            )
+
         if self.all_classes:
             route_path = get_route_path(scope)
             posix = "".join(PurePosixPath(route_path).parts[:2])
@@ -346,7 +417,7 @@ class ASGIEndPoint(ControllerABC):
                 )
 
         partial = None
-        partial_allowed_methods: set[str] = set()
+        partial_allowed_methods = set()
         if not self.has_published_methods:
             raise exceptions.NotFoundException(
                 path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
@@ -372,7 +443,7 @@ class ASGIEndPoint(ControllerABC):
         )
 
     @property
-    def routes(self):
+    def openapi_routes(self):
         routes = []
         config = self.get_configuration()
         if self.all_classes:
@@ -384,7 +455,7 @@ class ASGIEndPoint(ControllerABC):
                         for method in instance.published_methods:
                             _doc = method.endpoint.__doc__ if method.endpoint.__doc__ else ''
                             docstr = f"\ntags:\n    - {instance.__class__.__name__}\n{_doc}"
-                            path = f"{descriptor.path.path}{method.path.path}"
+                            path = f"{self.base_path}{descriptor.path.path}{method.path.path}"
                             route = Route(
                                 path,
                                 method.endpoint,
@@ -399,7 +470,7 @@ class ASGIEndPoint(ControllerABC):
                             routes.append(route)
                 else:
                     for method in self.published_methods:
-                        path = f"{descriptor.path.path}{method.path.path}"
+                        path = f"{self.base_path}{descriptor.path.path}{method.path.path}"
                         _doc = method.endpoint.__doc__ if method.endpoint.__doc__ else ''
                         docstr = f"\ntags:\n    - {klass.__name__}\n{_doc}"
                         route = Route(
@@ -417,7 +488,7 @@ class ASGIEndPoint(ControllerABC):
         else:
             for method in self.published_methods:
                 route = Route(
-                    method.path.path,
+                    self.base_path+method.path.path,
                     method.endpoint,
                     methods=method.methods,
                     name=method.name,

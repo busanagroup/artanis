@@ -28,7 +28,14 @@ TEMPLATES_PATH = Path(__file__).parents[1] / "templates"
 class SchemaModule(Module):
     name = "schema"
 
-    def __init__(self, openapi: types.OpenAPISpec, *, schema: str | None = None, docs: str | None = None):
+    def __init__(
+            self,
+            openapi: types.OpenAPISpec,
+            *,
+            schema: str | None = None,
+            schema_url: str | None = None,
+            docs: str | None = None
+    ):
         super().__init__()
 
         if docs and not schema:
@@ -40,6 +47,7 @@ class SchemaModule(Module):
         # Schema
         self.openapi = openapi
         self.schema_path = schema
+        self.schema_url = schema_url if schema_url else schema
         self.docs_path = docs
         self._schema_dict = None
 
@@ -67,7 +75,7 @@ class SchemaModule(Module):
         :return: API schema.
         """
         if not self._schema_dict:
-            self._schema_dict = self.schema_generator.get_api_schema(self.app.routes)
+            self._schema_dict = self.schema_generator.get_api_schema(self.app.openapi_routes)
         return self._schema_dict
 
     @property
@@ -97,4 +105,4 @@ class SchemaModule(Module):
         return http.OpenAPIResponse(self.schema)
 
     def docs_view(self) -> http.HTMLResponse:
-        return http.ArtanisTemplateResponse("schemas/docs.html", {"url": self.schema_path})
+        return http.ArtanisTemplateResponse("schemas/docs.html", {"url": self.schema_url})

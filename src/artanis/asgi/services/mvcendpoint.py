@@ -29,6 +29,7 @@ class MVCEndPoint(ASGIEndPoint):
     descriptor: Descriptor = MVCDescriptor()
     base_modules = "ecf.mvc"
     base_path = "/mvc"
+    openapi_support = True
     access_validator = MVCAccessValidator()
 
     @published

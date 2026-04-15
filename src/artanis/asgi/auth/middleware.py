@@ -22,7 +22,6 @@ from artanis import exceptions
 from artanis.asgi import auth
 from artanis.asgi.auth.validator import AccessValidator
 from artanis.asgi.http import APIErrorResponse, Request
-from artanis.asgi.routing import Route
 from artanis.exceptions import HTTPException
 
 if t.TYPE_CHECKING:

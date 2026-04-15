@@ -28,7 +28,6 @@ from artanis.asgi.events import Events
 from artanis.asgi.middlewares import MiddlewareStack
 from artanis.asgi.pagination import paginator
 from artanis.asgi.routing import WebSocketRoute
-from artanis.asgi.schemas.modules import SchemaModule
 from artanis.config import Configuration
 from artanis.ddd import WorkerComponent
 from artanis.injection import injector
@@ -44,7 +43,6 @@ if t.TYPE_CHECKING:
 
 class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
     resources: ResourcesModule
-    schema: SchemaModule
     models: ModelsModule
     sqlalchemy: SQLAlchemyModule
 
@@ -62,6 +60,7 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         self.parent = parent
         self._shutdown = False
         self._status = types.AppStatus.NOT_STARTED
+        self.schema_library = schema_library
 
         self._injector = injector.Injector(Context)
 
@@ -69,9 +68,8 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         if (worker := ResourceWorker() if ResourceWorker else None) and WorkerComponent:
             default_components.append(WorkerComponent(worker=worker))
 
-        openapi_support = openapi is not None
         app_name = config.get_property_value(Configuration.ARTANIS_APP_NAME, '')
-        openapi = openapi or {
+        self.openapi = openapi or {
                 "info": {
                     "title": app_name,
                     "version": "0.1.0",
@@ -82,15 +80,12 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
 
         default_modules = [
             ResourcesModule(worker=worker),
-            SchemaModule(openapi, schema="/openapi.json", docs="/docs"),
             ModelsModule(),
             SQLAlchemyModule(config, single_connection=True),
         ]
         self.modules = Modules(app=self, modules=default_modules)
         self.app = self.router = routing.Router(components=default_components, app=self)
         self.middleware = MiddlewareStack(app=self, debug=debug)
-        self.schema.schema_library = schema_library
-        self.schema.add_routes(openapi_support=openapi_support)
         self.events = Events.build()
         self.paginator = paginator
 

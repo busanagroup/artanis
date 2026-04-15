@@ -13,14 +13,13 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import ASGIEndPoint
 from artanis.asgi.auth.validator import APIAccessValidator
-from artanis.config import Configuration
 
 
 class APIEndPoint(ASGIEndPoint):
     base_modules = "ecf.api"
     base_path = "/api"
+    openapi_support = True
     access_validator = APIAccessValidator()
 

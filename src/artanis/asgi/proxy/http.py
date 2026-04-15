@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import logging
 from textwrap import dedent
-from typing import Optional, Union, Any, NoReturn
+from typing import Optional, Union, NoReturn
 
 import httpx
 from starlette import status
