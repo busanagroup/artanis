@@ -24,6 +24,3 @@ class APIEndPoint(ASGIEndPoint):
     base_path = "/api"
     access_validator = APIAccessValidator()
 
-    @classmethod
-    def register(cls, app: BaseASGIService, config: Configuration):
-        app.mount(cls.get_base_path(), cls(config=config, parent=app))
