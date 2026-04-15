@@ -10,7 +10,7 @@ export async function loginWithPassword(payload: LoginPayload): Promise<UserSess
     throw new Error('Username dan password wajib diisi')
   }
 
-  const loginResponse = await axelorRequest('callback', {
+  const loginResponse = await axelorRequest('/auth/login', {
     method: 'POST',
     jsonBody: { username, password },
   })
@@ -18,8 +18,8 @@ export async function loginWithPassword(payload: LoginPayload): Promise<UserSess
   if (!loginResponse.ok) {
     throw new Error('Login gagal, cek username/password atau sesi backend')
   }
+  const session = await axelorJson<SessionInfoResponse>('/api/cmnsvc/userinfo')
 
-  const session = await axelorJson<SessionInfoResponse>('ws/public/app/info')
 
   return {
     login: session.user?.login ?? username,
