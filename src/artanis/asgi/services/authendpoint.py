@@ -132,15 +132,15 @@ class AuthEndPoint(ASGIEndPoint):
                 headers={"WWW-Authenticate": self.auth_handler.token_type}
             )
         User.model_validate(user)
-        username = user.get("username")
-        password = user.get("password")
+        username:str = user.get("username")
+        password:str = user.get("password")
         if not username or not password:
             raise HTTPException(
                 status_code=401,
                 detail="Insufficient permission",
                 headers={"WWW-Authenticate": self.auth_handler.token_type}
             )
-        result = await self.auth_handler.safe_execute(self.auth_handler.verify_user_auth, username, password)
+        result = await self.auth_handler.verify_user_auth(username, password)
         if not result:
             raise HTTPException(
                 status_code=401,

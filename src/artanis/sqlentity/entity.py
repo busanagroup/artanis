@@ -14,7 +14,7 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-import asyncio
+import inspect
 import types
 
 from artanis.config import Configuration
@@ -125,7 +125,7 @@ async def safe_execute(func, *args, **kwargs):
     async with Session() as session:
         async with session.begin():
             try:
-                if asyncio.iscoroutinefunction(func):
+                if inspect.iscoroutinefunction(func):
                     result = await func(*args, **kwargs)
                 else:
                     result = func(*args, **kwargs)
