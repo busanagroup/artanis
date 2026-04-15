@@ -18,26 +18,37 @@ const config = defineConfig(({ mode }) => {
   const rewriteToTargetContext = (path: string) => `${contextBase}${path}`
   const proxyRoutes = targetBase
     ? {
-      '/ws': {
+      // Service Axelor
+      // '/ws': {
+      //   target: targetBase,
+      //   changeOrigin: true,
+      //   rewrite: rewriteToTargetContext,
+      // },
+      // '/callback': {
+      //   target: targetBase,
+      //   changeOrigin: true,
+      //   rewrite: rewriteToTargetContext,
+      // },
+      // '/logout': {
+      //   target: targetBase,
+      //   changeOrigin: true,
+      //   rewrite: rewriteToTargetContext,
+      // },
+      '/auth': {
         target: targetBase,
         changeOrigin: true,
         rewrite: rewriteToTargetContext,
       },
-      '/callback': {
+      '/api': {
         target: targetBase,
         changeOrigin: true,
         rewrite: rewriteToTargetContext,
       },
-      '/login': {
+      '/mvc': {
         target: targetBase,
         changeOrigin: true,
         rewrite: rewriteToTargetContext,
-      },
-      '/logout': {
-        target: targetBase,
-        changeOrigin: true,
-        rewrite: rewriteToTargetContext,
-      },
+      }
     }
     : undefined
 
