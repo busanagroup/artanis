@@ -15,12 +15,14 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import inspect
 import logging
+import functools
 import typing as t
 
 from artanis import concurrency, exceptions
 from artanis.asgi import types, http, endpoints
 from artanis.asgi.routing.routes.base import BaseEndpointWrapper, BaseRoute
 from artanis.asgi.schemas.datastructures import Schema
+from artanis.utils import import_function
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgibase import BaseASGIService
@@ -30,14 +32,24 @@ __all__ = ["Route", "HTTPFunctionWrapper", "HTTPEndpointWrapper"]
 logger = logging.getLogger(__name__)
 
 
+class SafeExecution:
+    __safe_exec: t.Callable | None = None
+
+    @classmethod
+    async def safe_execute(cls, func, *args, **kwargs):
+        if not cls.__safe_exec:
+            cls.__safe_exec = import_function("artanis.sqlentity.entity:safe_execute")
+        return await cls.__safe_exec(func, *args, **kwargs)
+
+
 class BaseHTTPEndpointWrapper(BaseEndpointWrapper):
     def __init__(
-        self,
-        handler: types.Handler,
-        /,
-        *,
-        signature: inspect.Signature | None = None,
-        pagination: types.Pagination | None = None,
+            self,
+            handler: types.Handler,
+            /,
+            *,
+            signature: inspect.Signature | None = None,
+            pagination: types.Pagination | None = None,
     ):
         """Wraps an HTTP function or endpoint into ASGI application.
 
@@ -93,6 +105,8 @@ class HTTPFunctionWrapper(BaseHTTPEndpointWrapper):
         }
 
         injected_func = await app.injector.inject(self.handler, context)
+        if concurrency.is_async(injected_func):
+            injected_func = functools.partial(SafeExecution.safe_execute, injected_func)
         response = await concurrency.run(injected_func)
         response = self._build_api_response(response)
 
@@ -115,16 +129,16 @@ class HTTPEndpointWrapper(BaseHTTPEndpointWrapper):
 
 class Route(BaseRoute):
     def __init__(
-        self,
-        path: str,
-        endpoint: types.HTTPHandler | BaseHTTPEndpointWrapper,
-        *,
-        methods: set[str] | t.Sequence[str] | None = None,
-        name: str | None = None,
-        include_in_schema: bool = True,
-        pagination: types.Pagination | None = None,
-        tags: dict[str, t.Any] | None = None,
-        docstring: str | None = None
+            self,
+            path: str,
+            endpoint: types.HTTPHandler | BaseHTTPEndpointWrapper,
+            *,
+            methods: set[str] | t.Sequence[str] | None = None,
+            name: str | None = None,
+            include_in_schema: bool = True,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
+            docstring: str | None = None
     ) -> None:
         """A route definition of a http endpoint.
 
@@ -156,7 +170,8 @@ class Route(BaseRoute):
             else HTTPFunctionWrapper(endpoint, signature=inspect.signature(endpoint), pagination=pagination)
         )
 
-        super().__init__(path, wrapped_endpoint, name=name, include_in_schema=include_in_schema, tags=tags, docstring=docstring)
+        super().__init__(path, wrapped_endpoint, name=name, include_in_schema=include_in_schema, tags=tags,
+                         docstring=docstring)
 
         self.app: BaseHTTPEndpointWrapper
 
@@ -169,11 +184,11 @@ class Route(BaseRoute):
 
     def __eq__(self, other: t.Any) -> bool:
         return (
-            isinstance(other, Route)
-            and self.path == other.path
-            and self.app == other.app
-            and self.name == other.name
-            and self.methods == other.methods
+                isinstance(other, Route)
+                and self.path == other.path
+                and self.app == other.app
+                and self.name == other.name
+                and self.methods == other.methods
         )
 
     def __repr__(self) -> str:
@@ -213,4 +228,3 @@ class Route(BaseRoute):
             return m
 
         return self.Match.full if scope["method"] in self.methods else self.Match.partial
-
