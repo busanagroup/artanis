@@ -20,7 +20,6 @@ import pydantic
 from starlette.exceptions import HTTPException
 
 from artanis.asgi import schemas
-from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
 from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.config import Configuration
@@ -53,14 +52,11 @@ class AuthDescriptor(Descriptor):
 
 class AuthEndPoint(ASGIEndPoint):
     descriptor = AuthDescriptor()
+    base_path = "/auth"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.auth_handler = AuthenticationHandler(self.get_configuration())
-
-    @classmethod
-    def register(cls, app: BaseASGIService, config: Configuration):
-        app.mount('/auth', AuthEndPoint(config=config, parent=app))
 
     @published(path="/refresh", methods=["POST"])
     async def do_refresh(

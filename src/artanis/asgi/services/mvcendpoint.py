@@ -28,10 +28,7 @@ class MVCDescriptor(Descriptor):
 class MVCEndPoint(ASGIEndPoint):
     descriptor: Descriptor = MVCDescriptor()
     base_modules = "ecf.mvc"
-
-    @classmethod
-    def register(cls, app: BaseASGIService, config: Configuration):
-        app.mount('/mvc', cls(config=config, parent=app))
+    base_path = "/mvc"
 
     @published
     async def pgmredir(self, request: Request):

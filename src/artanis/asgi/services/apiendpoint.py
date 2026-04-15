@@ -21,8 +21,9 @@ from artanis.config import Configuration
 
 class APIEndPoint(ASGIEndPoint):
     base_modules = "ecf.api"
+    base_path = "/api"
     access_validator = APIAccessValidator()
 
     @classmethod
     def register(cls, app: BaseASGIService, config: Configuration):
-        app.mount('/api', cls(config=config, parent=app))
+        app.mount(cls.get_base_path(), cls(config=config, parent=app))

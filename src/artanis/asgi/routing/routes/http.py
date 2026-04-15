@@ -25,7 +25,7 @@ from artanis.asgi.schemas.datastructures import Schema
 if t.TYPE_CHECKING:
     from artanis.asgi.asgibase import BaseASGIService
 
-__all__ = ["Route"]
+__all__ = ["Route", "HTTPFunctionWrapper", "HTTPEndpointWrapper"]
 
 logger = logging.getLogger(__name__)
 

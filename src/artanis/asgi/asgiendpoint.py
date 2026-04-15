@@ -270,6 +270,7 @@ class EndPointRepository(dict[str, type[ControllerABC] | None]):
 class ASGIEndPoint(ControllerABC):
     access_validator: AccessValidator = None
     base_modules: str = None
+    base_path: str
 
     def __init__(self, *args, **kwargs):
         parent: StartableService = kwargs.pop('parent') if 'parent' in kwargs else None
@@ -281,10 +282,6 @@ class ASGIEndPoint(ControllerABC):
         self.__all_classes = None
         self.configure()
         self.register_listener(parent)
-
-    @classmethod
-    def register(cls, app: BaseASGIService, config: Configuration):
-        raise NotImplementedError
 
     async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
         if scope["type"] not in ("http", "websocket"):
@@ -439,6 +436,14 @@ class ASGIEndPoint(ControllerABC):
 
         if self.base_modules:
             parent.add_listener(StartableListener(started_func=on_started))
+
+    @classmethod
+    def get_base_path(cls) -> str:
+        return "/" if not cls.base_path else cls.base_path
+
+    @classmethod
+    def register(cls, app: BaseASGIService, config: Configuration):
+        app.mount(cls.get_base_path(), cls(config=config, parent=app))
 
     @property
     def all_classes(self):

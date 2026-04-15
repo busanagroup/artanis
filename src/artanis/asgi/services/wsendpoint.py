@@ -13,14 +13,10 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import ASGIEndPoint
-from artanis.config import Configuration
 
 
 class WebsocketEndPoint(ASGIEndPoint):
+    base_path = "/ws"
 
-    @classmethod
-    def register(cls, app: BaseASGIService, config: Configuration):
-        ...
 
