@@ -105,6 +105,10 @@ class AuthenticationHandler:
         efusrs = self.get_entity('efusrs')
         return await efusrs.check_user_auth(user_name=usrname, passwd=passwd)
 
+    async def get_user_info(self, username: str | None) -> t.Any:
+        efusrs = self.get_entity('efusrs')
+        return await efusrs.get_user_info(username)
+
     @property
     def sqlentity(self):
         if not hasattr(self, '_sqlentity'):

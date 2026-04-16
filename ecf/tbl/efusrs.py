@@ -40,6 +40,14 @@ class efusrs(Entity):
     efusauus = Field(String(24), label='Audit user')
 
     @classmethod
+    async def get_user_info(cls, user_name: str | None):
+        if not user_name:
+            return None
+        obj = await cls.get(user_name)
+        return [obj.efususid, obj.efusfsnm, obj.efuslsnm, obj.efusemad, obj.efuscono, obj.efusconm,
+                obj.efusdvno, obj.efusdvnm] if obj and (obj.efusstat != 0) else None
+
+    @classmethod
     async def get_user_password(cls, user_name: str):
         obj = await cls.get(user_name)
         return [obj.efuspswd, obj.efusstat, obj.efusfsnm, obj.efuslsnm, obj.efusemad] \

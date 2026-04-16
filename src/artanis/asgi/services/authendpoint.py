@@ -21,7 +21,9 @@ from starlette.exceptions import HTTPException
 
 from artanis.asgi import schemas
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
+from artanis.asgi.auth import UserInfo
 from artanis.asgi.auth.handler import AuthenticationHandler
+from artanis.asgi.auth.validator import AccessValidator
 from artanis.config import Configuration
 
 
@@ -40,10 +42,23 @@ class RefreshToken(pydantic.BaseModel):
     refresh_token: str
 
 
+class UserInformation(pydantic.BaseModel):
+    username: str
+    first_name: str
+    last_name: str
+    email: str | None
+    cono: str | None
+    coname: str | None
+    dvno: str | None
+    dvname: str | None
+
+
 UserRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(User)]
 AccessTokenResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(AccessToken)]
 
 RefreshTokenRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(RefreshToken)]
+
+UserInformationResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(UserInformation)]
 
 
 class AuthDescriptor(Descriptor):
@@ -54,10 +69,47 @@ class AuthEndPoint(ASGIEndPoint):
     descriptor = AuthDescriptor()
     base_path = "/auth"
     openapi_support = True
+    access_validator = AccessValidator()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.auth_handler = AuthenticationHandler(self.get_configuration())
+
+    @published(path="/userinfo", methods=["GET"], tags={"permissions": ["access:secure"]})
+    async def get_userinfo(
+            self,
+            userinfo: UserInfo
+    ) -> UserInformationResponse:
+        """
+        tags:
+            - Authentication
+        title:
+            Get user information
+        description:
+            Returns user information in detail
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        config: Configuration = self.get_configuration()
+        if not config.server_is_ready:
+            raise HTTPException(
+                status_code=500,
+                detail="Server is not ready",
+                headers={"WWW-Authenticate": self.auth_handler.token_type}
+            )
+        result = await self.auth_handler.get_user_info(userinfo.username)
+        if not result:
+            raise HTTPException(
+                status_code=401,
+                detail="Insufficient permission",
+                headers={"WWW-Authenticate": self.auth_handler.token_type}
+            )
+        retval = dict(zip(["username", "first_name", "last_name", "email", "cono", "coname", "dvno", "dvname"],
+                          result))
+        UserInformation.model_validate(retval)
+        return retval
 
     @published(path="/refresh", methods=["POST"])
     async def do_refresh(
@@ -133,8 +185,8 @@ class AuthEndPoint(ASGIEndPoint):
                 headers={"WWW-Authenticate": self.auth_handler.token_type}
             )
         User.model_validate(user)
-        username:str = user.get("username")
-        password:str = user.get("password")
+        username: str = user.get("username")
+        password: str = user.get("password")
         if not username or not password:
             raise HTTPException(
                 status_code=401,

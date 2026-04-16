@@ -24,7 +24,8 @@ from artanis.exceptions import HTTPException
 class AccessValidator:
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
-        return None
+        user_name = token.payload.data.get('user_id')
+        return dict(user_info=dict(username=user_name))
 
     @property
     def sqlentity(self):
