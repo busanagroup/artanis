@@ -13,16 +13,20 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from dataclasses import dataclass
 
-from artanis.asgi.auth.jwt import JWT
+import dataclasses
 
-__all__ = ["AccessToken", "RefreshToken"]
-
-
-class AccessToken(JWT): ...
+__all__ = ["UserInfo"]
 
 
-class RefreshToken(JWT): ...
-
-
+@dataclasses.dataclass(frozen=True)
+class UserInfo:
+    username: str | None
+    username: str | None
+    first_name: str | None
+    last_name: str | None
+    email: str | None
+    cono: str | None
+    coname: str | None
+    dvno: str | None
+    dvname: str | None

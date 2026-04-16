@@ -24,3 +24,4 @@ from artanis.asgi.types.pagination import *
 from artanis.asgi.types.schemas import *
 from artanis.asgi.types.serialize import *
 from artanis.asgi.types.websockets import *
+from artanis.asgi.types.artanis import *

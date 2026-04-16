@@ -117,9 +117,3 @@ class RefreshTokenComponent(BaseTokenComponent):
         token = self._resolve_token(headers, cookies)
         return types.RefreshToken(token.header, token.payload)
 
-
-class UserInfoComponent(Component):
-
-    def resolve(self, scope: Scope) -> types.UserInfo:
-        username = scope["user_info"]["username"] if "user_info" in scope else None
-        return types.UserInfo(username=username)

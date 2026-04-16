@@ -19,9 +19,8 @@ import typing as t
 import pydantic
 from starlette.exceptions import HTTPException
 
-from artanis.asgi import schemas
+from artanis.asgi import schemas, types
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
-from artanis.asgi.auth import UserInfo
 from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.asgi.auth.validator import AccessValidator
 from artanis.config import Configuration
@@ -78,7 +77,7 @@ class AuthEndPoint(ASGIEndPoint):
     @published(path="/userinfo", methods=["GET"], tags={"permissions": ["access:secure"]})
     async def get_userinfo(
             self,
-            userinfo: UserInfo
+            userinfo: types.UserInfo
     ) -> UserInformationResponse:
         """
         tags:

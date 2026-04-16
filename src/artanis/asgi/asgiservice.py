@@ -20,7 +20,6 @@ import uuid
 
 from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent, AuthenticationMiddleware
-from artanis.asgi.auth.components import UserInfoComponent
 from artanis.asgi.middlewares import Middleware, CORSMiddleware, GZipMiddleware
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
@@ -114,7 +113,6 @@ class ASGIService(BaseASGIService):
                 header_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY),
                 cookie_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY)
             ),
-            UserInfoComponent(),
         ]
         self.add_component_set(components)
 

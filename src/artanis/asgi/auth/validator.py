@@ -55,14 +55,15 @@ class APIAccessValidator(AccessValidator):
         return res
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
+        child_scope = await super().validate(scope, token)
+        user_name = child_scope["user_info"]["user_id"]
         service_name = scope.get('module_path', '')[1:]
         func_name = scope.get('path')[1:]
-        user_name = token.payload.data.get('user_id')
         if not await self.safe_execute(self.check_api_auth, user_name, service_name, func_name):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions")
-        return dict(user_info=dict(username=user_name))
+        return child_scope
 
 
 class MVCAccessValidator(AccessValidator):
@@ -94,7 +95,8 @@ class MVCAccessValidator(AccessValidator):
         return res
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
-        user_name = token.payload.data.get('user_id')
+        child_scope = await super().validate(scope, token)
+        user_name = child_scope["user_info"]["user_id"]
         access_model = scope.get('auth_access_model', 0)
         if access_model == 0:
             return dict(user_info = dict(username=user_name))
@@ -105,4 +107,4 @@ class MVCAccessValidator(AccessValidator):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions")
-        return dict(user_info = dict(username=user_name))
+        return child_scope

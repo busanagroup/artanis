@@ -16,8 +16,8 @@
 from starlette.requests import Request
 
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
-from artanis.asgi.auth import UserInfo
 from artanis.asgi.auth.validator import MVCAccessValidator
+from artanis.asgi.types import UserInfo
 
 
 class MVCDescriptor(Descriptor):

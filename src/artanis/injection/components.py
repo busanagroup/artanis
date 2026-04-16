@@ -16,6 +16,7 @@
 import abc
 import inspect
 import typing as t
+from importlib import import_module
 
 from artanis.injection.exceptions import ComponentError, ComponentNotFound
 from artanis.injection.resolver import Parameter
@@ -93,6 +94,18 @@ class Component(metaclass=abc.ABCMeta):
 
     def __str__(self) -> str:
         return str(self.__class__.__name__)
+
+    @property
+    def sqlentity(self):
+        if not hasattr(self, '_sqlentity'):
+            self._sqlentity = import_module("artanis.sqlentity.entity")
+        return self._sqlentity
+
+    def get_entity(self, tbname: str) -> Any:
+        return self.sqlentity.get_entity(tbname)
+
+    async def safe_execute(self, func: Callable[..., Any], *args, **kwargs) -> Any:
+        return await self.sqlentity.safe_execute(func, *args, **kwargs)
 
 
 class Components(tuple[Component, ...]):
