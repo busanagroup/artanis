@@ -22,8 +22,8 @@ class efoagr(Entity):
     Object Access Group
     """
     efoagrcd = Field(String(8), label='Obj. Code', primary_key=True)
-    efoagrnm = Field(String(24), label='Name')
-    efoagrds = Field(String(48), label='Description')
+    efoagrnm = Field(String(48), label='Name')
+    efoagrds = Field(String(64), label='Description')
     efoaaudt = Field(Numeric(8, 0), label='Audit date')
     efoaautm = Field(Numeric(6, 0), label='Audit time')
     efoaauus = Field(String(24), label='Audit user')

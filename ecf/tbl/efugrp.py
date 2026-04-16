@@ -23,8 +23,8 @@ class efugrp(Entity):
     """
     efuggrid = Field(String(24), label='Group ID', primary_key=True)
     efugusid = Field(String(24), label='User ID', primary_key=True)
-    efugfsnm = Field(String(24), label='First name')
-    efuglsnm = Field(String(24), label='Last name')
+    efugfsnm = Field(String(48), label='First name')
+    efuglsnm = Field(String(48), label='Last name')
     efugaudt = Field(Numeric(8, 0), label='Audit date')
     efugautm = Field(Numeric(6, 0), label='Audit time')
     efugauus = Field(String(24), label='Audit user')
