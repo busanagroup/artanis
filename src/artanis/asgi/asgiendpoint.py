@@ -63,6 +63,19 @@ class Descriptor:
             else BaseRoute.Match.none
         )
 
+    def route_scope(self, scope: types.Scope) -> types.Scope:
+        m = self.path.match(scope.get("path"))
+        match = BaseRoute.Match.full if m.match in (self.path.Match.exact, self.path.Match.partial) \
+            else BaseRoute.Match.none
+        if match == BaseRoute.Match.none:
+            raise exceptions.NotFoundException(
+                path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
+            )
+        return types.Scope(dict(
+            root_path=str(url.Path(scope.get("root_path", "")) / (m.matched or "")),
+            path=str(url.Path("/") / (m.unmatched or "")),
+        ))
+
 
 def has_published_method(cls):
     for func_name, func in cls.__dict__.items():
@@ -348,6 +361,7 @@ class ASGIEndPoint(ControllerABC):
         klass: type[ControllerABC] | None = None
         child_scope: types.Scope = types.Scope({})
         child_scope['access_validator'] = self.access_validator
+
         partial_allowed_methods: set[str] = set()
         partial = None
         for route in self.router:
@@ -364,8 +378,9 @@ class ASGIEndPoint(ControllerABC):
             raise exceptions.MethodNotAllowedException(
                 route_scope.get("root_path", "") + route_scope["path"], route_scope["method"], partial_allowed_methods
             )
-
-        if self.all_classes:
+        if not self.all_classes:
+            klass_scope = types.Scope({**scope, **child_scope})
+        else:
             route_path = get_route_path(scope)
             posix = "".join(PurePosixPath(route_path).parts[:2])
             klass = self.all_classes.get(posix, None)
@@ -374,35 +389,28 @@ class ASGIEndPoint(ControllerABC):
                     path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
                 )
             descriptor = klass.descriptor
-            m = descriptor.path.match(scope["path"])
-            match = BaseRoute.Match.full if m.match in (descriptor.path.Match.exact, descriptor.path.Match.partial) \
-                else BaseRoute.Match.none
-            if match == BaseRoute.Match.none:
-                raise exceptions.NotFoundException(
-                    path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
-                )
-            scope.update({
-                "root_path": str(url.Path(scope.get("root_path", "")) / (m.matched or "")),
-                "module_base": self.base_modules,
-                "module_path": posix,
-                "module_class": klass,
-                "path": str(url.Path("/") / (m.unmatched or "")),
-            })
-        descriptor = klass.descriptor if klass else None
+            child_scope.update(dict(
+                module_base=self.base_modules,
+                module_path=posix,
+                module_class=klass,
+            ))
+            klass_scope = types.Scope({**scope, **descriptor.route_scope(scope), **child_scope})
+
+        descriptor: Descriptor | None = klass.descriptor if klass else None
         if klass and descriptor.handle_request:
             partial = None
             partial_allowed_methods: set[str] = set()
             config = self.get_configuration()
-            func_name = scope['path']
+            func_name = klass_scope.get("path")
             instance: ControllerABC = klass(config=config, func_path=func_name)
             if not instance.has_published_methods:
                 raise exceptions.NotFoundException(
-                    path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
+                    path=klass_scope.get("root_path", "") + klass_scope["path"], params=klass_scope.get("path_params")
                 )
             for route in instance.published_methods:
-                match = route.match(scope)
+                match = route.match(klass_scope)
                 if match == BaseRoute.Match.full:
-                    route_scope = types.Scope({**scope, **route.route_scope(scope), **child_scope})
+                    route_scope = types.Scope({**klass_scope, **route.route_scope(klass_scope)})
                     route._build(self.parent)
                     return route, route_scope
                 elif match == route.Match.partial:
@@ -410,9 +418,9 @@ class ASGIEndPoint(ControllerABC):
                     partial_allowed_methods |= route.methods
 
             if partial:
-                route_scope = types.Scope({**scope, **partial.route_scope(scope), **child_scope})
+                route_scope = types.Scope({**klass_scope, **partial.route_scope(klass_scope)})
                 raise exceptions.MethodNotAllowedException(
-                    route_scope.get("root_path", "") + route_scope["path"], route_scope["method"],
+                    route_scope.get("root_path", "") + route_scope.get("path"), route_scope["method"],
                     partial_allowed_methods
                 )
 
@@ -420,12 +428,12 @@ class ASGIEndPoint(ControllerABC):
         partial_allowed_methods = set()
         if not self.has_published_methods:
             raise exceptions.NotFoundException(
-                path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
+                path=klass_scope.get("root_path", "") + klass_scope.get("path"), params=klass_scope.get("path_params")
             )
         for route in self.published_methods:
-            match = route.match(scope)
+            match = route.match(klass_scope)
             if match == BaseRoute.Match.full:
-                route_scope = types.Scope({**scope, **route.route_scope(scope), **child_scope})
+                route_scope = types.Scope({**klass_scope, **route.route_scope(klass_scope)})
                 route._build(self.parent)
                 return route, route_scope
             elif match == route.Match.partial:
@@ -433,13 +441,13 @@ class ASGIEndPoint(ControllerABC):
                 partial_allowed_methods |= route.methods
 
         if partial:
-            route_scope = types.Scope({**scope, **partial.route_scope(scope), **child_scope})
+            route_scope = types.Scope({**klass_scope, **partial.route_scope(klass_scope)})
             raise exceptions.MethodNotAllowedException(
                 route_scope.get("root_path", "") + route_scope["path"], route_scope["method"], partial_allowed_methods
             )
 
         raise exceptions.NotFoundException(
-            path=scope.get("root_path", "") + scope["path"], params=scope.get("path_params")
+            path=klass_scope.get("root_path", "") + klass_scope["path"], params=klass_scope.get("path_params")
         )
 
     @property
@@ -488,7 +496,7 @@ class ASGIEndPoint(ControllerABC):
         else:
             for method in self.published_methods:
                 route = Route(
-                    self.base_path+method.path.path,
+                    self.base_path + method.path.path,
                     method.endpoint,
                     methods=method.methods,
                     name=method.name,
