@@ -42,13 +42,13 @@ class AuthenticationHandler:
             raise HTTPException(
                 status_code=401,
                 detail="Token expired",
-                headers={"WWW-Authenticate": self.token_type})
+                headers={"access-token": self.token_type})
         user_id = access_token.payload.data.get("user_id")
         if user_id in [None, '']:
             raise HTTPException(
                 status_code=403,
                 detail="Invalid credential",
-                headers={"WWW-Authenticate": self.token_type})
+                headers={"access-token": self.token_type})
         return access_token
 
     def decode_refresh_token(self, token: str) -> RefreshToken:
@@ -57,7 +57,7 @@ class AuthenticationHandler:
             raise HTTPException(
                 status_code=406,
                 detail="Token submitted was not a refresh token",
-                headers={"WWW-Authenticate": self.token_type})
+                headers={"access-token": self.token_type})
         return refresh_token
 
     def create_access_token(

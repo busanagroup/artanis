@@ -96,14 +96,14 @@ class AuthEndPoint(ASGIEndPoint):
             raise HTTPException(
                 status_code=500,
                 detail="Server is not ready",
-                headers={"WWW-Authenticate": self.auth_handler.token_type}
+                headers={"access-token": self.auth_handler.token_type}
             )
         result = await self.auth_handler.get_user_info(userinfo.username)
         if not result:
             raise HTTPException(
                 status_code=401,
                 detail="Insufficient permission",
-                headers={"WWW-Authenticate": self.auth_handler.token_type}
+                headers={"access-token": self.auth_handler.token_type}
             )
         retval = dict(zip(["username", "first_name", "last_name", "email", "cono", "coname", "dvno", "dvname"],
                           result))
@@ -132,7 +132,7 @@ class AuthEndPoint(ASGIEndPoint):
             raise HTTPException(
                 status_code=500,
                 detail="Server is not ready",
-                headers={"WWW-Authenticate": self.auth_handler.token_type}
+                headers={"access-token": self.auth_handler.token_type}
             )
         refresh_token = refresh.get("refresh_token")
         token = self.auth_handler.decode_refresh_token(refresh_token)
@@ -181,7 +181,7 @@ class AuthEndPoint(ASGIEndPoint):
             raise HTTPException(
                 status_code=500,
                 detail="Server is not ready",
-                headers={"WWW-Authenticate": self.auth_handler.token_type}
+                headers={"access-token": self.auth_handler.token_type}
             )
         User.model_validate(user)
         username: str = user.get("username")
@@ -190,14 +190,14 @@ class AuthEndPoint(ASGIEndPoint):
             raise HTTPException(
                 status_code=401,
                 detail="Insufficient permission",
-                headers={"WWW-Authenticate": self.auth_handler.token_type}
+                headers={"access-token": self.auth_handler.token_type}
             )
         result = await self.auth_handler.verify_user_auth(username, password)
         if not result:
             raise HTTPException(
                 status_code=401,
                 detail="Insufficient permission",
-                headers={"WWW-Authenticate": self.auth_handler.token_type}
+                headers={"access-token": self.auth_handler.token_type}
             )
         now = self.auth_handler.now()
         access_token = self.auth_handler.create_access_token(
