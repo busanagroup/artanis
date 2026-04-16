@@ -56,7 +56,7 @@ class APIAccessValidator(AccessValidator):
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
         child_scope = await super().validate(scope, token)
-        user_name = child_scope["user_info"]["user_id"]
+        user_name = child_scope["user_info"]["username"]
         service_name = scope.get('module_path', '')[1:]
         func_name = scope.get('path')[1:]
         if not await self.safe_execute(self.check_api_auth, user_name, service_name, func_name):
