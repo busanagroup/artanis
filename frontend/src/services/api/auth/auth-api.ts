@@ -1,4 +1,4 @@
-import { axelorJson, axelorRequest } from '@/services/http/axelor-http'
+import { axelorRequest } from '@/services/http/axelor-http'
 import type { LoginPayload, SessionInfoResponse, UserSession } from '@/types/auth'
 
 
@@ -18,12 +18,19 @@ export async function loginWithPassword(payload: LoginPayload): Promise<UserSess
   if (!loginResponse.ok) {
     throw new Error('Login gagal, cek username/password atau sesi backend')
   }
-  const session = await axelorJson<SessionInfoResponse>('/api/cmnsvc/userinfo')
+  const responseData = (await loginResponse.json()) as SessionInfoResponse
+  const accessToken = responseData.access_token
+  const refreshToken = responseData.refresh_token
 
+  if (!accessToken || !refreshToken) {
+    throw new Error('Login Error')
+  }
 
   return {
-    login: session.user?.login ?? username,
-    displayName: session.user?.name ?? session.user?.login ?? username,
+    accessToken,
+    refreshToken,
+    login: username,
+    displayName: username,
   }
 }
 

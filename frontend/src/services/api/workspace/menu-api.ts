@@ -25,7 +25,7 @@ function normalizeAppInfo(raw: SessionInfoResponse | Record<string, unknown>): A
 }
 
 export async function fetchAppInfo(): Promise<AppInfo> {
-  const live = await axelorJson<SessionInfoResponse>('ws/public/app/info')
+  const live = await axelorJson<SessionInfoResponse>('/api/cmnsvc/userinfo')
   return normalizeAppInfo(live)
 }
 

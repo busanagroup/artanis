@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useReducer } from 'react'
 import type { ReactNode } from 'react'
+import { clearStoredSession, readStoredSession, writeStoredSession } from '@/services/auth/token-storage'
 import type { UserSession } from '@/types/auth'
 
 export type AppTab = {
@@ -29,7 +30,7 @@ type AppAction =
   | { type: 'CLOSE_TAB'; payload: string }
 
 const initialState: AppState = {
-  session: null,
+  session: readStoredSession(),
   sidebarOpen: true,
   selectedMenuName: null,
   openTabs: [],
@@ -110,8 +111,14 @@ export function useAppActions() {
 
   return useMemo(
     () => ({
-      loginSuccess: (payload: UserSession) => dispatch({ type: 'LOGIN_SUCCESS', payload }),
-      logout: () => dispatch({ type: 'LOGOUT' }),
+      loginSuccess: (payload: UserSession) => {
+        writeStoredSession(payload)
+        dispatch({ type: 'LOGIN_SUCCESS', payload })
+      },
+      logout: () => {
+        clearStoredSession()
+        dispatch({ type: 'LOGOUT' })
+      },
       setSidebarOpen: (payload: boolean) => dispatch({ type: 'SET_SIDEBAR_OPEN', payload }),
       selectMenu: (payload: string) => dispatch({ type: 'SELECT_MENU', payload }),
       openTab: (payload: AppTab) => dispatch({ type: 'OPEN_TAB', payload }),
