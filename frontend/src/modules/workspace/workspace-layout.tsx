@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import {
   AppstoreOutlined,
   ApartmentOutlined,
-  BarsOutlined,
   EditOutlined,
   LogoutOutlined,
   MenuFoldOutlined,

@@ -32,7 +32,6 @@ export function ListView({
 }: ListViewProps) {
   const selectionField = '__selected'
   const actionField = '__actions'
-  const gridMinWidth = useMemo(() => Math.max(visibleColumns.length * 180 + 160, 640), [visibleColumns.length])
 
   const gridData = useMemo(
     () =>

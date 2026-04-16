@@ -1,6 +1,8 @@
 export type UserSession = {
-  login: string
-  displayName: string
+  accessToken: string
+  refreshToken: string
+  login?: string
+  displayName?: string
 }
 
 export type LoginPayload = {
@@ -9,8 +11,6 @@ export type LoginPayload = {
 }
 
 export type SessionInfoResponse = {
-  user?: {
-    login?: string
-    name?: string
-  }
+  access_token?: string
+  refresh_token?: string
 }

@@ -1,14 +1,8 @@
-const CSRF_COOKIE_NAME = 'CSRF-TOKEN'
-const CSRF_HEADER_NAME = 'X-CSRF-Token'
+import { clearStoredSession, readStoredAccessToken } from '@/services/auth/token-storage'
 
 export type AxelorRequestInit = Omit<RequestInit, 'body'> & {
   body?: BodyInit | null
   jsonBody?: unknown
-}
-
-function readCookie(name: string) {
-  const match = document.cookie.match(new RegExp(`(^|;\\s*)(${name})=([^;]*)`))
-  return match ? decodeURIComponent(match[3]) : null
 }
 
 function toAbsolutePath(path: string) {
@@ -18,13 +12,18 @@ function toAbsolutePath(path: string) {
   return `/${path}`
 }
 
+function handleUnauthorized() {
+  clearStoredSession()
+  window.location.reload()
+}
+
 export async function axelorRequest(path: string, init: AxelorRequestInit = {}) {
-  const token = readCookie(CSRF_COOKIE_NAME)
+  const token = readStoredAccessToken()
   const headers = new Headers(init.headers)
 
   headers.set('Accept', 'application/json')
   if (token) {
-    headers.set(CSRF_HEADER_NAME, token)
+    headers.set('access_token', `Bearer ${token}`)
   }
 
   let body = init.body
@@ -34,12 +33,17 @@ export async function axelorRequest(path: string, init: AxelorRequestInit = {}) 
     body = JSON.stringify(init.jsonBody)
   }
 
-  return fetch(toAbsolutePath(path), {
+  const response = await fetch(toAbsolutePath(path), {
     ...init,
     headers,
     body,
-    credentials: 'include',
   })
+
+  if (response.status === 401) {
+    handleUnauthorized()
+  }
+
+  return response
 }
 
 export async function axelorJson<T>(path: string, init: AxelorRequestInit = {}) {
