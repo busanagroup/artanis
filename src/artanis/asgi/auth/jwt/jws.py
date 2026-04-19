@@ -113,7 +113,10 @@ class JWS:
 
         algorithm = cls._get_algorithm(header)
 
-        if not algorithm.verify(signing_input, base64.urlsafe_b64decode(signature), key):
+        try:
+            if not algorithm.verify(signing_input, base64.urlsafe_b64decode(signature), key):
+                raise exceptions.JWTValidateException(f"Signature verification failed for token '{token.decode()}'")
+        except:
             raise exceptions.JWTValidateException(f"Signature verification failed for token '{token.decode()}'")
 
         return header, payload, signature

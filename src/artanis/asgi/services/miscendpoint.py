@@ -24,6 +24,34 @@ class MiscEndPoint(ASGIEndPoint):
     openapi_support = True
     access_validator = AccessValidator()
 
+    @published(path="/info")
+    async def get_app_info(self):
+        """
+        tags:
+            - Miscelaneous
+        title:
+            Get Application Info
+        description:
+            Returns various information about the application
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        return {"name": "Artanis ASGI Service", "version": "1.0.0"}
+
     @published(path="/menu")
     async def get_menu(self):
+        """
+        tags:
+            - Miscelaneous
+        title:
+            Get Application Menu
+        description:
+            Returns menu definition for this application
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
         return {"message": "pong"}
