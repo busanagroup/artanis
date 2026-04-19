@@ -13,16 +13,17 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from artanis.asgi.asgiservice import ASGIService
-from artanis.asgi.services.miscendpoint import MiscEndPoint
-from artanis.asgi.services.mvcendpoint import MVCEndPoint
+from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
+from artanis.asgi.auth.validator import AccessValidator
+from artanis.asgi.services.mvcendpoint import MVCDescriptor
 
 
-class MVCAppService(ASGIService):
+class MiscEndPoint(ASGIEndPoint):
+    descriptor: Descriptor = MVCDescriptor
+    base_path = "/misc"
+    openapi_support = True
+    access_validator = AccessValidator()
 
-    def configure_services(self, config):
-        MVCEndPoint.register(self, config)
-        MiscEndPoint.register(self, config)
-
-
-app = MVCAppService.get_default_instance()
+    @published(path="/menu")
+    async def get_menu(self):
+        return {"message": "pong"}

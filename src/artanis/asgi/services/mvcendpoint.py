@@ -22,7 +22,6 @@ from artanis.asgi.types import UserInfo
 
 class MVCDescriptor(Descriptor):
     handle_request = True
-    # default_tags = {}
 
 
 class MVCEndPoint(ASGIEndPoint):

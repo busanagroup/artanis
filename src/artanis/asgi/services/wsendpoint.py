@@ -17,6 +17,6 @@ from artanis.asgi.asgiendpoint import ASGIEndPoint
 
 
 class WebsocketEndPoint(ASGIEndPoint):
-    base_path = "/ws"
+    base_path = "/wss"
 
 
