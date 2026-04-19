@@ -19,6 +19,7 @@ from __future__ import annotations
 class ECFError(Exception):
     """Generic ECF error class."""
 
+
 class ECFServiceError(ECFError):
     """Generic ECF Service exception"""
 

@@ -16,13 +16,8 @@
 from __future__ import annotations
 
 from artanis.config import Configuration
-
 from ecf.core.ecfcmn import BaseController
 
 
 class BusinessObject(BaseController):
     __config = Configuration.get_default_instance(create_instance=False)
-
-
-
-

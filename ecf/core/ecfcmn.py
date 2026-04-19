@@ -186,4 +186,3 @@ class ObjectProxy:
 
     def class_exist(self, klass_name: str) -> bool:
         return klass_name in self.all_modules
-

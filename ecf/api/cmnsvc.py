@@ -20,12 +20,8 @@ from ecf.core.apisvc import *
 
 
 class cmnsvc(APIService):
-
     description = 'Common Service API'
 
     @published(path='/userinfo')
     async def get_user_info(self):
         return JSONResponse({'hello': 'world'})
-
-
-

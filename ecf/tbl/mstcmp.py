@@ -48,4 +48,3 @@ class mstcmp(Entity):
     cmcpaudt = Field(Numeric(8, 0), label='Audit date')
     cmcpautm = Field(Numeric(6, 0), label='Audit time')
     cmcpauus = Field(String(24), label='Audit user')
-

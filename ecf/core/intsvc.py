@@ -351,4 +351,3 @@ class IntService(BaseController):
         except:
             session.rollback()
             raise
-

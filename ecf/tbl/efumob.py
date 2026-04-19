@@ -33,12 +33,12 @@ class efumob(Entity):
     @classmethod
     def check_access(cls, obj, acctp):
         chkaccess = {
-                'S': obj.umoobjsl,
-                'I': obj.umoobjin,
-                'U': obj.umoobjup,
-                'D': obj.umoobjdl,
-                'X': obj.umoobjex,
-            }
+            'S': obj.umoobjsl,
+            'I': obj.umoobjin,
+            'U': obj.umoobjup,
+            'D': obj.umoobjdl,
+            'X': obj.umoobjex,
+        }
         return chkaccess[acctp] == 1 if acctp in chkaccess else False
 
     @classmethod
@@ -72,6 +72,3 @@ class efumob(Entity):
                     res = obj is not None
         ret_res = res if not res else cls.check_access(obj, acctp)
         return res if not check_access else ret_res
-
-
-

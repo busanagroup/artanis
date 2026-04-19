@@ -39,4 +39,3 @@ class csyxif(Entity):
     csyxaudt = Field(Numeric(8, 0), label='Audit date')
     csyxautm = Field(Numeric(6, 0), label='Audit time')
     csyxauus = Field(String(24), label='Audit user')
-
