@@ -74,6 +74,29 @@ class AuthEndPoint(ASGIEndPoint):
         super().__init__(*args, **kwargs)
         self.auth_handler = AuthenticationHandler(self.get_configuration())
 
+    @published(path="/callback", methods=["GET"], tags={"permissions": ["access:secure"]})
+    async def login_callback(self):
+        """
+        tags:
+            - Authentication
+        title:
+            Callback check validity authentication
+        description:
+            Returns empty dict with status 200 if the token is valid, otherwise returns 401 or 500
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        config: Configuration = self.get_configuration()
+        if not config.server_is_ready:
+            raise HTTPException(
+                status_code=500,
+                detail="Server is not ready",
+                headers={"access-token": self.auth_handler.token_type}
+            )
+        return {}
+
     @published(path="/userinfo", methods=["GET"], tags={"permissions": ["access:secure"]})
     async def get_userinfo(
             self,
