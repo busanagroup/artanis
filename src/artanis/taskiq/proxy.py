@@ -58,9 +58,17 @@ class TaskObjectProxy(AbstractJobObjectProxy):
     async def __request(self, func_name: str, *args, **kwargs):
         service_func = ".".join([self.service_name, func_name])
         request = self.request
-        await AsyncKicker(broker=task_broker, task_name="artanis_task",
-                          labels={}).kiq(TaskType.TK_TASK, request.user.username,
-                                         service_func, *args, **kwargs)
+        await AsyncKicker(
+            broker=task_broker,
+            task_name="artanis_task",
+            labels={}
+        ).kiq(
+            TaskType.TK_TASK,
+            request.user.username,
+            service_func,
+            *args,
+            **kwargs
+        )
 
 
 class JobObjectProxy(AbstractJobObjectProxy):
@@ -75,11 +83,15 @@ class JobObjectProxy(AbstractJobObjectProxy):
 
     async def dispatch(self):
         job_channel = broker if self.get_task_type() == JOBType.REGULAR_JOB else task_broker
-        await AsyncKicker(broker=job_channel,
-                          task_name="artanis_task",
-                          labels={}).kiq(TaskType.TK_JOB,
-                                         self.get_username(),
-                                         self.job_id)
+        await AsyncKicker(
+            broker=job_channel,
+            task_name="artanis_task",
+            labels={}
+        ).kiq(
+            TaskType.TK_JOB,
+            self.get_username(),
+            self.job_id
+        )
 
     def get_task_type(self):
         raise NotImplementedError()  # pragma: no cover

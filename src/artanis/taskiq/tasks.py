@@ -106,7 +106,7 @@ class BaseTaskHandler:
     @classmethod
     async def safe_execute(cls, func, *args, **kwargs):
         if not cls.__safe_exec:
-            cls.__safe_exec = import_function("ecf.core.ecfentity:safe_execute")
+            cls.__safe_exec = import_function("artanis.sqlentity.entity:safe_execute")
         return await cls.__safe_exec(func, *args, **kwargs)
 
     def get_object(self, instantiate: bool = True):

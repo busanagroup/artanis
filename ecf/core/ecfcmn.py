@@ -15,17 +15,10 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from typing import Callable
-
-from taskiq.kicker import AsyncKicker
-
 from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
 from artanis.sqlentity import entity
-from artanis.taskiq.broker import task_broker
-from artanis.taskiq.tasks import TaskType
 from artanis.utils import import_function
-
 from ecf.core.ecfexceptions import ECFServiceError
 
 
@@ -194,74 +187,3 @@ class ObjectProxy:
     def class_exist(self, klass_name: str) -> bool:
         return klass_name in self.all_modules
 
-
-class _TaskMethod:
-
-    def __init__(self, send: Callable, method_name: str):
-        self._method_name = method_name
-        self._send = send
-
-    async def __call__(self, *args, **kwargs):
-        return await self._send(self._method_name, *args, **kwargs)
-
-
-class TaskObjectProxy:
-    def __init__(self, request, service_name: str):
-        self.request = request
-        self.service_name = service_name
-
-    def __getattr__(self, func_name: str):
-        return _TaskMethod(self.__request, func_name)
-
-    async def __request(self, func_name: str, *args, **kwargs):
-        service_func = ".".join([self.service_name, func_name])
-        request = self.request
-        await AsyncKicker(broker=task_broker, task_name="raddus_task",
-                          labels={}).kiq(TaskType.TK_TASK, request.user.username,
-                                         service_func, *args, **kwargs)
-
-
-class JobObjectProxy:
-    __all = None
-
-    def __init__(self, request):
-        self.base_path = 'ecf.job'
-        self.services = {}
-        self.request = request
-
-    async def execute_job(self, service_name: str, session):
-        instance = self.get_object(service_name)
-        return await instance.execute(session)
-
-    def get_object(self, service_name: str, instantiate: bool = True):
-        if not instantiate:
-            return self.get_service_class(service_name)
-        return self.get_service_instance(service_name)
-
-    def get_service_class(self, service_name: str):
-        if not self.class_exist(service_name):
-            raise ECFServiceError(f"JOB service [{service_name}] is not available")
-        service_class = self.services.get(service_name, None)
-        if not service_class:
-            service_class = self.__get_package_class(service_name, self.base_path)
-            self.services[service_name] = service_class
-        return service_class
-
-    def get_service_instance(self, service_name: str) -> object:
-        service_class = self.get_service_class(service_name)
-        instance = object.__new__(service_class)
-        instance.__init__(self.request)
-        return instance
-
-    @property
-    def all_modules(self):
-        if not self.__all:
-            self.__all = import_function(f"{self.base_path}:__all__")
-        return self.__all
-
-    def __get_package_class(self, class_name: str, base_path: str | None = None, module_name: str | None = None):
-        package = f"{self.base_path if not base_path else base_path}.{class_name if not module_name else module_name}:{class_name}"
-        return import_function(package)
-
-    def class_exist(self, klass_name: str) -> bool:
-        return klass_name in self.all_modules
