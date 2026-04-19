@@ -25,8 +25,11 @@ from artanis.config import Configuration
 
 class Redis(SyncRedisPy, Singleton, SyncLock):
     def __init__(self, config: Configuration = None):
+        config = config or Configuration().get_default_instance(create_instance=False)
         redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
-        connection_pool = SyncConnectionPool.from_url(redis_url)
+        connection_pool = config.container.redis_pool \
+            if hasattr(config.container, "redis_pool") else \
+            AsyncConnectionPool.from_url(redis_url)
         super().__init__(connection_pool=connection_pool,
                          single_connection_client=False)
         self.auto_close_connection_pool = True
@@ -44,8 +47,11 @@ class Redis(SyncRedisPy, Singleton, SyncLock):
 
 class AsyncRedis(AsyncRedisPy, AsyncSingleton, AsyncLock):
     def __init__(self, config: Configuration = None):
+        config = config or Configuration().get_default_instance(create_instance=False)
         redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
-        connection_pool = AsyncConnectionPool.from_url(redis_url)
+        connection_pool = config.container.redis_pool \
+            if hasattr(config.container, "redis_pool") else \
+            AsyncConnectionPool.from_url(redis_url)
         super().__init__(connection_pool=connection_pool,
                          single_connection_client=False)
         self.auto_close_connection_pool = True

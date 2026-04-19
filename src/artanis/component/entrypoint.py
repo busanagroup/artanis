@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2026 Busana Apparel Group. All rights reserved.
+# Copyright (c) 2025 Busana Apparel Group. All rights reserved.
 #
 # This product and it's source code is protected by patents, copyright laws and
 # international copyright treaties, as well as other intellectual property
@@ -13,23 +13,13 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
-
-from artanis import utils
+from artanis.component.redis import AsyncRedis
 from artanis.config import Configuration
-from artanis.sqlentity.entrypoint import configure_database, setup_all, unconfigure_database
 
 
-def load_modules():
-    utils.load_ecf_modules("ecf.tbl", True)
-    utils.load_ecf_modules("ecf.bo", True)
+async def configure_components(config: Configuration):
+    await configure_redis(config)
 
 
-async def do_startup():
-    config = Configuration.get_default_instance(create_instance=False)
-    load_modules()
-    await setup_all(config, True)
-
-
-async def do_shutdown():
-    ...
+async def configure_redis(config: Configuration):
+    config.container.async_redis = await AsyncRedis.get_default_instance(create_instance=True)

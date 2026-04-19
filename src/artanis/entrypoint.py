@@ -15,11 +15,13 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 
-import asyncio
+import inspect
 from typing import Callable
 
 from artanis import patch
+from artanis.component.entrypoint import configure_components
 from artanis.config import Configuration
+from artanis.sqlentity.entrypoint import configure_database, unconfigure_database
 from artanis.utils import import_function
 
 do_monitor_queue: Callable | None = None
@@ -31,8 +33,10 @@ async def artanis_startup(config: Configuration):
         broker = import_function("artanis.taskiq.broker:broker")
         config.container.redis_pool = broker.get_redis_pool()
         patch.perform_patch()
+        await configure_database(config)
+        await configure_components(config)
         function = import_function("ecf.core.entrypoint:do_startup")
-        if asyncio.iscoroutinefunction(function):
+        if inspect.iscoroutinefunction(function):
             await function()
     finally:
         config.server_is_ready = True
@@ -41,8 +45,9 @@ async def artanis_startup(config: Configuration):
 async def artanis_shutdown(config: Configuration):
     try:
         function = import_function("ecf.core.entrypoint:do_shutdown")
-        if asyncio.iscoroutinefunction(function):
+        if inspect.iscoroutinefunction(function):
             await function()
+        await unconfigure_database(config)
     finally:
         config.server_is_ready = False
 
