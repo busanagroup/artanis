@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import type { useAppActions } from '@/store/app-store'
-import { deleteModelRecords, executeModelAction, fetchModelRecord, saveModelRecord } from '@/services/api/workspace/menu-api'
+import { deleteModelRecords, executeModelAction, saveModelRecord, useGetModelRecord } from '@/services/api/workspace/menu-api'
 import type { FormIntent } from '../../components/form-view'
 
 type AppActions = ReturnType<typeof useAppActions>
@@ -38,15 +38,11 @@ export function useWorkspaceFormController({
   const activeFormIntent = activeTab ? formIntentByTab[activeTab.id] ?? 'view' : 'view'
   const isFormOpen = activeFormIntent !== 'view'
 
-  const activeRecordFetchQuery = useQuery({
-    queryKey: ['fetch-record', activeActionModel, selectedRecordId],
-    queryFn: () => fetchModelRecord(activeActionModel!, selectedRecordId!),
-    enabled: Boolean(activeActionModel) && typeof selectedRecordId === 'number' && activeFormIntent === 'edit',
-    staleTime: 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
+  const activeRecordFetchQuery = useGetModelRecord(
+    activeActionModel,
+    selectedRecordId,
+    activeFormIntent === 'edit',
+  )
 
   const activeFormDraft = activeTab ? formDraftByTab[activeTab.id] ?? null : null
   const activeFormRecord = activeFormIntent === 'edit' ? activeFormDraft ?? activeRecordFetchQuery.data : activeFormDraft

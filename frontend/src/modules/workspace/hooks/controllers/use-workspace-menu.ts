@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import type { AppTab } from '@/store/app-store'
 import type { useAppActions, useAppState } from '@/store/app-store'
-import { fetchAppInfo, fetchMenuItems, fetchQuickAccess } from '@/services/api/workspace/menu-api'
+import { useGetMenuItems, useGetQuickAccess } from '@/services/api/workspace/menu-api'
 import type { MenuItem } from '@/types/menu'
 import {
   buildMenuTree,
@@ -30,30 +29,8 @@ export function useWorkspaceMenuController({ state, actions, activeTab, activeTa
   const [menuSearch, setMenuSearch] = useState('')
   const [expandedMenuNames, setExpandedMenuNames] = useState<Set<string>>(new Set())
 
-  useQuery({
-    queryKey: ['app-info'],
-    queryFn: fetchAppInfo,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
-  const menuQuery = useQuery({
-    queryKey: ['menu-all'],
-    queryFn: fetchMenuItems,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
-  const quickQuery = useQuery({
-    queryKey: ['menu-quick'],
-    queryFn: fetchQuickAccess,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
+  const menuQuery = useGetMenuItems()
+  const quickQuery = useGetQuickAccess()
 
   const menuTree = useMemo(() => buildMenuTree(menuQuery.data ?? []), [menuQuery.data])
   const filteredMenuTree = useMemo(() => filterMenuTree(menuTree, menuSearch), [menuTree, menuSearch])

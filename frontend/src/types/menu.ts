@@ -21,12 +21,12 @@ export type QuickAccessSection = {
   }>
 }
 
-export type AppInfo = {
-  applicationName: string
-  applicationDescription: string
-  userDisplayName: string
-  userLogin: string
-}
+// export type AppInfo = {
+//   applicationName: string
+//   applicationDescription: string
+//   userDisplayName: string
+//   userLogin: string
+// }
 
 export type ActionViewSummary = {
   actionId: number
@@ -47,14 +47,14 @@ export type ApiListResponse<T> = {
 }
 
 export type SessionInfoResponse = {
-  application?: {
-    name?: string
-    description?: string
-  }
-  user?: {
-    name?: string
-    login?: string
-  }
+  username?: string
+  first_name?: string
+  last_name?: string
+  email?: string
+  cono?: string
+  coname?: string
+  dvno?: string
+  dvname?: string
 }
 
 export type ActionResponse = {

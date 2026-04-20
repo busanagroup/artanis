@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import type { useAppActions, useAppState } from '@/store/app-store'
-import { fetchActionView, fetchModelPerms, fetchModelRecords } from '@/services/api/workspace/menu-api'
+import { useGetActionView, useGetModelPerms, useGetModelRecords } from '@/services/api/workspace/menu-api'
 import type { ColumnFilter, FilterClause } from './workspace-utils'
 import { extractVisibleColumns, getModesFromAction } from './workspace-utils'
 
@@ -23,27 +23,11 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
     return index >= 0 ? index + 1 : 1
   }, [activeTab, state.openTabs])
 
-  const activeActionQuery = useQuery({
-    queryKey: ['action-view', activeTab?.actionKey],
-    queryFn: () => fetchActionView(activeTab!.actionKey),
-    enabled: Boolean(activeTab?.actionKey),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
+  const activeActionQuery = useGetActionView(activeTab?.actionKey)
 
   const activeModes = useMemo(() => getModesFromAction(activeActionQuery.data), [activeActionQuery.data])
 
-  const activeRecordsQuery = useQuery({
-    queryKey: ['records', activeActionQuery.data?.model],
-    queryFn: () => fetchModelRecords(activeActionQuery.data!.model, 40),
-    enabled: Boolean(activeActionQuery.data?.model),
-    staleTime: 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
+  const activeRecordsQuery = useGetModelRecords(activeActionQuery.data?.model, 40)
 
   const visibleColumns = useMemo(() => extractVisibleColumns(activeRecordsQuery.data ?? []), [activeRecordsQuery.data])
 
@@ -114,15 +98,7 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
     return Number.isFinite(asNumber) ? asNumber : null
   }, [selectedRecord])
 
-  const activePermsQuery = useQuery({
-    queryKey: ['perms', activeActionQuery.data?.model, selectedRecordId],
-    queryFn: () => fetchModelPerms(activeActionQuery.data!.model, selectedRecordId ?? undefined),
-    enabled: Boolean(activeActionQuery.data?.model),
-    staleTime: 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
+  const activePermsQuery = useGetModelPerms(activeActionQuery.data?.model, selectedRecordId)
 
   const activePerms = activePermsQuery.data
   const canCreate = activePermsQuery.isError ? true : (activePerms?.create ?? true)
