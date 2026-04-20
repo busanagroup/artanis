@@ -6,12 +6,14 @@ import { normalizeViewMode, renderCell, getRecordTitle, type MenuNode } from '@/
 import { useWorkspaceDataController } from '@/modules/workspace/hooks/controllers/use-workspace-data'
 import { useWorkspaceFormController } from '@/modules/workspace/hooks/controllers/use-workspace-form'
 import { useWorkspaceMenuController } from '@/modules/workspace/hooks/controllers/use-workspace-menu'
+import { useGetAppInfo } from '@/services/api/workspace/menu-api'
 
 export type { MenuNode }
 
 export function useWorkspaceController() {
   const state = useAppState()
   const actions = useAppActions()
+  const { data: profile } = useGetAppInfo()
 
   const data = useWorkspaceDataController({ state, actions })
   const form = useWorkspaceFormController({
@@ -56,6 +58,7 @@ export function useWorkspaceController() {
   return {
     actions,
     state,
+    profile,
     menuSearch: menu.menuSearch,
     setMenuSearch: menu.setMenuSearch,
     menuQuery: menu.menuQuery,

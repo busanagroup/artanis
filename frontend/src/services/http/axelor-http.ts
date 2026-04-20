@@ -1,7 +1,9 @@
+import axios, { type AxiosRequestConfig, type AxiosResponse, isAxiosError } from 'axios'
 import { clearStoredSession, readStoredAccessToken } from '@/services/auth/token-storage'
 
-export type AxelorRequestInit = Omit<RequestInit, 'body'> & {
-  body?: BodyInit | null
+export const API_TIMEOUT_MS = 60_000
+
+export type AxelorRequestInit = Omit<AxiosRequestConfig, 'url' | 'data'> & {
   jsonBody?: unknown
 }
 
@@ -19,39 +21,42 @@ function handleUnauthorized() {
 
 export async function axelorRequest(path: string, init: AxelorRequestInit = {}) {
   const token = readStoredAccessToken()
-  const headers = new Headers(init.headers)
-
-  headers.set('Accept', 'application/json')
-  if (token) {
-    headers.set('access_token', `Bearer ${token}`)
+  const headers = {
+    ...(init.headers as Record<string, string> | undefined),
+    Accept: 'application/json',
+    ...(token ? { access_token: `Bearer ${token}` } : {}),
+    ...(init.jsonBody !== undefined ? { 'Content-Type': 'application/json' } : {}),
   }
 
-  let body = init.body
+  try {
+    const response = await axios({
+      ...init,
+      url: toAbsolutePath(path),
+      headers,
+      data: init.jsonBody,
+      timeout: init.timeout ?? API_TIMEOUT_MS,
+      validateStatus: () => true,
+    })
 
-  if (init.jsonBody !== undefined) {
-    headers.set('Content-Type', 'application/json')
-    body = JSON.stringify(init.jsonBody)
+    if (response.status === 401) {
+      handleUnauthorized()
+    }
+
+    return response
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      handleUnauthorized()
+    }
+    throw error
   }
-
-  const response = await fetch(toAbsolutePath(path), {
-    ...init,
-    headers,
-    body,
-  })
-
-  if (response.status === 401) {
-    handleUnauthorized()
-  }
-
-  return response
 }
 
 export async function axelorJson<T>(path: string, init: AxelorRequestInit = {}) {
-  const response = await axelorRequest(path, init)
+  const response = await axelorRequest(path, init) as AxiosResponse<T>
 
-  if (!response.ok) {
+  if (response.status < 200 || response.status >= 300) {
     throw new Error(`HTTP ${response.status} at ${path}`)
   }
 
-  return (await response.json()) as T
+  return response.data
 }

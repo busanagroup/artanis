@@ -1,7 +1,6 @@
 import { axelorRequest } from '@/services/http/axelor-http'
 import type { LoginPayload, SessionInfoResponse, UserSession } from '@/types/auth'
 
-
 export async function loginWithPassword(payload: LoginPayload): Promise<UserSession> {
   const username = payload.username.trim()
   const password = payload.password.trim()
@@ -15,10 +14,10 @@ export async function loginWithPassword(payload: LoginPayload): Promise<UserSess
     jsonBody: { username, password },
   })
 
-  if (!loginResponse.ok) {
+  if (loginResponse.status < 200 || loginResponse.status >= 300) {
     throw new Error('Login gagal, cek username/password atau sesi backend')
   }
-  const responseData = (await loginResponse.json()) as SessionInfoResponse
+  const responseData = loginResponse.data as SessionInfoResponse
   const accessToken = responseData.access_token
   const refreshToken = responseData.refresh_token
 
@@ -29,8 +28,6 @@ export async function loginWithPassword(payload: LoginPayload): Promise<UserSess
   return {
     accessToken,
     refreshToken,
-    login: username,
-    displayName: username,
   }
 }
 

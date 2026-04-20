@@ -32,6 +32,7 @@ import { FormView } from './components/form-view'
 import { ListView } from './components/list-view'
 import { useWorkspaceController } from './hooks/use-workspace-controller'
 import { toHashRoute, type MenuNode } from './hooks/controllers/workspace-utils'
+import { useGetAppInfo } from '@/services/api/workspace/menu-api'
 
 const { Title, Paragraph, Text } = Typography
 
@@ -221,8 +222,8 @@ export function WorkspaceLayout() {
                   <div className="flex items-center gap-3 rounded-2xl border border-[#e3eaf5] bg-white px-3 py-2">
                     <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#e8edff', color: '#4e5bd9' }} />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[#21396d]">{controller.state.session?.displayName ?? 'Workspace User'}</p>
-                      <p className="truncate text-xs text-[#7e8cab]">{controller.state.session?.login ?? 'active session'}</p>
+                      <p className="truncate text-sm font-semibold text-[#21396d]">{controller?.profile?.username}</p>
+                      <p className="truncate text-xs text-[#7e8cab]">{`${controller?.profile?.coname} - ${controller?.profile?.dvno}`}</p>
                     </div>
                     <Button
                       danger

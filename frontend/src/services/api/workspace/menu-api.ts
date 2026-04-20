@@ -1,32 +1,22 @@
+import { useQuery } from '@tanstack/react-query'
 import { axelorJson } from '@/services/http/axelor-http'
-import type { ActionExecResponse, ActionResponse, ActionViewSummary, ApiListResponse, AppInfo, FetchResponse, MenuItem, MetaViewResponse, PermsResponse, QuickAccessSection, RemoveResponse, SaveResponse, SearchResponse, SessionInfoResponse } from '@/types/menu'
+import type { ActionExecResponse, ActionResponse, ActionViewSummary, ApiListResponse, FetchResponse, MenuItem, MetaViewResponse, PermsResponse, QuickAccessSection, RemoveResponse, SaveResponse, SearchResponse, SessionInfoResponse } from '@/types/menu'
 
-
-function normalizeAppInfo(raw: SessionInfoResponse | Record<string, unknown>): AppInfo {
-  const legacy = raw as Record<string, unknown>
-  const isLegacyMap = typeof legacy['application.name'] === 'string'
-
-  if (isLegacyMap) {
-    return {
-      applicationName: String(legacy['application.name'] ?? 'Axelor App'),
-      applicationDescription: String(legacy['application.description'] ?? ''),
-      userDisplayName: String(legacy['user.name'] ?? ''),
-      userLogin: String(legacy['user.login'] ?? ''),
-    }
-  }
-
-  const info = raw as SessionInfoResponse
-  return {
-    applicationName: info.application?.name ?? 'Axelor App',
-    applicationDescription: info.application?.description ?? '',
-    userDisplayName: info.user?.name ?? '',
-    userLogin: info.user?.login ?? '',
-  }
+export async function fetchAppInfo() {
+  const live = await axelorJson<SessionInfoResponse>('/auth/userinfo')
+  return live
 }
 
-export async function fetchAppInfo(): Promise<AppInfo> {
-  const live = await axelorJson<SessionInfoResponse>('/api/cmnsvc/userinfo')
-  return normalizeAppInfo(live)
+export function useGetAppInfo() {
+  return useQuery({
+    queryKey: ['app-info'],
+    queryFn: fetchAppInfo,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  })
 }
 
 export async function fetchMenuItems(): Promise<MenuItem[]> {
@@ -34,9 +24,33 @@ export async function fetchMenuItems(): Promise<MenuItem[]> {
   return live.status === 0 ? live.data : []
 }
 
+export function useGetMenuItems() {
+  return useQuery({
+    queryKey: ['menu-all'],
+    queryFn: fetchMenuItems,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  })
+}
+
 export async function fetchQuickAccess(): Promise<QuickAccessSection[]> {
   const live = await axelorJson<ApiListResponse<QuickAccessSection>>('ws/action/menu/quick')
   return live.status === 0 ? live.data : []
+}
+
+export function useGetQuickAccess() {
+  return useQuery({
+    queryKey: ['menu-quick'],
+    queryFn: fetchQuickAccess,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  })
 }
 
 export async function fetchActionView(actionName: string): Promise<ActionViewSummary | null> {
@@ -55,6 +69,19 @@ export async function fetchActionView(actionName: string): Promise<ActionViewSum
   }
 
   return response.data[0]?.view ?? null
+}
+
+export function useGetActionView(actionName?: string | null) {
+  return useQuery({
+    queryKey: ['action-view', actionName],
+    queryFn: () => fetchActionView(actionName!),
+    enabled: Boolean(actionName),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  })
 }
 
 export async function fetchMetaView(model: string, limit = 8, signal?: AbortSignal): Promise<Array<Record<string, unknown>>> {
@@ -92,6 +119,19 @@ export async function fetchModelRecords(model: string, limit = 8): Promise<Array
   return response.data ?? []
 }
 
+export function useGetModelRecords(model?: string | null, limit = 8) {
+  return useQuery({
+    queryKey: ['records', model, limit],
+    queryFn: () => fetchModelRecords(model!, limit),
+    enabled: Boolean(model),
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  })
+}
+
 export async function saveModelRecord(model: string, record: Record<string, unknown>): Promise<Record<string, unknown>> {
   const response = await axelorJson<SaveResponse>(`ws/rest/${model}`, {
     method: 'POST',
@@ -120,6 +160,19 @@ export async function fetchModelRecord(model: string, id: number): Promise<Recor
   return response.data?.[0] ?? null
 }
 
+export function useGetModelRecord(model?: string | null, id?: number | null, enabled = true) {
+  return useQuery({
+    queryKey: ['fetch-record', model, id],
+    queryFn: () => fetchModelRecord(model!, id!),
+    enabled: enabled && Boolean(model) && typeof id === 'number',
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  })
+}
+
 export async function fetchModelPerms(model: string, id?: number): Promise<Record<'read' | 'write' | 'create' | 'remove' | 'export', boolean>> {
   const params = new URLSearchParams()
   if (typeof id === 'number' && Number.isFinite(id)) {
@@ -143,6 +196,19 @@ export async function fetchModelPerms(model: string, id?: number): Promise<Recor
     remove: values.includes('remove'),
     export: values.includes('export'),
   }
+}
+
+export function useGetModelPerms(model?: string | null, id?: number | null) {
+  return useQuery({
+    queryKey: ['perms', model, id],
+    queryFn: () => fetchModelPerms(model!, id ?? undefined),
+    enabled: Boolean(model),
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  })
 }
 
 export async function executeModelAction(input: {
