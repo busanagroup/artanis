@@ -26,59 +26,59 @@ class MVCDescriptor(Descriptor):
 
 class MVCEndPoint(ASGIEndPoint):
     descriptor: Descriptor = MVCDescriptor()
-    base_modules = "ecf.mvc"
     base_path = "/mvc"
+    base_modules = "ecf.mvc"
     openapi_support = True
     access_validator = MVCAccessValidator()
 
-    @published
+    @published(path="/pgmredir")
     async def pgmredir(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/verify")
     async def verify(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/definition")
     async def definitions(self, userinfo: UserInfo, request: Request):
         return {'hello': f"{userinfo.username}"}
 
-    @published
+    @published(path="/initialize")
     async def initialize(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/open")
     async def open(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/get")
     async def get(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/post")
     async def post(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/initexec")
     async def initexec(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/execute")
     async def execute(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/print")
     async def print(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/synchronize")
     async def sync(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/initlookup")
     async def initlookup(self, request: Request):
         return {'hello': "world"}
 
-    @published
+    @published(path="/finalize")
     async def finalize(self, request: Request):
         return {'hello': "world"}

@@ -96,7 +96,7 @@ class MVCAccessValidator(AccessValidator):
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
         child_scope = await super().validate(scope, token)
-        user_name = child_scope["user_info"]["user_id"]
+        user_name = child_scope["user_info"]["username"]
         access_model = scope.get('auth_access_model', 0)
         if access_model == 0:
             return dict(user_info = dict(username=user_name))
