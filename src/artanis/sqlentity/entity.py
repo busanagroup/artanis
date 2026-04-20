@@ -123,12 +123,13 @@ async def session_close_all(session=None):
 
 async def safe_execute(func, *args, **kwargs):
     async with Session() as session:
-        async with session.begin():
-            try:
-                if inspect.iscoroutinefunction(func):
-                    result = await func(*args, **kwargs)
-                else:
-                    result = func(*args, **kwargs)
-            finally:
-                await session_close_all(session)
+        if not session.is_active:
+            session.begin()
+        try:
+            if inspect.iscoroutinefunction(func):
+                result = await func(*args, **kwargs)
+            else:
+                result = func(*args, **kwargs)
+        finally:
+            await session_close_all(session)
     return result

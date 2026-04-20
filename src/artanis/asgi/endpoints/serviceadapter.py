@@ -13,16 +13,15 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from importlib import import_module
 from typing import Callable, Any
 
 from artanis.asgi.http import Request
-from artanis.sqlentity import safe_execute
 
 
 class ServiceAdapter:
 
-    def __init__(self, request: Request, base_path: str):
-        self.base_path: str = base_path
+    def __init__(self, request: Request):
         self.request: Request = request
         self.__service_class = request.scope['module_class']
         self.__service_instance = None
@@ -42,6 +41,11 @@ class ServiceAdapter:
             self.__service_instance = service_class(self.request)
         return self.__service_instance
 
-    @staticmethod
-    async def safe_execute(func: Callable[..., Any], *args, **kwargs):
-        return safe_execute(func, *args, **kwargs)
+    @property
+    def sqlentity(self):
+        if not hasattr(self, '_sqlentity'):
+            self._sqlentity = import_module("artanis.sqlentity.entity")
+        return self._sqlentity
+
+    async def safe_execute(self, func: Callable[..., Any], *args, **kwargs) -> Any:
+        return await self.sqlentity.safe_execute(func, *args, **kwargs)
