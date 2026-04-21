@@ -30,7 +30,7 @@ class RedisCache:
     def __init__(
             self,
             namespace: str,
-            ttl: int=60,
+            ttl: int=1800, # 30 minutes cached
             cache_enforce: bool=True,
     ):
         config = Configuration.get_default_instance(create_instance=False)
