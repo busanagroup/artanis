@@ -127,7 +127,7 @@ class UserInfoComponent(Component):
         return await efusrs.get_user_info(username)
 
     async def resolve(self, scope: types.Scope) -> types.UserInfo:
-        username = scope["user_info"]["username"] if "user_info" in scope else None
+        username = scope["user"].username if "user" in scope else None
         output = await self.safe_execute(self.get_user_info, username) if username else [None] * 9
         output = output if output else [None] * 9
         fields = [field.name for field in dataclasses.fields(types.UserInfo)]

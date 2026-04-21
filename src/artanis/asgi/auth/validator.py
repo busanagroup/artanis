@@ -17,6 +17,7 @@ from importlib import import_module
 from typing import Callable, Any
 
 from artanis.asgi.auth import AccessToken
+from artanis.asgi.auth.authentication import ArtanisUser
 from artanis.asgi.types import Scope
 from artanis.exceptions import HTTPException
 
@@ -25,7 +26,7 @@ class AccessValidator:
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
         user_name = token.payload.data.get('user_id')
-        return dict(user_info=dict(username=user_name))
+        return dict(user=ArtanisUser(user_name))
 
     @property
     def sqlentity(self):
@@ -56,7 +57,8 @@ class APIAccessValidator(AccessValidator):
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
         child_scope = await super().validate(scope, token)
-        user_name = child_scope["user_info"]["username"]
+
+        user_name = child_scope['user'].username
         service_name = scope.get('module_path', '')[1:]
         func_name = scope.get('path')[1:]
         if not await self.safe_execute(self.check_api_auth, user_name, service_name, func_name):
@@ -95,11 +97,11 @@ class MVCAccessValidator(AccessValidator):
         return res
 
     async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
-        child_scope = await super().validate(scope, token)
-        user_name = child_scope["user_info"]["username"]
+        child_scope: dict[str, Any] | None = await super().validate(scope, token)
+        user_name = child_scope["user"].username
         access_model = scope.get('auth_access_model', 0)
         if access_model == 0:
-            return dict(user_info = dict(username=user_name))
+            return dict(user=ArtanisUser(user_name))
         access_type = scope.get('auth_access_type', 'S')
         service_name = scope.get('module_path', '')[1:]
         func = self.validate_access if access_model == 1 else self.verify_auth

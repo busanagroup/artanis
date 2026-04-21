@@ -20,6 +20,7 @@ import uuid
 
 from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent, AuthenticationMiddleware
+from artanis.asgi.auth.jwtauth import JWTAuthBackend
 from artanis.asgi.middlewares import Middleware, CORSMiddleware, GZipMiddleware
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_monitor, artanis_startup, artanis_shutdown
@@ -83,7 +84,7 @@ class ASGIService(BaseASGIService):
     def configure_middlewares(self, config):
         cors = config.get_property_value(config.ARTANIS_SECURITY_CORS_ORIGINS, '')
         self.add_middleware(Middleware(
-            AuthenticationMiddleware
+            AuthenticationMiddleware, backend=JWTAuthBackend()
         ))
         self.add_middleware(Middleware(
             GZipMiddleware,
