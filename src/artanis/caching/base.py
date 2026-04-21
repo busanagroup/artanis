@@ -15,11 +15,42 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import collections
 import functools
-from time import monotonic
 import typing as t
+from time import monotonic
 
 K = t.TypeVar("K", bound=t.Hashable)
 V = t.TypeVar("V")
+
+_KT = t.TypeVar("_KT")
+_T = t.TypeVar("_T")
+
+
+class IdentityFunction(t.Protocol):  # pylint: disable=too-few-public-methods
+    """
+    Type for a function returning the same type as the one it received.
+    """
+
+    def __call__(self, __x: _T) -> _T: ...
+
+
+class NullContext:
+    """A class for noop context managers."""
+
+    def __enter__(self):
+        """Return ``self`` upon entering the runtime context."""
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Raise any exception triggered within the runtime context."""
+        return None
+
+    async def __aenter__(self):
+        """Return ``self`` upon entering the runtime context."""
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        """Raise any exception triggered within the runtime context."""
+        return None
 
 
 class DefaultSize:
