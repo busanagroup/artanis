@@ -18,8 +18,8 @@ import dataclasses
 import inspect
 import typing as t
 
+from artanis.caching.cache import LRUCache
 from artanis.injection import exceptions
-from artanis.injection.cache import LRUCache
 from artanis.injection.context import Context
 from artanis.injection.types import BUILTIN_TYPES
 
@@ -206,6 +206,9 @@ class ResolutionTree:
 
 class ResolutionCache(LRUCache[t.Hashable, ResolutionTree]):
     """A cache for resolved trees."""
+
+    def __init__(self,maxsize: int=2**8, getsizeof=None):
+        super().__init__(maxsize, getsizeof=getsizeof)
 
     def _is_cacheable(self, value: ResolutionTree) -> bool:
         return isinstance(value.root, ComponentNode) and not value.root.component.use_parameter
