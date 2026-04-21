@@ -17,7 +17,7 @@ import functools
 import inspect
 import typing as t
 
-from artanis.injection.cache import LRUCache
+from artanis.caching.cache import LRUCache
 from artanis.injection.components import Component, Components
 from artanis.injection.context import Context
 from artanis.injection.exceptions import ComponentNotFound
@@ -33,7 +33,8 @@ ROOT_NAME = "_root"
 class InjectionCache(LRUCache[tuple[Parameter, Context], t.Any]):
     """A cache for injected component values."""
 
-    ...
+    def __init__(self,maxsize: int=2**8, getsizeof=None):
+        super().__init__(maxsize, getsizeof=getsizeof)
 
 
 class Injector:

@@ -16,10 +16,51 @@
 import collections
 import functools
 import heapq
-
 from time import monotonic
 
-from artanis.caching.base import Cache, TimedCache
+from artanis.caching.base import Cache, TimedCache, K, V
+
+
+class LRUCache(Cache):
+    """Least Recently Used (LRU) cache implementation."""
+
+    def __init__(self, maxsize, getsizeof=None):
+        Cache.__init__(self, maxsize, getsizeof)
+        self.__order = collections.OrderedDict()
+
+    def __getitem__(self, key: K, cache_getitem=Cache.__getitem__):
+        value = cache_getitem(self, key)
+        if key in self:  # __missing__ may not store item
+            self.__touch(key)
+        return value
+
+    def __setitem__(self, key: K, value: V, cache_setitem=Cache.__setitem__):
+        cache_setitem(self, key, value)
+        self.__touch(key)
+
+    def __delitem__(self, key: K, cache_delitem=Cache.__delitem__):
+        cache_delitem(self, key)
+        del self.__order[key]
+
+    def popitem(self):
+        """Remove and return the `(key, value)` pair least recently used."""
+        try:
+            key = next(iter(self.__order))
+        except StopIteration:
+            raise KeyError("%s is empty" % type(self).__name__) from None
+        else:
+            return (key, self.pop(key))
+
+    def clear(self):
+        Cache.clear(self)
+        self.__order.clear()
+
+    def __touch(self, key: K):
+        """Mark as recently used"""
+        try:
+            self.__order.move_to_end(key)
+        except KeyError:
+            self.__order[key] = None
 
 
 class TTLCache(TimedCache):

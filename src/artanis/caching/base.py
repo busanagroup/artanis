@@ -16,6 +16,10 @@
 import collections
 import functools
 from time import monotonic
+import typing as t
+
+K = t.TypeVar("K", bound=t.Hashable)
+V = t.TypeVar("V")
 
 
 class DefaultSize:
@@ -34,7 +38,7 @@ class DefaultSize:
     def clear(self): ...
 
 
-class Cache(collections.abc.MutableMapping):
+class Cache(collections.abc.MutableMapping[K, V]):
     """Mutable mapping to serve as a simple cache or cache base class."""
 
     __marker = object()
@@ -46,7 +50,7 @@ class Cache(collections.abc.MutableMapping):
             self.getsizeof = getsizeof
         if self.getsizeof is not Cache.getsizeof:
             self.__size = dict()
-        self.__data = dict()
+        self.__data = collections.OrderedDict[K, V]({})
         self.__currsize = 0
         self.__maxsize = maxsize
 
@@ -58,13 +62,13 @@ class Cache(collections.abc.MutableMapping):
             self.__currsize,
         )
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: K) -> V:
         try:
             return self.__data[key]
         except KeyError:
             return self.__missing__(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: K, value: V):
         maxsize = self.__maxsize
         size = self.getsizeof(value)
         if size > maxsize:
@@ -80,7 +84,7 @@ class Cache(collections.abc.MutableMapping):
         self.__size[key] = size
         self.__currsize += diffsize
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: K):
         size = self.__size.pop(key)
         del self.__data[key]
         self.__currsize -= size
@@ -88,7 +92,7 @@ class Cache(collections.abc.MutableMapping):
     def __contains__(self, key):
         return key in self.__data
 
-    def __missing__(self, key):
+    def __missing__(self, key: K):
         raise KeyError(key)
 
     def __iter__(self):
@@ -124,6 +128,9 @@ class Cache(collections.abc.MutableMapping):
         self.__data.clear()
         self.__size.clear()
         self.__currsize = 0
+
+    def _is_cacheable(self, value: V) -> bool:
+        return True
 
     @property
     def maxsize(self):

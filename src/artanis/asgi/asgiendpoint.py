@@ -483,16 +483,34 @@ class ASGIEndPoint(ControllerABC):
                     route._build(self.parent)
                     routes.append(route)
 
-        elif self.all_classes:
-            for klass in self.all_classes.values():
-                descriptor = klass.descriptor
-                if descriptor.handle_request:
-                    if klass.has_published_methods:
-                        instance: ControllerABC = klass(config=config)
-                        for method in instance.published_methods:
-                            _doc = method.endpoint.__doc__ if method.endpoint.__doc__ else ''
-                            docstr = f"\ntags:\n    - {instance.__class__.__name__}\n{_doc}"
+        else:
+            if self.all_classes:
+                for klass in self.all_classes.values():
+                    descriptor = klass.descriptor
+                    if descriptor.handle_request:
+                        if klass.has_published_methods:
+                            instance: ControllerABC = klass(config=config)
+                            for method in instance.published_methods:
+                                _doc = method.endpoint.__doc__ if method.endpoint.__doc__ else ''
+                                docstr = f"\ntags:\n    - {instance.__class__.__name__}\n{_doc}"
+                                path = f"{self.base_path}{descriptor.path.path}{method.path.path}"
+                                route = Route(
+                                    path,
+                                    method.endpoint,
+                                    methods=method.methods,
+                                    name=method.name,
+                                    include_in_schema=method.include_in_schema,
+                                    pagination=method.pagination,
+                                    tags=method.tags,
+                                    docstring=docstr
+                                )
+                                route._build(self.parent)
+                                routes.append(route)
+                    else:
+                        for method in self.published_methods:
                             path = f"{self.base_path}{descriptor.path.path}{method.path.path}"
+                            _doc = method.endpoint.__doc__ if method.endpoint.__doc__ else ''
+                            docstr = f"\ntags:\n    - {klass.__name__}\n{_doc}"
                             route = Route(
                                 path,
                                 method.endpoint,
@@ -505,24 +523,19 @@ class ASGIEndPoint(ControllerABC):
                             )
                             route._build(self.parent)
                             routes.append(route)
-                else:
-                    for method in self.published_methods:
-                        path = f"{self.base_path}{descriptor.path.path}{method.path.path}"
-                        _doc = method.endpoint.__doc__ if method.endpoint.__doc__ else ''
-                        docstr = f"\ntags:\n    - {klass.__name__}\n{_doc}"
-                        route = Route(
-                            path,
-                            method.endpoint,
-                            methods=method.methods,
-                            name=method.name,
-                            include_in_schema=method.include_in_schema,
-                            pagination=method.pagination,
-                            tags=method.tags,
-                            docstring=docstr
-                        )
-                        route._build(self.parent)
-                        routes.append(route)
-
+            else:
+                for method in self.published_methods:
+                    route = Route(
+                        self.base_path + method.path.path,
+                        method.endpoint,
+                        methods=method.methods,
+                        name=method.name,
+                        include_in_schema=method.include_in_schema,
+                        pagination=method.pagination,
+                        tags=method.tags,
+                    )
+                    route._build(self.parent)
+                    routes.append(route)
         return routes
 
     def register_listener(self, parent: StartableService):
