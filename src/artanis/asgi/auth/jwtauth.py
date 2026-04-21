@@ -57,22 +57,12 @@ class JWTAuthBackend(AuthenticationBackend):
             logger.debug("JWT error: %s", e.detail)
             return APIErrorResponse(status_code=e.status_code, detail=e.detail)
 
-        user_permissions = set(token.payload.data.get("permissions", [])) | {
-            y for x in token.payload.data.get("roles", {}).values() for y in x
-        }
-        if not (user_permissions >= required_permissions):
-            logger.debug("User does not have the required permissions: %s", required_permissions)
-            return APIErrorResponse(
-                status_code=http.HTTPStatus.FORBIDDEN,
-                detail="Insufficient permissions"
-            )
-
         validator: AccessValidator = route_scope.get('access_validator', None)
         if not validator:
             return sender.app
 
         try:
-            child_scope = await validator.validate(route_scope, token)
+            child_scope = await validator.validate(route_scope, token, required_permissions)
             if child_scope:
                 scope.update(child_scope)
         except HTTPException as exc:

@@ -13,11 +13,15 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import typing as t
 import dataclasses
 from http.cookies import SimpleCookie
 from urllib.parse import parse_qsl
 
+from starlette.authentication import UnauthenticatedUser
+
 from artanis.asgi import http, routing, types
+from artanis.asgi.auth.authentication import ArtanisUser
 from artanis.injection.components import Component, Components
 
 __all__ = [
@@ -31,6 +35,8 @@ __all__ = [
     "QueryParamsComponent",
     "HeadersComponent",
     "BodyComponent",
+    "UserInfoComponent",
+    "ArtanisUserComponent",
     "ASGI_COMPONENTS",
 ]
 
@@ -127,12 +133,17 @@ class UserInfoComponent(Component):
         return await efusrs.get_user_info(username)
 
     async def resolve(self, scope: types.Scope) -> types.UserInfo:
-        username = scope["user"].username if "user" in scope else None
+        username = scope["user"].display_name if "user" in scope else None
         output = await self.safe_execute(self.get_user_info, username) if username else [None] * 9
         output = output if output else [None] * 9
         fields = [field.name for field in dataclasses.fields(types.UserInfo)]
         retval = dict(zip(fields, output))
         return types.UserInfo(**retval)
+
+class ArtanisUserComponent(Component):
+    async def resolve(self, scope: types.Scope) -> ArtanisUser | UnauthenticatedUser:
+        return scope["user"] if "user" in scope else UnauthenticatedUser()
+
 
 
 ASGI_COMPONENTS = Components(
@@ -149,5 +160,6 @@ ASGI_COMPONENTS = Components(
         CookiesComponent(),
         BodyComponent(),
         UserInfoComponent(),
+        ArtanisUserComponent(),
     ]
 )

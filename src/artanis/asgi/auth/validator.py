@@ -14,7 +14,9 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from importlib import import_module
-from typing import Callable, Any
+from typing import Callable, Any, Sequence
+
+from starlette.authentication import AuthCredentials
 
 from artanis.asgi.auth import AccessToken
 from artanis.asgi.auth.authentication import ArtanisUser
@@ -24,9 +26,33 @@ from artanis.exceptions import HTTPException
 
 class AccessValidator:
 
-    async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
-        user_name = token.payload.data.get('user_id')
-        return dict(user=ArtanisUser(user_name))
+    async def validate(
+            self,
+            scope: Scope,
+            token: AccessToken,
+            required_permissions: Sequence[str]
+    ) -> dict[str, Any] | None:
+        user_name: str = token.payload.data.get('user_id')
+        child_scope = dict(
+            user=ArtanisUser(user_name, token.payload.data),
+            auth=AuthCredentials(["access:secure"]),
+        )
+        if not self.validate_permissions(child_scope, required_permissions):
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions")
+        return child_scope
+
+    @staticmethod
+    def validate_permissions(
+            scope: dict[str, Any],
+            required_permissions: Sequence[str]
+    ) -> bool:
+        credentials: AuthCredentials | None = scope.get("auth")
+        for scope in required_permissions:
+            if scope not in credentials.scopes:
+                return False
+        return True
 
     @property
     def sqlentity(self):
@@ -55,10 +81,14 @@ class APIAccessValidator(AccessValidator):
                     break
         return res
 
-    async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
-        child_scope = await super().validate(scope, token)
-
-        user_name = child_scope['user'].username
+    async def validate(
+            self,
+            scope: Scope,
+            token: AccessToken,
+            required_permissions: Sequence[str]
+    ) -> dict[str, Any] | None:
+        child_scope = await super().validate(scope, token, required_permissions)
+        user_name = child_scope['user'].display_name
         service_name = scope.get('module_path', '')[1:]
         func_name = scope.get('path')[1:]
         if not await self.safe_execute(self.check_api_auth, user_name, service_name, func_name):
@@ -76,7 +106,12 @@ class MVCAccessValidator(AccessValidator):
         res = await efumob.verify_user_access(usrname, objname, acctype, acctp=False)
         return res if not res else await efmxob.verify_user_access(usrname, objname, acctype, acctp=False)
 
-    async def verify_auth(self, usrname: str, objname: str, acctype: str) -> bool:
+    async def verify_auth(
+            self,
+            usrname: str,
+            objname: str,
+            acctype: str
+    ) -> bool:
         efumob = self.get_entity('efumob')
         efmxob = self.get_entity('efmxob')
         efugrp = self.get_entity('efugrp')
@@ -96,12 +131,17 @@ class MVCAccessValidator(AccessValidator):
             res = await efmxob.check_user_access(usrname, objname, acctype)
         return res
 
-    async def validate(self, scope: Scope, token: AccessToken) -> dict[str, Any] | None:
-        child_scope: dict[str, Any] | None = await super().validate(scope, token)
-        user_name = child_scope["user"].username
+    async def validate(
+            self,
+            scope: Scope,
+            token: AccessToken,
+            required_permissions: Sequence[str]
+    ) -> dict[str, Any] | None:
+        child_scope: dict[str, Any] | None = await super().validate(scope, token, required_permissions)
+        user_name = child_scope["user"].display_name
         access_model = scope.get('auth_access_model', 0)
         if access_model == 0:
-            return dict(user=ArtanisUser(user_name))
+            return child_scope
         access_type = scope.get('auth_access_type', 'S')
         service_name = scope.get('module_path', '')[1:]
         func = self.validate_access if access_model == 1 else self.verify_auth

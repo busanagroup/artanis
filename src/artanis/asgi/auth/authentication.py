@@ -23,7 +23,12 @@ if t.TYPE_CHECKING:
     from artanis.asgi.http import Response
 
 
-class ArtanisUser(SimpleUser): ...
+class ArtanisUser(SimpleUser):
+    
+    def __init__(self, username: str, payload: dict) -> None:
+        super().__init__(username)
+        self.payload = {}.update(payload)
+
 
 
 class AuthenticationBackend:

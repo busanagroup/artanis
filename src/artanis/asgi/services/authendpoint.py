@@ -164,7 +164,6 @@ class AuthEndPoint(ASGIEndPoint):
         access_token = self.auth_handler.create_access_token(
             data=dict(
                 user_id=username,
-                permissions=["access:secure"]
             ),
             now=now
         )
