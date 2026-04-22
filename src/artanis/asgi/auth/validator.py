@@ -78,6 +78,8 @@ class APIAccessValidator(AccessValidator):
             required_permissions: Sequence[str]
     ):
         await super().validate(scope, required_permissions)
+        if not required_permissions:
+            return
         user_name = scope['user'].display_name
         service_name = scope.get('module_path', '')[1:]
         func_name = scope.get('path')[1:]
@@ -126,10 +128,10 @@ class MVCAccessValidator(AccessValidator):
             required_permissions: Sequence[str]
     ):
         await super().validate(scope, required_permissions)
-        user_name = scope["user"].display_name
         access_model = scope.get('auth_access_model', 0)
-        if access_model == 0:
+        if not required_permissions or access_model == 0:
             return
+        user_name = scope["user"].display_name
         access_type = scope.get('auth_access_type', 'S')
         service_name = scope.get('module_path', '')[1:]
         func = self.validate_access if access_model == 1 else self.verify_auth

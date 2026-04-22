@@ -370,13 +370,11 @@ class ASGIEndPoint(ControllerABC):
                 required_permissions = set(route.tags.get("permissions", []))
                 await validator.validate(route_scope, required_permissions)
         except exceptions.HTTPException as exc:
-            response = APIErrorResponse(
+            route = APIErrorResponse(
                 status_code=exc.status_code,
                 detail=exc.detail,
                 headers=exc.headers,
             )
-            await response(route_scope, receive, send)
-            return
         await route(route_scope, receive, send)
 
     def resolve_route(self, scope: types.Scope) -> tuple[BaseRoute, types.Scope]:
