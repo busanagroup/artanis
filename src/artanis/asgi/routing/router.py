@@ -82,7 +82,7 @@ class Router:
             validator: AccessValidator = route_scope.get('access_validator', None)
             if validator:
                 required_permissions = set(route.tags.get("permissions", []))
-                await validator.validate(scope, required_permissions)
+                await validator.validate(route_scope, required_permissions)
         except exceptions.HTTPException as exc:
             response = APIErrorResponse(
                 status_code=exc.status_code,
