@@ -63,3 +63,7 @@ export function clearStoredSession() {
 export function readStoredAccessToken() {
   return readCookie(ACCESS_TOKEN_COOKIE)
 }
+
+export function readStoredRefreshToken() {
+  return readCookie(REFRESH_TOKEN_COOKIE)
+}

@@ -1,5 +1,7 @@
-import { axelorRequest } from '@/services/http/axelor-http'
+import { axelorJson, axelorRequest } from '@/services/http/axelor-http'
 import type { LoginPayload, SessionInfoResponse, UserSession } from '@/types/auth'
+import { useMutation, useQuery } from '@tanstack/react-query'
+
 
 export async function loginWithPassword(payload: LoginPayload): Promise<UserSession> {
   const username = payload.username.trim()
@@ -33,4 +35,20 @@ export async function loginWithPassword(payload: LoginPayload): Promise<UserSess
 
 export async function logoutSession() {
   await axelorRequest('logout', { method: 'GET' })
+}
+
+export async function callbackSession() {
+  await axelorJson('/auth/callback', { method: 'GET' })
+  return true
+}
+
+export function useSessionCallback(session: any) {
+  return useQuery({
+    queryKey: ['session-callback', session?.accessToken],
+    queryFn: callbackSession,
+    enabled: Boolean(session?.accessToken),
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
 }

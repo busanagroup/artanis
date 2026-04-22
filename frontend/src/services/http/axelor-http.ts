@@ -1,10 +1,17 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse, isAxiosError } from 'axios'
-import { clearStoredSession, readStoredAccessToken } from '@/services/auth/token-storage'
+import {
+  clearStoredSession,
+  readStoredAccessToken,
+  readStoredRefreshToken,
+  writeStoredSession,
+} from '@/services/auth/token-storage'
+import type { SessionInfoResponse } from '@/types/auth'
 
 export const API_TIMEOUT_MS = 60_000
 
 export type AxelorRequestInit = Omit<AxiosRequestConfig, 'url' | 'data'> & {
   jsonBody?: unknown
+  _retry?: Boolean
 }
 
 function toAbsolutePath(path: string) {
@@ -18,6 +25,34 @@ function handleUnauthorized() {
   clearStoredSession()
   window.location.reload()
 }
+
+export async function refreshSession() {
+  const refreshToken = readStoredRefreshToken()
+
+  if (!refreshToken) {
+    return false
+  }
+
+  const response = await axios({
+    method: 'POST',
+    url: '/auth/refresh',
+    data: { refresh_token: refreshToken },
+    timeout: API_TIMEOUT_MS,
+    validateStatus: () => true,
+  })
+
+  if (response.status < 200 || response.status >= 300) {
+    return false
+  }
+
+  writeStoredSession({
+    accessToken: response.data.access_token,
+    refreshToken: response.data.refresh_token,
+  })
+
+  return true
+}
+
 
 export async function axelorRequest(path: string, init: AxelorRequestInit = {}) {
   const token = readStoredAccessToken()
@@ -39,6 +74,18 @@ export async function axelorRequest(path: string, init: AxelorRequestInit = {}) 
     })
 
     if (response.status === 401) {
+      const canRefresh =
+        !init._retry &&
+        path !== '/auth/login' &&
+        path !== '/auth/refresh'
+
+      if (canRefresh) {
+        const refreshed = await refreshSession()
+
+        if (refreshed) {
+          return axelorRequest(path, { ...init, _retry: true })
+        }
+      }
       handleUnauthorized()
     }
 
