@@ -17,6 +17,7 @@ sqlmodel==0.0.38
 python_multipart==0.0.26
 email_validator==2.3.0
 emails==1.1.1
+httpx==0.28.1
 orjson==3.11.8
 setproctitle==1.3.7
 

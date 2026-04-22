@@ -103,8 +103,14 @@ class HTTPFunctionWrapper(BaseHTTPEndpointWrapper):
             "route": route,
             "request": http.Request(route_scope, receive=receive),
         }
-
         injected_func = await app.injector.inject(self.handler, context)
+        # TODO: this routine is very expensive
+        #         if inspect.ismethod(self.handler):
+        #             owner = self.handler.__self__
+        #             prepare_session = getattr(owner, 'prepare_session', None)
+        #             if prepare_session:
+        #                 if inspect.iscoroutinefunction(prepare_session):
+        #                     await prepare_session(route_scope)
         if concurrency.is_async(injected_func):
             injected_func = functools.partial(SafeExecution.safe_execute, injected_func)
         response = await concurrency.run(injected_func)

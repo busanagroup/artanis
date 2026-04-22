@@ -22,7 +22,6 @@ __all__ = ["UserInfo"]
 @dataclasses.dataclass(frozen=True)
 class UserInfo:
     username: str | None
-    username: str | None
     first_name: str | None
     last_name: str | None
     email: str | None

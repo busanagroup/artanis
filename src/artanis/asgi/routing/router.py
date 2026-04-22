@@ -18,6 +18,7 @@ import typing as t
 
 from artanis import exceptions
 from artanis.asgi import types, url
+from artanis.asgi.http import APIErrorResponse
 from artanis.asgi.lifespan import Lifespan
 from artanis.asgi.routing.routes.base import BaseRoute
 from artanis.asgi.routing.routes.http import Route
@@ -26,7 +27,8 @@ from artanis.asgi.routing.routes.websocket import WebSocketRoute
 from artanis.injection import Component, Components
 
 if t.TYPE_CHECKING:
-    from artanis.asgi.asgibase import ASGIService
+    from artanis.asgi.asgibase import BaseASGIService
+    from artanis.asgi.auth.validator import AccessValidator
 
 __all__ = ["Router"]
 
@@ -76,6 +78,20 @@ class Router:
             scope["router"] = self
 
         route, route_scope = self.resolve_route(scope)
+        try:
+            validator: AccessValidator = route_scope.get('access_validator', None)
+            if validator:
+                required_permissions = set(route.tags.get("permissions", []))
+                await validator.validate(scope, required_permissions)
+        except exceptions.HTTPException as exc:
+            response = APIErrorResponse(
+                status_code=exc.status_code,
+                detail=exc.detail,
+                headers=exc.headers,
+            )
+            await response(route_scope, receive, send)
+            return
+
         await route(route_scope, receive, send)
 
     def add_component(self, component: Component):

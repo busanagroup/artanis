@@ -18,8 +18,6 @@ from typing import Callable, Any, Sequence
 
 from starlette.authentication import AuthCredentials
 
-from artanis.asgi.auth import AccessToken
-from artanis.asgi.auth.authentication import ArtanisUser
 from artanis.asgi.types import Scope
 from artanis.exceptions import HTTPException
 
@@ -29,19 +27,12 @@ class AccessValidator:
     async def validate(
             self,
             scope: Scope,
-            token: AccessToken,
             required_permissions: Sequence[str]
-    ) -> dict[str, Any] | None:
-        user_name: str = token.payload.data.get('user_id')
-        child_scope = dict(
-            user=ArtanisUser(user_name, token.payload.data),
-            auth=AuthCredentials(["access:secure"]),
-        )
-        if not self.validate_permissions(child_scope, required_permissions):
+    ):
+        if not self.validate_permissions(scope, required_permissions):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions")
-        return child_scope
 
     @staticmethod
     def validate_permissions(
@@ -84,18 +75,16 @@ class APIAccessValidator(AccessValidator):
     async def validate(
             self,
             scope: Scope,
-            token: AccessToken,
             required_permissions: Sequence[str]
-    ) -> dict[str, Any] | None:
-        child_scope = await super().validate(scope, token, required_permissions)
-        user_name = child_scope['user'].display_name
+    ):
+        await super().validate(scope, required_permissions)
+        user_name = scope['user'].display_name
         service_name = scope.get('module_path', '')[1:]
         func_name = scope.get('path')[1:]
         if not await self.safe_execute(self.check_api_auth, user_name, service_name, func_name):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions")
-        return child_scope
 
 
 class MVCAccessValidator(AccessValidator):
@@ -134,14 +123,13 @@ class MVCAccessValidator(AccessValidator):
     async def validate(
             self,
             scope: Scope,
-            token: AccessToken,
             required_permissions: Sequence[str]
-    ) -> dict[str, Any] | None:
-        child_scope: dict[str, Any] | None = await super().validate(scope, token, required_permissions)
-        user_name = child_scope["user"].display_name
+    ):
+        await super().validate(scope, required_permissions)
+        user_name = scope["user"].display_name
         access_model = scope.get('auth_access_model', 0)
         if access_model == 0:
-            return child_scope
+            return
         access_type = scope.get('auth_access_type', 'S')
         service_name = scope.get('module_path', '')[1:]
         func = self.validate_access if access_model == 1 else self.verify_auth
@@ -149,4 +137,3 @@ class MVCAccessValidator(AccessValidator):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions")
-        return child_scope

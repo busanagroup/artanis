@@ -15,6 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from http.cookiejar import user_domain_match
+
 from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
 from artanis.sqlentity import entity
@@ -24,30 +26,6 @@ from ecf.core.ecfexceptions import ECFServiceError
 
 class ECFObject(object):
     pass
-
-
-class BaseUserSession(object):
-    cookies: dict = dict()
-
-    def get_cookies(self):
-        sorted_cookies = sorted([(key, value) for key, value in self.cookies.items()],
-                                key=lambda i: i[0])
-        return tuple(sorted_cookies)
-
-    def set_cookies(self, cookies):
-        self.cookies.update(cookies)
-
-    @property
-    def user_name(self):
-        return self.cookies.get('user_name', None)
-
-    @user_name.setter
-    def user_name(self, value):
-        self.cookies['user_name'] = value
-
-    def adapt_request(self, request):
-        _req = request()
-        self.cookies['user_name'] = _req.user.username if hasattr(_req, 'user') else _req.user_name
 
 
 class SupportClass(ControllerABC):
@@ -118,9 +96,6 @@ class BaseController(SupportClass):
         self.service_name = self.__class__.__name__
 
     async def get_username(self):
-        raise NotImplementedError
-
-    async def __getsession__(self, *args, **kwargs):
         raise NotImplementedError
 
     @property

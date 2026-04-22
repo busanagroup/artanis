@@ -30,6 +30,7 @@ from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
 from artanis.asgi.schemas.modules import SchemaModule
 from artanis.config import Configuration
 from artanis.modules import Module, Modules
+from artanis.sessions import UserSession
 from artanis.utils import get_name, import_function, get_route_path
 
 if t.TYPE_CHECKING:
@@ -123,6 +124,14 @@ class ControllerABC(Configurable):
                 descriptor.tags = tags
                 cls.published_methods.append(descriptor)
                 del func.published
+
+    async def prepare_session(self, scopes: types.Scope) -> None:
+        _session = await UserSession.from_scope(scopes)
+        if _session:
+            setattr(self, '__session', _session)
+
+    def get_session(self) -> UserSession | None:
+        return getattr(self, '__session', None)
 
 
 class Published(BaseRoute):
@@ -355,6 +364,10 @@ class ASGIEndPoint(ControllerABC):
             raise ValueError(f"Wrong scope type ({scope['type']})")
 
         route, route_scope = self.resolve_route(scope)
+        validator: AccessValidator = route_scope.get('access_validator', None)
+        if validator:
+            required_permissions = set(route.tags.get("permissions", []))
+            await validator.validate(scope, required_permissions)
         await route(route_scope, receive, send)
 
     def resolve_route(self, scope: types.Scope) -> tuple[BaseRoute, types.Scope]:

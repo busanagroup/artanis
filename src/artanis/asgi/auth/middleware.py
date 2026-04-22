@@ -13,22 +13,15 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-import http
 import logging
 import re
 import typing as t
 
-from artanis import exceptions
-from artanis.asgi import auth
+from artanis.asgi import types
 from artanis.asgi.auth.authentication import AuthenticationBackend
-from artanis.asgi.auth.validator import AccessValidator
-from artanis.asgi.http import APIErrorResponse, Request
-from artanis.exceptions import HTTPException
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgibase import BaseASGIService
-    from artanis.asgi import types
-    from artanis.asgi.http import Response
 
 __all__ = ["AuthenticationMiddleware"]
 
@@ -47,6 +40,6 @@ class AuthenticationMiddleware:
             await self.app(scope, receive, send)
             return
 
-        response = await self.backend.authenticate(self, scope, receive)
-        await response(scope, receive, send)
-
+        response, child_scope = await self.backend.authenticate(self, scope, receive)
+        route_scope = types.Scope({**scope, **child_scope})
+        await response(route_scope, receive, send)

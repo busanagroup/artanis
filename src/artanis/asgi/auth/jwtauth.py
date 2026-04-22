@@ -13,22 +13,19 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-import re
-import http
 import logging
 import typing as t
 
-from artanis import exceptions
+from starlette.authentication import UnauthenticatedUser, AuthCredentials
+
 from artanis.asgi import auth
-from artanis.asgi.auth.authentication import AuthenticationBackend
-from artanis.asgi.auth.validator import AccessValidator
-from artanis.asgi.http import Request, APIErrorResponse
+from artanis.asgi.auth.authentication import AuthenticationBackend, ArtanisUser
+from artanis.asgi.http import Request
 from artanis.exceptions import HTTPException
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgibase import BaseASGIService
     from artanis.asgi import types
-
 
 logger = logging.getLogger(__name__)
 
@@ -41,35 +38,18 @@ class JWTAuthBackend(AuthenticationBackend):
     async def authenticate(self, sender, scope: "types.Scope", receive: "types.Receive"):
         app: BaseASGIService = scope["app"]
         try:
-            route, route_scope = app.router.resolve_route(scope)
-            permissions = set(route.tags.get(self._tag, []))
-        except (exceptions.MethodNotAllowedException, exceptions.NotFoundException, AttributeError):
-            permissions = []
-
-        if not (required_permissions := set(permissions)):
-            return sender.app
-
-        try:
             token: auth.AccessToken = await app.injector.value(
                 auth.AccessToken, {"request": Request(scope, receive=receive)}
             )
+            user_name: str = token.payload.data.get('user_id')
+            child_scope = dict(
+                user=ArtanisUser(user_name, token.payload.data),
+                auth=AuthCredentials(["access:secure"]),
+            )
         except HTTPException as e:
-            logger.debug("JWT error: %s", e.detail)
-            return APIErrorResponse(status_code=e.status_code, detail=e.detail)
-
-        validator: AccessValidator = route_scope.get('access_validator', None)
-        if not validator:
-            return sender.app
-
-        try:
-            child_scope = await validator.validate(route_scope, token, required_permissions)
-            if child_scope:
-                scope.update(child_scope)
-        except HTTPException as exc:
-            return APIErrorResponse(
-                status_code=exc.status_code,
-                detail=exc.detail,
-                headers=exc.headers,
+            child_scope = dict(
+                user=UnauthenticatedUser(),
+                auth=AuthCredentials([]),
             )
 
-        return sender.app
+        return sender.app, child_scope
