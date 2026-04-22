@@ -18,7 +18,6 @@ import {
   Card,
   Drawer,
   Empty,
-  Grid,
   Input,
   Space,
   Spin,
@@ -32,7 +31,7 @@ import { FormView } from './components/form-view'
 import { ListView } from './components/list-view'
 import { useWorkspaceController } from './hooks/use-workspace-controller'
 import { toHashRoute, type MenuNode } from './hooks/controllers/workspace-utils'
-import { useGetAppInfo } from '@/services/api/workspace/menu-api'
+import Icon from "../../../public/icon/artanis.svg"
 
 const { Title, Paragraph, Text } = Typography
 
@@ -92,15 +91,13 @@ function renderMenuTree(params: {
 
 export function WorkspaceLayout() {
   const controller = useWorkspaceController()
-  const screens = Grid.useBreakpoint()
-  const isDesktop = Boolean(screens.lg)
 
   const menuPanel = (
     <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-[linear-gradient(180deg,#f8fbff_0%,#eef4ff_100%)]">
       <div className="shrink-0 border-b border-[#dbe4f2] px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#1d4280_0%,#6a5cff_100%)] text-white shadow-[0_12px_24px_rgba(66,92,184,0.18)]">
-            <ApartmentOutlined className="text-lg" />
+          <div className="flex h-11 w-11 items-center justify-center">
+            <img src={Icon} alt="artanis-logo" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-base font-semibold text-[#18376d]">Artanis Workspace</p>
@@ -154,9 +151,11 @@ export function WorkspaceLayout() {
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f5f8ff_0%,#eef3fb_100%)] text-slate-800">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[300px_1fr]">
+      <div
+        className={`grid min-h-screen grid-cols-1 ${controller.state.sidebarOpen ? 'lg:grid-cols-[300px_1fr]' : 'lg:grid-cols-[0px_1fr]'}`}
+      >
         <aside
-          className={`sticky top-0 hidden h-dvh max-h-dvh overflow-hidden border-r border-white/70 bg-white/65 backdrop-blur-xl transition-[transform,opacity] duration-300 ease-out lg:block ${controller.state.sidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0 pointer-events-none'
+          className={`sticky top-0 hidden h-dvh max-h-dvh overflow-hidden border-r border-white/70 bg-white/65 backdrop-blur-xl transition-[width,transform,opacity] duration-300 ease-out lg:block ${controller.state.sidebarOpen ? 'w-[300px] translate-x-0 opacity-100' : 'w-0 -translate-x-4 opacity-0 pointer-events-none border-r-0'
             }`}
         >
           {menuPanel}
@@ -166,7 +165,7 @@ export function WorkspaceLayout() {
           placement="left"
           width={320}
           onClose={() => controller.actions.setSidebarOpen(false)}
-          open={!isDesktop && controller.state.sidebarOpen}
+          open={controller.state.sidebarOpen}
           rootClassName="lg:hidden"
           styles={{
             body: { padding: 0 },

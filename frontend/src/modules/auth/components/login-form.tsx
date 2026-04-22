@@ -4,6 +4,7 @@ import { Alert, Button, Form, Input, Typography } from 'antd'
 import { EyeInvisibleOutlined, EyeTwoTone, LockOutlined, UserOutlined } from '@ant-design/icons'
 import { loginWithPassword } from '@/services/api/auth/auth-api'
 import { useAppActions } from '@/store/app-store'
+import busana from "../../../../public/icon/busana.svg"
 
 const { Title, Text } = Typography
 
@@ -118,9 +119,8 @@ export function LoginForm() {
 
           <div className="relative w-full max-w-[520px] px-10">
             <div className="flex items-center gap-4">
-              <div className="relative h-16 w-16 shrink-0">
-                <div className="absolute left-2 top-1 h-14 w-4 rotate-[28deg] rounded-full bg-[#16356b]" />
-                <div className="absolute left-8 top-0 h-16 w-2 rounded-full bg-[#ffcb05]" />
+              <div className="relative h-[100px] w-[100px] shrink-0">
+                <img src={busana} alt="busana-logo" />
               </div>
 
               <div>
