@@ -33,8 +33,8 @@ async def artanis_startup(config: Configuration):
         broker = import_function("artanis.taskiq.broker:broker")
         config.container.redis_pool = broker.get_redis_pool()
         patch.perform_patch()
-        await configure_database(config)
         await configure_components(config)
+        await configure_database(config)
         function = import_function("ecf.core.entrypoint:do_startup")
         if inspect.iscoroutinefunction(function):
             await function()
