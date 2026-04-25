@@ -30,7 +30,7 @@ if t.TYPE_CHECKING:
 ROOT_NAME = "_root"
 
 
-class InjectionCache(LRUCache[tuple[Parameter, Context], t.Any]):
+class InjectionCache(LRUCache):
     """A cache for injected component values."""
 
     def __init__(self,maxsize: int=2**8, getsizeof=None):

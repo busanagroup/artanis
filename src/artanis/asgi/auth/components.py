@@ -19,6 +19,7 @@ import logging
 from artanis.asgi.auth import exceptions, jwt, types, apikey
 from artanis.asgi.types import Headers
 from artanis.asgi.types.http import Cookies
+from artanis.config import Configuration
 from artanis.exceptions import HTTPException
 from artanis.injection import Component
 
@@ -89,12 +90,16 @@ class BaseTokenComponent(Component):
 class AccessTokenComponent(BaseTokenComponent):
     def __init__(
             self,
-            secret: bytes,
-            *,
-            header_prefix: str = "Bearer",
-            header_key: str = "access_token",
-            cookie_key: str = "access_token",
+            secret: bytes = None,
+            header_prefix: str = None,
+            header_key: str = None,
+            cookie_key: str = None,
     ):
+        config: Configuration = Configuration.get_default_instance(create_instance=False)
+        secret = secret or config.get_property_value(Configuration.JWT_SECRET_KEY).encode()
+        header_prefix = header_prefix or config.get_property_value(Configuration.JWT_HEADER_PREFIX, "Bearer")
+        header_key = header_key or config.get_property_value(Configuration.JWT_ACCESS_COOKIE_KEY, "access_token")
+        cookie_key = cookie_key or config.get_property_value(Configuration.JWT_ACCESS_COOKIE_KEY, "access_token")
         super().__init__(secret, header_prefix=header_prefix, header_key=header_key, cookie_key=cookie_key)
 
     def resolve(self, headers: Headers, cookies: Cookies) -> types.AccessToken:
@@ -105,12 +110,16 @@ class AccessTokenComponent(BaseTokenComponent):
 class RefreshTokenComponent(BaseTokenComponent):
     def __init__(
             self,
-            secret: bytes,
-            *,
-            header_prefix: str = "Bearer",
-            header_key: str = "refresh_token",
-            cookie_key: str = "refresh_token",
+            secret: bytes = None,
+            header_prefix: str = None,
+            header_key: str = None,
+            cookie_key: str = None,
     ):
+        config: Configuration = Configuration.get_default_instance(create_instance=False)
+        secret = secret or config.get_property_value(config.JWT_SECRET_KEY).encode()
+        header_prefix = header_prefix or config.get_property_value(Configuration.JWT_HEADER_PREFIX, "Bearer")
+        header_key = header_key or config.get_property_value(Configuration.JWT_ACCESS_COOKIE_KEY, "refresh_token")
+        cookie_key = cookie_key or config.get_property_value(Configuration.JWT_ACCESS_COOKIE_KEY, "refresh_token")
         super().__init__(secret, header_prefix=header_prefix, header_key=header_key, cookie_key=cookie_key)
 
     def resolve(self, headers: Headers, cookies: Cookies) -> types.RefreshToken:
@@ -122,11 +131,12 @@ class APIKeyComponent(BaseTokenComponent):
 
     def __init__(
             self,
-            secret: bytes,
-            *,
+            secret: bytes = None,
             header_key: str = "X-API-Key",
             cookie_key: str = "apikey",
     ):
+        config: Configuration = Configuration.get_default_instance(create_instance=False)
+        secret = secret or config.get_property_value(config.JWT_SECRET_KEY).encode()
         super().__init__(secret, header_prefix=None, header_key=header_key, cookie_key=cookie_key)
 
     def _token_from_header(self, headers: Headers) -> bytes:

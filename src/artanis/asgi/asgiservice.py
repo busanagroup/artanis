@@ -101,23 +101,11 @@ class ASGIService(BaseASGIService):
         ))
 
     def configure_components(self, config):
-        jwt_secret = config.get_property_value(config.JWT_SECRET_KEY, str(uuid.UUID(int=0)))
-        components = [
-            AccessTokenComponent(
-                jwt_secret.encode(),
-                header_prefix=config.get_property_value(config.JWT_HEADER_PREFIX),
-                header_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY),
-                cookie_key=config.get_property_value(config.JWT_ACCESS_COOKIE_KEY)
-            ),
-            RefreshTokenComponent(
-                jwt_secret.encode(),
-                header_prefix=config.get_property_value(Configuration.JWT_HEADER_PREFIX),
-                header_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY),
-                cookie_key=config.get_property_value(Configuration.JWT_REFRESH_COOKIE_KEY)
-            ),
-            APIKeyComponent(
-                jwt_secret.encode()
-            )
-        ]
-        self.add_component_set(components)
+        self.add_component_set(set(ARTANIS_COMPONENTS))
 
+
+ARTANIS_COMPONENTS = [
+    AccessTokenComponent(),
+    RefreshTokenComponent(),
+    APIKeyComponent(),
+]
