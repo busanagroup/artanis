@@ -14,6 +14,7 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
+from artanis.caching import cached, TTLCache
 from artanis.sqlentity.sqlorm import *
 
 from ecf.core.ecfutils import get_hash_key
@@ -34,12 +35,15 @@ class efusrs(Entity):
     efusconm = Field(String(48), label='Comp. ID')
     efusdvno = Field(String(3), label='Division', index=True)
     efusdvnm = Field(String(48), label='Division')
+    efusapst = Field(Integer, label='API Enabled')
+    efusapky = Field(String(64), label='API Hash Value', index=True)
     efusstat = Field(Integer, label='Status')
     efusaudt = Field(Numeric(8, 0), label='Audit date')
     efusautm = Field(Numeric(6, 0), label='Audit time')
     efusauus = Field(String(24), label='Audit user')
 
     @classmethod
+    @cached(TTLCache(32, 300))
     async def get_user_info(cls, user_name: str | None):
         if not user_name:
             return None
@@ -58,6 +62,47 @@ class efusrs(Entity):
         password = get_hash_key(passwd)
         ob = await cls.get_by(efususid=user_name, efuspswd=password, efusstat=1, efusustp='USR')
         return ob is not None
+
+    @classmethod
+    @cached(TTLCache(8, 300))
+    async def get_user_api_key(cls, api_key: str):
+        hash_value = get_hash_key(api_key)
+        objs = await cls.get_by(efusapky=hash_value, efusstat=1, efusapst= 1, efusustp='USR')
+        return [[ob.efususid, ob.efusfsnm, ob.efuslsnm, ob.efusemad, ob.efuscono, ob.efusconm,
+                ob.efusdvno, ob.efusdvnm] for ob in objs][0] if objs else None
+
+    @classmethod
+    async def save_api_key(
+            cls,
+            user_name: str,
+            passwd: str,
+            api_key: str,
+            replace_existing: bool = False,
+            auto_commit: bool = True
+    ) -> bool:
+        retval: bool = False
+        password = get_hash_key(passwd)
+        objs = await cls.get_by(efususid=user_name, efuspswd=password, efusstat=1, efusustp='USR')
+        # check whether api access were allowed
+        for ob in objs:
+            if ob.efusapst == 1:
+                if not ob.efusapky or replace_existing:
+                    api_hash = get_hash_key(api_key)
+                    ob.efusapky = api_hash
+                    session = Session()
+                    if (not session.is_active) and auto_commit:
+                        session.begin()
+                    try:
+                        session.add(ob)
+                        if auto_commit:
+                            await session.commit()
+                    except:
+                        if auto_commit:
+                            await session.rollback()
+                        raise
+                    retval = True
+                    break
+        return retval
 
     @classmethod
     async def is_user_active(cls, user_name: str):

@@ -16,8 +16,8 @@
 import http
 import logging
 
-from artanis.asgi.auth import exceptions, jwt, types
-from artanis.asgi.types import Headers, Scope
+from artanis.asgi.auth import exceptions, jwt, types, apikey
+from artanis.asgi.types import Headers
 from artanis.asgi.types.http import Cookies
 from artanis.exceptions import HTTPException
 from artanis.injection import Component
@@ -28,7 +28,7 @@ __all__ = ["AccessTokenComponent", "RefreshTokenComponent"]
 
 
 class BaseTokenComponent(Component):
-    def __init__(self, secret: bytes, *, header_key: str, header_prefix: str, cookie_key: str):
+    def __init__(self, secret: bytes, *, header_key: str, header_prefix: str = None, cookie_key: str):
         self.secret = secret
         self.header_key = header_key
         self.header_prefix = header_prefix
@@ -51,13 +51,13 @@ class BaseTokenComponent(Component):
             raise exceptions.Unauthorized()
         except ValueError:
             logger.debug("Wrong format for authorization header value")
-            raise exceptions.JWTException(
+            raise exceptions.AuthenticationException(
                 f"Authentication header must be '{self.header_key}: {self.header_prefix} <token>'"
             )
 
         if header_prefix != self.header_prefix:
             logger.debug("Wrong prefix '%s' for authorization header, expected '%s'", header_prefix, self.header_prefix)
-            raise exceptions.JWTException(
+            raise exceptions.AuthenticationException(
                 f"Authentication header must be '{self.header_key}: {self.header_prefix} <token>'"
             )
 
@@ -71,7 +71,7 @@ class BaseTokenComponent(Component):
                 encoded_token = self._token_from_cookies(cookies)
         except exceptions.Unauthorized:
             raise HTTPException(status_code=http.HTTPStatus.UNAUTHORIZED)
-        except exceptions.JWTException as e:
+        except exceptions.AuthenticationException as e:
             raise HTTPException(
                 status_code=http.HTTPStatus.BAD_REQUEST, detail={"error": e.__class__, "description": str(e)}
             )
@@ -117,3 +117,53 @@ class RefreshTokenComponent(BaseTokenComponent):
         token = self._resolve_token(headers, cookies)
         return types.RefreshToken(token.header, token.payload)
 
+
+class APIKeyComponent(BaseTokenComponent):
+
+    def __init__(
+            self,
+            secret: bytes,
+            *,
+            header_key: str = "X-API-Key",
+            cookie_key: str = "apikey",
+    ):
+        super().__init__(secret, header_prefix=None, header_key=header_key, cookie_key=cookie_key)
+
+    def _token_from_header(self, headers: Headers) -> bytes:
+        try:
+            token = headers[self.header_key]
+        except KeyError:
+            logger.debug("'%s' not found in headers", self.header_key)
+            raise exceptions.Unauthorized()
+        except ValueError:
+            logger.debug("Wrong format for authorization header value")
+            raise exceptions.AuthenticationException(
+                f"Authentication header must be '{self.header_key}: {self.header_prefix} <token>'"
+            )
+        return token.encode()
+
+    async def _resolve_token(self, headers: Headers, cookies: Cookies) -> apikey.APIKey:
+        try:
+            try:
+                encoded_token = self._token_from_header(headers)
+            except exceptions.Unauthorized:
+                encoded_token = self._token_from_cookies(cookies)
+        except exceptions.Unauthorized:
+            raise HTTPException(status_code=http.HTTPStatus.UNAUTHORIZED)
+        except exceptions.AuthenticationException as e:
+            raise HTTPException(
+                status_code=http.HTTPStatus.BAD_REQUEST, detail={"error": e.__class__, "description": str(e)}
+            )
+
+        try:
+            token = await apikey.APIKey.decode(encoded_token)
+        except exceptions.Unauthorized as e:
+            raise HTTPException(
+                status_code=http.HTTPStatus.UNAUTHORIZED, detail={"error": e.__class__, "description": str(e)}
+            )
+
+        return token
+
+    async def resolve(self, headers: Headers, cookies: Cookies) -> types.APIKeyToken:
+        token = await self._resolve_token(headers, cookies)
+        return types.APIKeyToken(token.payload)

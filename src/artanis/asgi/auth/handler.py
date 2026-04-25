@@ -12,6 +12,8 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import secrets
+import hashlib
 import typing as t
 from datetime import datetime, timedelta, UTC
 from importlib import import_module
@@ -35,6 +37,11 @@ class AuthenticationHandler:
     @staticmethod
     def now() -> datetime:
         return datetime.now(UTC)
+
+    @staticmethod
+    def create_api_key(num_bytes: int = 32) -> str:
+        token: str = secrets.token_urlsafe(num_bytes)
+        return token
 
     def decode_token(self, token: str) -> RefreshToken:
         access_token = RefreshToken.decode(token.encode(), self.secret_key)
@@ -101,9 +108,17 @@ class AuthenticationHandler:
         )
         return jwt_token.encode(self.secret_key).decode()
 
+    async def save_api_key(self, usrname: str, passwd: str, api_key: str, replace_existing: bool = False, auto_commit: bool = True) -> t.Any:
+        efusrs = self.get_entity('efusrs')
+        return await efusrs.save_api_key(usrname, passwd, api_key, replace_existing=replace_existing, auto_commit=auto_commit)
+
     async def verify_user_auth(self, usrname: str, passwd: str) -> bool:
         efusrs = self.get_entity('efusrs')
         return await efusrs.check_user_auth(user_name=usrname, passwd=passwd)
+
+    async def verify_api_key(self, api_key: str) -> bool:
+        efusrs = self.get_entity('efusrs')
+        return await efusrs.get_user_api_key(api_key)
 
     async def get_user_info(self, username: str | None) -> t.Any:
         efusrs = self.get_entity('efusrs')

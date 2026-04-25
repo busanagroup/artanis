@@ -46,10 +46,19 @@ class JWTAuthBackend(AuthenticationBackend):
                 user=ArtanisUser(user_name, token.payload.data),
                 auth=AuthCredentials(["access:secure"]),
             )
-        except HTTPException as e:
-            child_scope = dict(
-                user=UnauthenticatedUser(),
-                auth=AuthCredentials([]),
-            )
-
+        except HTTPException:
+            try:
+                token: auth.APIKeyToken = await app.injector.value(
+                    auth.APIKeyToken, {"request": Request(scope, receive=receive)}
+                )
+                user_name: str = token.payload.data.get('username')
+                child_scope = dict(
+                    user=ArtanisUser(user_name, token.payload.data),
+                    auth=AuthCredentials(["access:secure"]),
+                )
+            except HTTPException:
+                child_scope = dict(
+                    user=UnauthenticatedUser(),
+                    auth=AuthCredentials([]),
+                )
         return sender.app, child_scope

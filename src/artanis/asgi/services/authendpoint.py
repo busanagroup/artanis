@@ -37,6 +37,11 @@ class AccessToken(pydantic.BaseModel):
     token_type: str
 
 
+class APIKeyToken(pydantic.BaseModel):
+    username: str
+    api_key: str
+
+
 class RefreshToken(pydantic.BaseModel):
     refresh_token: str
 
@@ -54,6 +59,7 @@ class UserInformation(pydantic.BaseModel):
 
 UserRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(User)]
 AccessTokenResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(AccessToken)]
+APIKeyTokenResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(APIKeyToken)]
 
 RefreshTokenRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(RefreshToken)]
 
@@ -243,3 +249,54 @@ class AuthEndPoint(ASGIEndPoint):
 
         AccessToken.model_validate(retval)
         return retval
+
+    @published(path="/create_api_key", methods=["POST"])
+    async def create_api_key(
+            self,
+            user: UserRequest,
+    ) -> APIKeyTokenResponse:
+        """
+        tags:
+            - Authentication
+        title:
+            Create API key for user
+        description:
+            Returns a API Key to access protected endpoints
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        config: Configuration = self.get_configuration()
+        if not config.server_is_ready:
+            raise HTTPException(
+                status_code=500,
+                detail="Server is not ready",
+                headers={"access-token": self.auth_handler.token_type}
+            )
+        User.model_validate(user)
+        username: str = user.get("username")
+        password: str = user.get("password")
+        if not username or not password:
+            raise HTTPException(
+                status_code=401,
+                detail="Insufficient permission",
+                headers={"access-token": self.auth_handler.token_type}
+            )
+        api_key = self.auth_handler.create_api_key()
+        result = await self.auth_handler.save_api_key(username, password, api_key)
+        if not result:
+            raise HTTPException(
+                status_code=401,
+                detail="Could not create API key",
+                headers={"access-token": self.auth_handler.token_type}
+            )
+
+        retval = dict(
+            username=username,
+            api_key=api_key
+        )
+
+        APIKeyToken.model_validate(retval)
+        return retval
+
