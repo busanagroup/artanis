@@ -25,9 +25,9 @@ if t.TYPE_CHECKING:
 
 class ArtanisUser(SimpleUser):
     
-    def __init__(self, username: str, payload: dict) -> None:
+    def __init__(self, username: str, payload: dict | None = None ) -> None:
         super().__init__(username)
-        self.payload = {}.update(payload)
+        self.payload = {}.update(payload) if payload else {}
 
 
 

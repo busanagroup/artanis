@@ -20,7 +20,7 @@ import asyncio
 from taskiq import TaskiqEvents, TaskiqState
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
-from artanis.config import Configuration
+from artanis.config import Configuration 
 from artanis.entrypoint import artanis_startup, artanis_shutdown, artanis_monitor
 from artanis.taskiq.base import BaseBrokerService
 
@@ -28,6 +28,7 @@ from artanis.taskiq.base import BaseBrokerService
 class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
 
     def __init__(self, *args, config: Configuration = None, queue_name: str = "arttask", **kwargs):
+        config = config or Configuration.get_default_instance(create_instance=False)
         self.redis_url = "/".join([config.get_property_value(config.ARTANIS_REDIS_URL, None), '0'])
         super(ArtanisTaskBroker, self).__init__(self.redis_url, *args, queue_name=queue_name, **kwargs)
         for base in ArtanisTaskBroker.__bases__:

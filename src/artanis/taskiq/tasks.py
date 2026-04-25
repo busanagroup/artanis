@@ -19,9 +19,8 @@ import enum
 import logging
 from typing import Any, Callable
 
-from starlette.authentication import SimpleUser
-
 from artanis.abc.classprops import classproperty
+from artanis.asgi.auth.authentication import ArtanisUser
 from artanis.config import Configuration
 from artanis.taskiq.broker import broker, task_broker
 from artanis.utils import import_function
@@ -67,7 +66,7 @@ async def artanis_schedule(*args, **kwargs):
 class TaskRequest:
 
     def __init__(self, username: str, func: str, *args, **kwargs):
-        self._cookies = {'user': SimpleUser(username)}
+        self._cookies = {'user': ArtanisUser(username)}
         self._config = Configuration.get_default_instance(create_instance=False)
         self._function = func
         self._params = [args, kwargs]
