@@ -20,8 +20,8 @@ import typing
 from typing import Optional
 
 import sqlalchemy.orm.decl_api as decl_api
-from sqlalchemy import orm, schema
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import schema
+from sqlalchemy.ext.asyncio import AsyncSession, async_object_session
 from sqlalchemy.orm import declared_attr, InstrumentedAttribute, Query
 from sqlalchemy.orm.util import has_identity
 from sqlalchemy.sql._typing import _TypeEngineArgument, _T
@@ -155,19 +155,19 @@ class AutogenTable(object):
 
     # session methods
     async def flush(self):
-        return orm.object_session(self).flush([self])
+        await async_object_session(self).flush([self])
 
     async def delete(self):
-        return orm.object_session(self).delete(self)
+        await async_object_session(self).delete(self)
 
     async def expire(self, *args, **kwargs):
-        return orm.object_session(self).expire(self, *args, **kwargs)
+        async_object_session(self).expire(self, *args, **kwargs)
 
     async def refresh(self, *args, **kwargs):
-        return orm.object_session(self).refresh(self, *args, **kwargs)
+        await async_object_session(self).refresh(self, *args, **kwargs)
 
     async def expunge(self):
-        return orm.object_session(self).expunge(self)
+        async_object_session(self).expunge(self)
 
     @classproperty
     def query(cls):
