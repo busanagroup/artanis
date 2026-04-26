@@ -14,7 +14,6 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.caching import cached, TTLCache
 from artanis.sqlentity.sqlorm import *
 
 from ecf.core.ecfutils import get_hash_key
@@ -43,7 +42,6 @@ class efusrs(Entity):
     efusauus = Field(String(24), label='Audit user')
 
     @classmethod
-    @cached(TTLCache(32, 300))
     async def get_user_info(cls, user_name: str | None):
         if not user_name:
             return None
@@ -64,12 +62,11 @@ class efusrs(Entity):
         return ob is not None
 
     @classmethod
-    @cached(TTLCache(8, 300))
     async def get_user_api_key(cls, api_key: str):
         hash_value = get_hash_key(api_key)
-        objs = await cls.get_by(efusapky=hash_value, efusstat=1, efusapst= 1, efusustp='USR')
+        objs = await cls.get_by(efusapky=hash_value, efusstat=1, efusapst=1, efusustp='USR')
         return [[ob.efususid, ob.efusfsnm, ob.efuslsnm, ob.efusemad, ob.efuscono, ob.efusconm,
-                ob.efusdvno, ob.efusdvnm] for ob in objs][0] if objs else None
+                 ob.efusdvno, ob.efusdvnm] for ob in objs][0] if objs else None
 
     @classmethod
     async def save_api_key(

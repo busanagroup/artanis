@@ -13,6 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from __future__ import annotations
 import dataclasses
 import logging
 import typing as t
@@ -21,8 +22,11 @@ from importlib import import_module
 from artanis.asgi.auth import exceptions
 from artanis.asgi.auth.components import *  # noqa
 from artanis.asgi.types import UserInfo
+from artanis.caching import RedisCache
 
 logger = logging.getLogger(__name__)
+
+redis_cache = RedisCache("apikey", ttl=3600)  # Cache API keys for 1 hour
 
 
 @dataclasses.dataclass(frozen=True)
@@ -55,10 +59,15 @@ class APIKey:
         raise NotImplementedError
 
     @classmethod
+    @redis_cache.cached(1800)
+    async def get_user_api_key(cls, token: str) -> t.Any:
+        efusrs = cls.get_sqlentity().get_entity("efusrs")
+        return await cls.safe_execute(efusrs.get_user_api_key, token)
+
+    @classmethod
     async def decode(cls, token: bytes) -> t.Self:
         try:
-            efusrs = cls.get_sqlentity().get_entity("efusrs")
-            record = await cls.safe_execute(efusrs.get_user_api_key, token.decode())
+            record= await cls.get_user_api_key(token.decode())
             if not record:
                 raise exceptions.Unauthorized("Invalid API key")
 

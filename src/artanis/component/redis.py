@@ -24,14 +24,19 @@ from artanis.config import Configuration
 
 
 class Redis(SyncRedisPy, Singleton, SyncLock):
-    def __init__(self, config: Configuration = None):
+    def __init__(
+            self,
+            config: Configuration = None,
+            connection_pool: AsyncConnectionPool = None,
+            single_connection_client: bool = False,
+    ):
         config = config or Configuration().get_default_instance(create_instance=False)
         redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
-        connection_pool = config.container.redis_pool \
+        connection_pool = connection_pool or config.container.redis_pool \
             if hasattr(config.container, "redis_pool") else \
             AsyncConnectionPool.from_url(redis_url)
         super().__init__(connection_pool=connection_pool,
-                         single_connection_client=False)
+                         single_connection_client=single_connection_client)
         self.auto_close_connection_pool = True
 
     @classmethod
@@ -46,14 +51,19 @@ class Redis(SyncRedisPy, Singleton, SyncLock):
 
 
 class AsyncRedis(AsyncRedisPy, AsyncSingleton, AsyncLock):
-    def __init__(self, config: Configuration = None):
+    def __init__(
+            self,
+            config: Configuration = None,
+            connection_pool: AsyncConnectionPool = None,
+            single_connection_client: bool = False,
+    ):
         config = config or Configuration().get_default_instance(create_instance=False)
         redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
-        connection_pool = config.container.redis_pool \
+        connection_pool = connection_pool or config.container.redis_pool \
             if hasattr(config.container, "redis_pool") else \
             AsyncConnectionPool.from_url(redis_url)
         super().__init__(connection_pool=connection_pool,
-                         single_connection_client=False)
+                         single_connection_client=single_connection_client)
         self.auto_close_connection_pool = True
 
     @classmethod
