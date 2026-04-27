@@ -57,7 +57,7 @@ class BaseBrokerService(StartableService, Singleton, SyncLock, ObjectLoader):
             ModelsModule(),
         ]
         self.modules = Modules(app=self, modules={*default_modules, *([])})
-        self._components =  Components([*default_modules])
+        self._components = Components([*default_modules])
         self.schema.schema_library = 'pydantic'
 
     def __getattr__(self, item: str) -> t.Any:

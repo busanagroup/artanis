@@ -69,6 +69,7 @@ async def unconfigure_database(config: Configuration):
     if not hasattr(config.container, 'db_engine'):
         return
     try:
-        await config.container.db_engine.dispose()
-    except:
+        db_engine = config.container.db_engine
+        await db_engine.dispose()
+    except Exception:
         pass

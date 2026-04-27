@@ -13,3 +13,18 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from __future__ import annotations
+
+from typing import Any
+
+from taskiq.kicker import AsyncKicker, _FuncParams, _ReturnType
+from taskiq.message import TaskiqMessage
+
+
+class LabelRespectKicker(AsyncKicker[_FuncParams, _ReturnType]):
+    """Patched kicker doesn't cast labels to str."""
+
+    def _prepare_message(self, *args: Any, **kwargs: Any) -> TaskiqMessage:
+        msg = super()._prepare_message(*args, **kwargs)
+        msg.labels = self.labels
+        return msg

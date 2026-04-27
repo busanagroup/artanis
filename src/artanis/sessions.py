@@ -45,22 +45,22 @@ class UserSession:
 
     @classmethod
     def from_dict(cls, user_info: dict) -> 'UserSession':
-        user = user_info.get(user_info, "user_info")
-        permissions = user_info.get(user_info, "permisssions")
+        user: dict = user_info.get("user_info", {})
+        permissions: set = user_info.get("permisssions", set([]))
         user_info: UserInfo = UserInfo(
             username=user["username"],
-            first_name=user["first_name"],
-            last_name=user["last_name"],
-            email=user["email"],
-            cono=user["cono"],
-            coname=user["coname"],
-            dvno=user["dvno"],
-            dvname=user["dvname"]
+            first_name=user.get("first_name"),
+            last_name=user.get("last_name"),
+            email=user.get("email"),
+            cono=user.get("cono"),
+            coname=user.get("coname"),
+            dvno=user.get("dvno"),
+            dvname=user.get("dvname")
         )
-        permissions = AuthCredentials([*permissions])
+        credentials = AuthCredentials([*permissions])
         return UserSession(
             user_info=user_info,
-            permissions=permissions
+            permissions=credentials
         )
 
     @classmethod

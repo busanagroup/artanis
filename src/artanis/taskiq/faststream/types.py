@@ -13,3 +13,14 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from __future__ import annotations
+
+from datetime import datetime, timedelta
+
+from typing_extensions import TypedDict
+
+
+class ScheduledTask(TypedDict, total=False):
+    cron: str
+    cron_offset: str | timedelta | None
+    time: datetime | None

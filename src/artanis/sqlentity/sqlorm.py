@@ -30,7 +30,7 @@ from sqlalchemy.types import *
 from artanis.abc.classprops import classproperty
 from artanis.config import Configuration
 
-Session: AsyncSession = Configuration.get_default_instance(create_instance=False).container.scoped_session
+Session: AsyncSession
 
 # -- added by Jaimy for ECF
 __internal_field_prefix__ = ['AUCD', 'AUCT', 'AUDT', 'AUTM', 'AUUS', 'KUID']

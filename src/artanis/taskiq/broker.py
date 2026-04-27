@@ -18,11 +18,11 @@
 import asyncio
 
 from taskiq import TaskiqEvents, TaskiqState
-from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
-from artanis.config import Configuration 
+from artanis.config import Configuration
 from artanis.entrypoint import artanis_startup, artanis_shutdown, artanis_monitor
 from artanis.taskiq.base import BaseBrokerService
+from artanis.taskiq.redis import ListQueueBroker, RedisAsyncResultBackend
 
 
 class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):

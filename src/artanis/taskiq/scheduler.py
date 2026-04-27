@@ -15,7 +15,6 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 
-
 from taskiq import TaskiqScheduler
 from taskiq.kicker import AsyncKicker
 from taskiq.schedule_sources import LabelScheduleSource
