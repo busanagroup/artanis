@@ -222,10 +222,8 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_LOG_PATH: '{}/log/artanis'.format(path),
 
             self.ARTANIS_DB_CONNECTION: "postgresql+asyncpg://postgres:masterkey@10.0.3.102/template1",
-            self.ARTANIS_DB_SCHEMA: None,
-            self.ARTANIS_DB_POOL_SIZE: None,
-            self.ARTANIS_DB_POOL_ACTIVE: None,
-            self.ARTANIS_DB_POOL_IDLE: None,
+            self.ARTANIS_DB_SCHEMA: '',
+            self.ARTANIS_DB_POOL_SIZE: '16',
 
             self.ARTANIS_SECURITY_CORS_ORIGINS: '',
 

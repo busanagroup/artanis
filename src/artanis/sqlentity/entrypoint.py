@@ -43,7 +43,7 @@ async def configure_database(config: Configuration):
 
     db_url: str = config.get_property_value(config.ARTANIS_DB_CONNECTION, '')
     db_schema: str = config.get_property_value(config.ARTANIS_DB_SCHEMA, '')
-    pool_size: int = int(config.get_property_value(config.ARTANIS_DB_POOL_SIZE, 8))
+    pool_size: int = int(config.get_property_value(config.ARTANIS_DB_POOL_SIZE, 16))
     db_engine = create_db_engine(db_url, pool_size=pool_size)
     db_session = create_db_session(db_engine)
     scoped_session = create_scoped_session(db_session)
