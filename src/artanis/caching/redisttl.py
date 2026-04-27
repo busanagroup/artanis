@@ -76,13 +76,13 @@ class RedisCache:
                             if not val:
                                 raise KeyError()
                             return RedisCache.deserialize(val)
-                        except KeyError:
+                        except (KeyError, Exception):
                             pass
                         val = await func(sself, *args, **kwargs)
                         try:
                             async with lock:
                                 await client.setex(_key, _ttl, RedisCache.serialize(val))
-                        except ValueError:
+                        except (ValueError, Exception):
                             pass
                     return val
             else:

@@ -16,6 +16,7 @@
 
 
 import asyncio
+import socket
 
 from taskiq import TaskiqEvents, TaskiqState
 
@@ -30,7 +31,22 @@ class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
     def __init__(self, *args, config: Configuration = None, queue_name: str = "arttask", **kwargs):
         config = config or Configuration.get_default_instance(create_instance=False)
         self.redis_url = "/".join([config.get_property_value(config.ARTANIS_REDIS_URL, None), '0'])
-        super(ArtanisTaskBroker, self).__init__(self.redis_url, *args, queue_name=queue_name, **kwargs)
+        ka_options = {
+            socket.TCP_KEEPIDLE: 10,
+            socket.TCP_KEEPINTVL: 5,
+            socket.TCP_KEEPCNT: 5
+        }
+        super(ArtanisTaskBroker, self).__init__(
+            self.redis_url,
+            *args,
+            queue_name=queue_name,
+            health_check_interval=10,
+            socket_connect_timeout=5,
+            retry_on_timeout=True,
+            socket_keepalive=True,
+            socket_keepalive_options=ka_options,
+            max_connection_pool_size=32,
+            **kwargs)
         for base in ArtanisTaskBroker.__bases__:
             if base is not ListQueueBroker:
                 base.__init__(self, *args, **kwargs)  # type: ignore

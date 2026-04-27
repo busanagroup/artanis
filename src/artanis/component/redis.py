@@ -13,7 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
+import socket
 
 from redis import Redis as SyncRedisPy, ConnectionPool as SyncConnectionPool
 from redis.asyncio import Redis as AsyncRedisPy, ConnectionPool as AsyncConnectionPool
@@ -31,13 +31,31 @@ class Redis(SyncRedisPy, Singleton, SyncLock):
             single_connection_client: bool = False,
     ):
         config = config or Configuration().get_default_instance(create_instance=False)
+        ka_options = {
+            socket.TCP_KEEPIDLE: 10,
+            socket.TCP_KEEPINTVL: 5,
+            socket.TCP_KEEPCNT: 5
+        }
         redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
         connection_pool = connection_pool or config.container.redis_pool \
             if hasattr(config.container, "redis_pool") else \
-            AsyncConnectionPool.from_url(redis_url)
+            AsyncConnectionPool.from_url(redis_url,
+                                         health_check_interval=10,
+                                         socket_connect_timeout=5,
+                                         retry_on_timeout=True,
+                                         socket_keepalive=True,
+                                         socket_keepalive_options=ka_options,
+                                         max_connections=16,
+                                         )
         super().__init__(connection_pool=connection_pool,
-                         single_connection_client=single_connection_client)
-        self.auto_close_connection_pool = True
+                         single_connection_client=single_connection_client,
+                         health_check_interval=10,
+                         socket_connect_timeout=5,
+                         retry_on_timeout=True,
+                         socket_keepalive=True,
+                         max_connections=16,
+                         )
+        self.auto_close_connection_pool = False
 
     @classmethod
     def get_default_instance(cls, *args, create_instance=False, **kwargs):
@@ -59,12 +77,30 @@ class AsyncRedis(AsyncRedisPy, AsyncSingleton, AsyncLock):
     ):
         config = config or Configuration().get_default_instance(create_instance=False)
         redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
+        ka_options = {
+            socket.TCP_KEEPIDLE: 10,
+            socket.TCP_KEEPINTVL: 5,
+            socket.TCP_KEEPCNT: 5
+        }
         connection_pool = connection_pool or config.container.redis_pool \
             if hasattr(config.container, "redis_pool") else \
-            AsyncConnectionPool.from_url(redis_url)
+            AsyncConnectionPool.from_url(redis_url,
+                                         health_check_interval=10,
+                                         socket_connect_timeout=5,
+                                         retry_on_timeout=True,
+                                         socket_keepalive=True,
+                                         socket_keepalive_options=ka_options,
+                                         max_connections=16,
+                                         )
         super().__init__(connection_pool=connection_pool,
-                         single_connection_client=single_connection_client)
-        self.auto_close_connection_pool = True
+                         single_connection_client=single_connection_client,
+                         health_check_interval=10,
+                         socket_connect_timeout=5,
+                         retry_on_timeout=True,
+                         socket_keepalive=True,
+                         max_connections=16,
+                         )
+        self.auto_close_connection_pool = False
 
     @classmethod
     async def get_default_instance(cls, *args, create_instance=True, **kwargs):
