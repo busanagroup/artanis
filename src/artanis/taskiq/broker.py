@@ -74,16 +74,17 @@ class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
             loop.create_task(internal_scheduler())
             await self.start()
             await artanis_startup(config)
+            for mod in self.modules.values():
+                await mod.taskiq_startup()
 
         async def process_shutdown(state: TaskiqState):
             await artanis_shutdown(config)
+            for mod in self.modules.values():
+                await mod.taskiq_shutdown()
             await self.stop()
 
         self.add_event_handler(TaskiqEvents.WORKER_STARTUP, process_startup)
         self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, process_shutdown)
-        for mod in self.modules.values():
-            self.add_event_handler(TaskiqEvents.WORKER_STARTUP, mod.on_startup)
-            self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, mod.on_shutdown)
 
     def get_redis_pool(self):
         return self.connection_pool
@@ -128,10 +129,16 @@ class ArtanisJobBroker(ArtanisTaskBroker):
         async def process_startup(state: TaskiqState):
             loop = asyncio.get_event_loop()
             loop.create_task(internal_scheduler())
+            await self.start()
             await artanis_startup(config)
+            for mod in self.modules.values():
+                await mod.taskiq_startup()
 
         async def process_shutdown(state: TaskiqState):
+            for mod in self.modules.values():
+                await mod.taskiq_shutdown()
             await artanis_shutdown(config)
+            await self.stop()
 
         self.add_event_handler(TaskiqEvents.WORKER_STARTUP, process_startup)
         self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, process_shutdown)

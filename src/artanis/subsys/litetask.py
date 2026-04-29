@@ -17,16 +17,19 @@
 
 from taskiq.cli.worker.args import WorkerArgs
 
+from artanis.abc.subsys import Subsystem
 from artanis.config import Configuration
-from artanis.subsys.batchjob import BatchJobSubsystem, BatchJobWorkerFactory
+from artanis.subsys.batchjob import BatchJobWorkerFactory
 
 
 class LiteTaskWorkerFactory(BatchJobWorkerFactory):
     worker_name = 'tasks_worker'
 
 
-class LiteTaskSubsystem(BatchJobSubsystem):
-    class_factory = BatchJobWorkerFactory
+class LiteTaskSubsystem(Subsystem):
+    config_service_enabled = Configuration.ARTANIS_LTASK_ENABLED
+    class_factory = LiteTaskWorkerFactory
+    worker_args: WorkerArgs
     subsystem_name = 'tasksub'
 
     def do_configure(self):
@@ -41,7 +44,3 @@ class LiteTaskSubsystem(BatchJobSubsystem):
         params.append('artanis.taskiq.tasks')
         params.append('artanis.taskiq.scheduler')
         self.worker_args = WorkerArgs.from_cli(params)
-
-    @classmethod
-    def subsystem_is_enabled(cls, config) -> bool:
-        return True

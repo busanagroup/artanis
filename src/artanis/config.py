@@ -103,8 +103,8 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_TASK_ENABLED: str = 'artanis.task.enabled'
     ARTANIS_TASK_INSTANCES: str = 'artanis.task.instances'
     ARTANIS_TASK_MAXTASK: str = 'artanis.task.maxtask'
-    ARTANIS_TASK_MONITOR: str = 'artanis.task.monitor'
     ARTANIS_SPV_ENABLED: str = 'artanis.supervisor.enabled'
+    ARTANIS_LTASK_ENABLED: str = 'artanis.ltask.enabled'
 
     ARTANIS_STATIC_ENABLED: str = 'artanis.static.enabled'
     ARTANIS_STATIC_BINDTYPE: str = 'artanis.static.bindtype'
@@ -205,10 +205,10 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_STATIC_BINDTYPE: 'tcp',
             self.ARTANIS_STATIC_BIND: '0.0.0.0:8005',
 
-            self.ARTANIS_TASK_ENABLED: 'false',
+            self.ARTANIS_TASK_ENABLED: 'true',
             self.ARTANIS_TASK_INSTANCES: '1',
             self.ARTANIS_TASK_MAXTASK: '32',
-            self.ARTANIS_TASK_MONITOR: 'true',
+            self.ARTANIS_LTASK_ENABLED: 'true',
 
             self.ARTANIS_SPV_ENABLED: 'true',
 

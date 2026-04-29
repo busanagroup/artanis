@@ -22,6 +22,7 @@ import traceback
 from artanis.component.validators import validators
 from artanis.sqlentity.sqlorm import Session
 from artanis.taskiq.proxy import JobObjectProxy
+from artanis.taskiq.tasks import TaskRequest
 from ecf.core.croniter import Croniter
 from ecf.core.ecfcmn import BaseController
 from ecf.core.jobsvc import JobAssignment, JOBSession, JobRunner
@@ -30,7 +31,7 @@ from ecf.core.jobsvc import JobAssignment, JOBSession, JobRunner
 class IntService(BaseController):
 
     @classmethod
-    async def proceed_cron_job(cls):
+    async def proceed_cron_job(cls, request: TaskRequest):
         efcron = cls.get_entity('efcron')
         cronobjs = await efcron.get_all_tasks(1)
         session = Session()
@@ -89,7 +90,7 @@ class IntService(BaseController):
                 except:
                     await session.rollback()
 
-    async def check_unproceeded_job(self):
+    async def check_unproceeded_job(self, request: TaskRequest):
         efjbls = self.get_entity('efjbls')
         objs = await efjbls.get_all_jobs(0)
         date_now = dt.datetime.now()

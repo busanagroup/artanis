@@ -130,7 +130,7 @@ class BaseTaskHandler:
         if not self.__service_instance:
             service_class = self.service_class
             self.__service_instance = object.__new__(service_class)
-            self.__service_instance.__init__(self.request)
+            self.__service_instance.__init__()
         return self.__service_instance
 
 
@@ -140,8 +140,8 @@ class CronTaskHandler(BaseTaskHandler):
         await self.safe_execute(self.execute_cron)
 
     async def execute_cron(self):
-        await self.service_instance.proceed_cron_job()
-        await self.service_instance.check_unproceeded_job()
+        await self.service_instance.proceed_cron_job(self.request)
+        await self.service_instance.check_unproceeded_job(self.request)
 
 
 class JobTaskHandler(BaseTaskHandler):

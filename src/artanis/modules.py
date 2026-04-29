@@ -33,6 +33,12 @@ class _BaseModule:
 
     async def on_shutdown(self) -> None: ...
 
+    async def taskiq_startup(self):
+        await self.on_startup()
+
+    async def taskiq_shutdown(self):
+        await self.on_shutdown()
+
 
 class _ModuleMeta(abc.ABCMeta):
     def __new__(mcs, name, bases, namespace):
