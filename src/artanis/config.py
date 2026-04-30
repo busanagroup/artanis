@@ -14,13 +14,13 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
+import hashlib
 import io
 import logging
 import os
 import pathlib
 import re
 import uuid
-import hashlib
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -117,7 +117,6 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_STATIC_BIND: str = 'artanis.static.bind'
     ARTANIS_STATIC_INSTANCES: str = 'artanis.static.instances'
 
-    ARTANIS_REDIS_URL: str = 'artanis.redis.url'
     ARTANIS_LOG_PATH: str = 'artanis.log.path'
     ARTANIS_LOG_FORMAT: str = 'artanis.log.format'
     ARTANIS_LOG_LEVEL: str = 'artanis.log.level'
@@ -135,14 +134,14 @@ class Configuration(Singleton, SyncLock, Listenable):
 
     ARTANIS_DB_EXTCONN_COUNT: str = 'artanis.db.extconn.count'
 
-    JWT_SECRET_KEY : str = 'artanis.jwt.secret.key'
-    JWT_HEADER_KEY : str = 'artanis.jwt.header.key'
-    JWT_HEADER_PREFIX : str = 'artanis.jwt.header.prefix'
-    JWT_ALGORITHM : str = 'artanis.jwt.algorithm'
-    JWT_TOKEN_EXPIRATION : str = 'artanis.jwt.token.expiration'
-    JWT_REFRESH_EXPIRATION : str = 'artanis.jwt.refresh.expiration'
-    JWT_ACCESS_COOKIE_KEY : str = 'artanis.jwt.access.key'
-    JWT_REFRESH_COOKIE_KEY : str = 'artanis.jwt.refresh.key'
+    JWT_SECRET_KEY: str = 'artanis.jwt.secret.key'
+    JWT_HEADER_KEY: str = 'artanis.jwt.header.key'
+    JWT_HEADER_PREFIX: str = 'artanis.jwt.header.prefix'
+    JWT_ALGORITHM: str = 'artanis.jwt.algorithm'
+    JWT_TOKEN_EXPIRATION: str = 'artanis.jwt.token.expiration'
+    JWT_REFRESH_EXPIRATION: str = 'artanis.jwt.refresh.expiration'
+    JWT_ACCESS_COOKIE_KEY: str = 'artanis.jwt.access.key'
+    JWT_REFRESH_COOKIE_KEY: str = 'artanis.jwt.refresh.key'
 
     # ARTANIS_DB_EXTCONN_1_NAME: str = 'artanis.db.extconn.1.name'
     # ARTANIS_DB_EXTCONN_1_CONNECTION: str = 'artanis.db.extconn.1.connection'
@@ -177,7 +176,6 @@ class Configuration(Singleton, SyncLock, Listenable):
         path = str(pathlib.Path(os.path.abspath(self.config_path))
                    .parent.parent.resolve())
         values: Dict[str, Optional[str]] = {
-
 
             self.ARTANIS_APP_NAME: 'Artanis',
             self.ARTANIS_CMP_NAME: 'Busana Apparel Group',
@@ -223,8 +221,6 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_SPV_MASTER: '0.0.0.0:8090',
             self.ARTANIS_SPV_SECURITY: 'ARTANIS',
 
-            self.ARTANIS_REDIS_URL: 'redis://127.0.0.1:6379',
-
             self.ARTANIS_ENV_PATH: path,
             self.ARTANIS_TMP_PATH: '{}/tmp'.format(path),
             self.ARTANIS_DATA_PATH: '{}/data'.format(path),
@@ -239,18 +235,21 @@ class Configuration(Singleton, SyncLock, Listenable):
 
             self.ARTANIS_SECURITY_CORS_ORIGINS: '',
 
-            self.JWT_SECRET_KEY : str(uuid.uuid5(uuid.NAMESPACE_OID, 'Artanis')),
-            self.JWT_HEADER_KEY : "Authorization",  # Authorization header identity
-            self.JWT_HEADER_PREFIX : "Bearer",  # Bearer prefix
-            self.JWT_ALGORITHM : "HS256",  # Algorithm used to sign the token
-            self.JWT_TOKEN_EXPIRATION : "1800",  # 30 minutes in seconds
-            self.JWT_REFRESH_EXPIRATION : "7200",  # 2 hours in seconds
-            self.JWT_ACCESS_COOKIE_KEY : "access_token",
-            self.JWT_REFRESH_COOKIE_KEY : "refresh_token",
+            self.JWT_SECRET_KEY: str(uuid.uuid5(uuid.NAMESPACE_OID, 'Artanis')),
+            self.JWT_HEADER_KEY: "Authorization",  # Authorization header identity
+            self.JWT_HEADER_PREFIX: "Bearer",  # Bearer prefix
+            self.JWT_ALGORITHM: "HS256",  # Algorithm used to sign the token
+            self.JWT_TOKEN_EXPIRATION: "1800",  # 30 minutes in seconds
+            self.JWT_REFRESH_EXPIRATION: "7200",  # 2 hours in seconds
+            self.JWT_ACCESS_COOKIE_KEY: "access_token",
+            self.JWT_REFRESH_COOKIE_KEY: "refresh_token",
         }
         hash = hashlib.sha1(values[self.ARTANIS_SPV_SECURITY].encode(), usedforsecurity=True).hexdigest()
         values[self.ARTANIS_SPV_SECURITY_HASH] = hash
         return values
+
+    def supervisor_enabled(self):
+        return self.get_property_value(self.ARTANIS_SPV_ENABLED, "false").lower() == "true"
 
     def configure_logging(self, subsys_name: str = None, subsys_index: int = None):
         file_name = "/".join([self.get_property_value(self.ARTANIS_LOG_PATH), "artanis"])

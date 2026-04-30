@@ -36,7 +36,11 @@ class Redis(SyncRedisPy, Singleton, SyncLock):
             socket.TCP_KEEPINTVL: 5,
             socket.TCP_KEEPCNT: 5
         }
-        redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
+        redis_url = config.get_property_value(config.ARTANIS_SPV_BIND) if config.supervisor_enabled() else \
+            config.get_property_value(config.ARTANIS_SPV_MASTER)
+        redis_auth = config.get_property_value(config.ARTANIS_SPV_SECURITY_HASH)
+        redis_url = "/".join([f"redis://:{redis_auth}@{redis_url}", '0'])
+        # redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
         connection_pool = connection_pool or config.container.redis_pool \
             if hasattr(config.container, "redis_pool") else \
             AsyncConnectionPool.from_url(redis_url,
@@ -76,7 +80,11 @@ class AsyncRedis(AsyncRedisPy, AsyncSingleton, AsyncLock):
             single_connection_client: bool = False,
     ):
         config = config or Configuration().get_default_instance(create_instance=False)
-        redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
+        redis_url = config.get_property_value(config.ARTANIS_SPV_BIND) if config.supervisor_enabled() else \
+            config.get_property_value(config.ARTANIS_SPV_MASTER)
+        redis_auth = config.get_property_value(config.ARTANIS_SPV_SECURITY_HASH)
+        redis_url = "/".join([f"redis://:{redis_auth}@{redis_url}", '0'])
+        # redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
         ka_options = {
             socket.TCP_KEEPIDLE: 10,
             socket.TCP_KEEPINTVL: 5,
