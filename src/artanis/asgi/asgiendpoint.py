@@ -16,7 +16,6 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import inspect
 import typing as t
-import weakref
 from pathlib import PurePosixPath
 from typing import Callable
 
