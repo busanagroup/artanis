@@ -34,7 +34,6 @@ class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
             config.get_property_value(config.ARTANIS_SPV_MASTER)
         redis_auth = config.get_property_value(config.ARTANIS_SPV_SECURITY_HASH)
         self.redis_url = "/".join([f"redis://:{redis_auth}@{redis_url}", '0'])
-        # self.redis_url = "/".join([config.get_property_value(config.ARTANIS_REDIS_URL, None), '0'])
         ka_options = {
             socket.TCP_KEEPIDLE: 10,
             socket.TCP_KEEPINTVL: 5,

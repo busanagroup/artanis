@@ -16,8 +16,11 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import inspect
 import typing as t
+import weakref
 from pathlib import PurePosixPath
 from typing import Callable
+
+from lru import LRU as LRUDict
 
 from artanis import exceptions, concurrency
 from artanis.abc.configurable import Configurable
@@ -310,6 +313,7 @@ class ASGIEndPoint(ControllerABC):
         self.apply_lock = False
         self.__class_dir = None
         self.__all_classes = None
+        self.__instances = LRUDict(size=32)
         schema = "/openapi.json"
         default_modules = [
             SchemaModule(self.parent.openapi, schema=schema, schema_url=f"{self.base_path}{schema}", docs="/docs"),
@@ -382,6 +386,7 @@ class ASGIEndPoint(ControllerABC):
         klass: type[ControllerABC] | None = None
         child_scope: types.Scope = types.Scope({})
         child_scope['access_validator'] = self.access_validator
+        config = self.get_configuration()
 
         partial_allowed_methods: set[str] = set()
         partial = None
@@ -421,9 +426,13 @@ class ASGIEndPoint(ControllerABC):
         if klass and descriptor.handle_request:
             partial = None
             partial_allowed_methods: set[str] = set()
-            config = self.get_configuration()
             func_name = klass_scope.get("path")
-            instance: ControllerABC = klass(config=config, func_path=func_name)
+            if klass.__name__ in self.__instances:
+                instance = self.__instances[klass.__name__]
+            else:
+                instance = klass(config=config, func_path=func_name)
+                self.__instances[klass.__name__] = instance
+
             if not instance.has_published_methods:
                 raise exceptions.NotFoundException(
                     path=klass_scope.get("root_path", "") + klass_scope["path"], params=klass_scope.get("path_params")
@@ -451,10 +460,16 @@ class ASGIEndPoint(ControllerABC):
             raise exceptions.NotFoundException(
                 path=klass_scope.get("root_path", "") + klass_scope.get("path"), params=klass_scope.get("path_params")
             )
+        if klass.__name__ in self.__instances:
+            instance = self.__instances[klass.__name__]
+        else:
+            instance = klass(config=config)
+            self.__instances[klass.__name__] = instance
+        chile_scope= dict(module_instance=instance)
         for route in self.published_methods:
             match = route.match(klass_scope)
             if match == BaseRoute.Match.full:
-                route_scope = types.Scope({**klass_scope, **route.route_scope(klass_scope)})
+                route_scope = types.Scope({**klass_scope, **route.route_scope(klass_scope), **chile_scope})
                 route._build(self.parent)
                 return route, route_scope
             elif match == route.Match.partial:

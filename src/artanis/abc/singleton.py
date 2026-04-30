@@ -32,15 +32,16 @@ class Singleton(BaseLocker):
 
     @classmethod
     def get_default_instance(cls, *args, create_instance=True, **kwargs):
-        cls.get_class_locker().acquire()
-        try:
-            if create_instance and not cls.has_singleton_instance():
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__()
-                cls.VM_DEFAULT._configure_instance(*args, **kwargs)
-            return cls.VM_DEFAULT
-        finally:
-            cls.get_class_locker().release()
+        if not cls.has_singleton_instance() and create_instance:
+            cls.get_class_locker().acquire()
+            try:
+                if not cls.has_singleton_instance():
+                    cls.VM_DEFAULT = object.__new__(cls)
+                    cls.VM_DEFAULT.__init__()
+                    cls.VM_DEFAULT._configure_instance(*args, **kwargs)
+            finally:
+                cls.get_class_locker().release()
+        return cls.VM_DEFAULT
 
     @classmethod
     def get_singleton(cls):
@@ -62,12 +63,13 @@ class AsyncSingleton(BaseLocker):
 
     @classmethod
     async def get_default_instance(cls, *args, create_instance=True, **kwargs):
-        await cls.get_class_locker().acquire()
-        try:
-            if create_instance and not cls.has_singleton_instance():
-                cls.VM_DEFAULT = object.__new__(cls)
-                cls.VM_DEFAULT.__init__()
-                await cls.VM_DEFAULT._configure_instance(*args, **kwargs)
-            return cls.VM_DEFAULT
-        finally:
-            cls.get_class_locker().release()
+        if not cls.has_singleton_instance() and create_instance:
+            await cls.get_class_locker().acquire()
+            try:
+                if not cls.has_singleton_instance():
+                    cls.VM_DEFAULT = object.__new__(cls)
+                    cls.VM_DEFAULT.__init__()
+                    await cls.VM_DEFAULT._configure_instance(*args, **kwargs)
+            finally:
+                cls.get_class_locker().release()
+        return cls.VM_DEFAULT

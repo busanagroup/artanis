@@ -177,7 +177,6 @@ class App:
                 apps.append(App.from_app(route.app, path=route.path.path, name=route.name))
             except AttributeError:
                 endpoints.append(Endpoint.from_route(route))
-
         return cls(apps=apps, endpoints=endpoints, path=path, name=name)
 
 

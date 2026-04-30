@@ -97,7 +97,7 @@ class ServerErrorMiddleware(BaseErrorMiddleware):
         accept = request.headers.get("accept", "")
 
         if "text/html" in accept:
-            return http._ArtanisTemplateResponse(
+            return http.ArtanisTemplateResponse(
                 "debug/error_500.html", context=dataclasses.asdict(ErrorContext.build(request, exc)), status_code=500
             )
         return http.PlainTextResponse("Internal Server Error", status_code=500)
@@ -178,7 +178,7 @@ class ExceptionMiddleware(BaseErrorMiddleware):
         accept = request.headers.get("accept", "")
 
         if self.debug and exc.status_code == 404 and "text/html" in accept:
-            return http._ArtanisTemplateResponse(
+            return http.ArtanisTemplateResponse(
                 template="debug/error_404.html",
                 context=dataclasses.asdict(NotFoundContext.build(request, scope["app"])),
                 status_code=404,
