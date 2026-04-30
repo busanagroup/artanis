@@ -23,8 +23,9 @@ from artanis.subsys.litetask import LiteTaskSubsystem
 from artanis.subsys.restapi import APISubsystem
 from artanis.subsys.scheduler import SchedulerSubsystem
 from artanis.subsys.static import StaticSubsystem
+from artanis.subsys.supervisor import SupervisorSubsystem
 from artanis.subsys.websocket import WebsocketSubsystem
 
-__all__ = [DevelSubsystem, AuthSubsystem, MVCSubsystem, APISubsystem,
-           SchedulerSubsystem, BatchJobSubsystem, LiteTaskSubsystem,
-           StaticSubsystem, WebsocketSubsystem]
+__all__ = [SupervisorSubsystem, DevelSubsystem, AuthSubsystem,
+           MVCSubsystem, APISubsystem, SchedulerSubsystem, BatchJobSubsystem,
+           LiteTaskSubsystem, StaticSubsystem, WebsocketSubsystem]

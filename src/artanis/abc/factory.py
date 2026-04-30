@@ -48,6 +48,15 @@ class WorkerFactory(Configurable, Singleton, ABC):
     def get_processes(self, processes: list):
         return len([a for a, b in processes if b == self.worker_name])
 
+    def should_be_waited(self):
+        return False
+
+    def process_passed(self) -> int:
+        return 1
+
+    def get_last_exception(self) -> Exception | None:
+        return None
+
     @abstractmethod
     def create_worker(self, processes: list, ctx: BaseContext, shutdown_event: EventType, index: int):
         ...

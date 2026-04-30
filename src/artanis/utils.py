@@ -74,6 +74,16 @@ async def check_multiprocess_shutdown_event(
         await sleep(0.1)
 
 
+def threaded_check_multiprocess_shutdown_event(
+        shutdown_event: EventType,
+        sleep: Callable[[float], Awaitable[Any]]
+) -> None:
+    while True:
+        if shutdown_event.is_set():
+            return
+        sleep(0.1)
+
+
 def import_ecf_module(module_name: str):
     module_path = Path(module_name).resolve()
     path_str = str(module_path.parent)

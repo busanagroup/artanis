@@ -30,7 +30,11 @@ class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
 
     def __init__(self, *args, config: Configuration = None, queue_name: str = "arttask", **kwargs):
         config = config or Configuration.get_default_instance(create_instance=False)
-        self.redis_url = "/".join([config.get_property_value(config.ARTANIS_REDIS_URL, None), '0'])
+        redis_url = config.get_property_value(config.ARTANIS_SPV_BIND) if self.supervisor_enabled(config) else \
+            config.get_property_value(config.ARTANIS_SPV_MASTER)
+        redis_auth = config.get_property_value(config.ARTANIS_SPV_SECURITY_HASH)
+        self.redis_url = "/".join([f"redis://:{redis_auth}@{redis_url}", '0'])
+        # self.redis_url = "/".join([config.get_property_value(config.ARTANIS_REDIS_URL, None), '0'])
         ka_options = {
             socket.TCP_KEEPIDLE: 10,
             socket.TCP_KEEPINTVL: 5,
@@ -51,6 +55,10 @@ class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
             if base is not ListQueueBroker:
                 base.__init__(self, *args, **kwargs)  # type: ignore
         self.set_configuration(config)
+
+    @staticmethod
+    def supervisor_enabled(config: Configuration):
+        return config.get_property_value(config.ARTANIS_SPV_ENABLED, "false").lower() == "true"
 
     def do_configure(self):
         super(ArtanisTaskBroker, self).do_configure()

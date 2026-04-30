@@ -47,6 +47,8 @@ class SchedulerWorkerFactory(WorkerFactory):
             with asyncio.Runner(debug=False, loop_factory=loop) as runner:
                 runner.run(run_scheduler(parsed, shutdown_trigger=shutdown_trigger))
 
+            parent.stop()
+
         thread = threading.Thread(target=threaded_scheduler)
         thread.start()
 

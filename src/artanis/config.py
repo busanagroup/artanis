@@ -14,13 +14,13 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-
 import io
 import logging
 import os
 import pathlib
 import re
 import uuid
+import hashlib
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -103,8 +103,14 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_TASK_ENABLED: str = 'artanis.task.enabled'
     ARTANIS_TASK_INSTANCES: str = 'artanis.task.instances'
     ARTANIS_TASK_MAXTASK: str = 'artanis.task.maxtask'
-    ARTANIS_SPV_ENABLED: str = 'artanis.supervisor.enabled'
     ARTANIS_LTASK_ENABLED: str = 'artanis.ltask.enabled'
+
+    ARTANIS_SPV_ENABLED: str = 'artanis.supervisor.enabled'
+    ARTANIS_SPV_BIND_TYPE: str = 'artanis.supervisor.bindtype',
+    ARTANIS_SPV_BIND: str = 'artanis.supervisor.bind',
+    ARTANIS_SPV_MASTER: str = 'artanis.supervisor.master',
+    ARTANIS_SPV_SECURITY: str = 'artanis.supervisor.security',
+    ARTANIS_SPV_SECURITY_HASH: str = 'artanis.supervisor.security.hash'
 
     ARTANIS_STATIC_ENABLED: str = 'artanis.static.enabled'
     ARTANIS_STATIC_BINDTYPE: str = 'artanis.static.bindtype'
@@ -112,11 +118,12 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_STATIC_INSTANCES: str = 'artanis.static.instances'
 
     ARTANIS_REDIS_URL: str = 'artanis.redis.url'
-    ARTANIS_LOG_PATH: str = 'artanis.log.filename'
+    ARTANIS_LOG_PATH: str = 'artanis.log.path'
     ARTANIS_LOG_FORMAT: str = 'artanis.log.format'
     ARTANIS_LOG_LEVEL: str = 'artanis.log.level'
     ARTANIS_ENV_PATH: str = 'artanis.env.path'
     ARTANIS_TMP_PATH: str = 'artanis.tmp.path'
+    ARTANIS_DATA_PATH: str = 'artanis.data.path'
 
     ARTANIS_DB_CONNECTION: str = 'artanis.db.connection'
     ARTANIS_DB_SCHEMA: str = 'artanis.db.schema'
@@ -211,15 +218,20 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_LTASK_ENABLED: 'true',
 
             self.ARTANIS_SPV_ENABLED: 'true',
+            self.ARTANIS_SPV_BIND_TYPE: 'tcp',
+            self.ARTANIS_SPV_BIND: '0.0.0.0:8090',
+            self.ARTANIS_SPV_MASTER: '0.0.0.0:8090',
+            self.ARTANIS_SPV_SECURITY: 'ARTANIS',
 
             self.ARTANIS_REDIS_URL: 'redis://127.0.0.1:6379',
 
             self.ARTANIS_ENV_PATH: path,
             self.ARTANIS_TMP_PATH: '{}/tmp'.format(path),
+            self.ARTANIS_DATA_PATH: '{}/data'.format(path),
 
             self.ARTANIS_LOG_LEVEL: 'INFO',
             self.ARTANIS_LOG_FORMAT: '[%(asctime)s][%(name)s][%(levelname)-7s][%(process)d] %(message)s',
-            self.ARTANIS_LOG_PATH: '{}/log/artanis'.format(path),
+            self.ARTANIS_LOG_PATH: '{}/log'.format(path),
 
             self.ARTANIS_DB_CONNECTION: "postgresql+asyncpg://postgres:masterkey@10.0.3.102/template1",
             self.ARTANIS_DB_SCHEMA: '',
@@ -236,10 +248,12 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.JWT_ACCESS_COOKIE_KEY : "access_token",
             self.JWT_REFRESH_COOKIE_KEY : "refresh_token",
         }
+        hash = hashlib.sha1(values[self.ARTANIS_SPV_SECURITY].encode(), usedforsecurity=True).hexdigest()
+        values[self.ARTANIS_SPV_SECURITY_HASH] = hash
         return values
 
     def configure_logging(self, subsys_name: str = None, subsys_index: int = None):
-        file_name = self.get_property_value(self.ARTANIS_LOG_PATH)
+        file_name = "/".join([self.get_property_value(self.ARTANIS_LOG_PATH), "artanis"])
         if subsys_name is not None:
             file_name += f"-{subsys_name}"
         if subsys_index is not None:

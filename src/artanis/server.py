@@ -21,6 +21,8 @@ from multiprocessing.connection import wait
 from multiprocessing.synchronize import Event as EventType
 from typing import Any
 
+from tenacity import sleep
+
 from artanis.abc.startable import LifeCycleManager
 from artanis.abc.subsys import Subsystem
 from artanis.subsys import __all__ as subsys_classes
@@ -28,7 +30,6 @@ from artanis.utils import write_pid_file
 
 
 class Artanis(LifeCycleManager):
-
     pid_path: str
 
     def __init__(self, config=None):
@@ -51,7 +52,6 @@ class Artanis(LifeCycleManager):
         subsys_objects: list = self.get_objects()
         for subsys in subsys_objects:
             subsys.register_factory(self)
-
 
     def daemonize(self):
         active = True
@@ -93,6 +93,15 @@ class Artanis(LifeCycleManager):
             process_count = factory.get_processes(processes)
             for index in range(factory.get_process_count() - process_count):
                 factory.create_worker(processes, self.app_context, shutdown_event, index)
+                if factory.should_be_waited():
+                    while True:
+                        process_passed = factory.process_passed()
+                        if process_passed == 0:
+                            sleep(0.1)
+                        elif process_passed == 1:
+                            break
+                        elif process_passed == 9:
+                            raise factory.get_last_exception()
 
     def _join_exited(self, processes: list) -> int:
         exitcode = 0
