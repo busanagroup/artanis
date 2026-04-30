@@ -460,17 +460,18 @@ class ASGIEndPoint(ControllerABC):
             raise exceptions.NotFoundException(
                 path=klass_scope.get("root_path", "") + klass_scope.get("path"), params=klass_scope.get("path_params")
             )
+        child_scope = types.Scope({})
         if klass:
             if klass.__name__ in self.__instances:
                 instance = self.__instances[klass.__name__]
             else:
                 instance = klass(config=config)
                 self.__instances[klass.__name__] = instance
-            chile_scope= dict(module_instance=instance)
+            child_scope.update(dict(module_instance=instance))
         for route in self.published_methods:
             match = route.match(klass_scope)
             if match == BaseRoute.Match.full:
-                route_scope = types.Scope({**klass_scope, **route.route_scope(klass_scope), **chile_scope})
+                route_scope = types.Scope({**klass_scope, **route.route_scope(klass_scope), **child_scope})
                 route._build(self.parent)
                 return route, route_scope
             elif match == route.Match.partial:
