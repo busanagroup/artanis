@@ -94,7 +94,8 @@ class ControllerABC(Configurable):
             *args,
             func_path: str | None = None,
             **kwargs):
-        super().__init__(*args, **kwargs)
+        config = kwargs.pop("config", None) or Configuration.get_default_instance(create_instance=False)
+        super().__init__(*args, config=config, **kwargs)
         for descriptor in self.published_methods:
             if ((func_path is None) or
                     (descriptor.path.match(func_path).match in (

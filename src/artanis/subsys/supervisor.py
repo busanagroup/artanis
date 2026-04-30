@@ -56,7 +56,7 @@ class SupervisorFactory(WorkerFactory):
                 try:
                     shutdown_trigger()
                 finally:
-                    sleep(0.2)
+                    sleep(0.5)
                     redis_cmp.shutdown(save=True, force=True)
                     parent: Startable = self.get_parent()
                     parent.stop()
