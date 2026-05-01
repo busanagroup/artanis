@@ -40,12 +40,12 @@ class LimitOffsetResponse(PaginatedResponse[R]):
     default_limit = 10
 
     def __init__(
-        self,
-        schema: R,
-        offset: int | str | None = None,
-        limit: int | str | None = None,
-        count: bool | None = True,
-        **kwargs,
+            self,
+            schema: R,
+            offset: int | str | None = None,
+            limit: int | str | None = None,
+            count: bool | None = True,
+            **kwargs,
     ):
         self.offset = int(offset) if offset is not None else 0
         self.limit = int(limit) if limit is not None else self.default_limit
@@ -78,15 +78,15 @@ class LimitOffsetPaginator(BasePaginator):
 
     @classmethod
     def _decorate_async(
-        cls, func: t.Callable[P, t.Coroutine[R, t.Any, t.Any]], schema: t.Any
+            cls, func: t.Callable[P, t.Coroutine[R, t.Any, t.Any]], schema: t.Any
     ) -> t.Callable[P, t.Coroutine[LimitOffsetResponse[R], t.Any, t.Any]]:
         @functools.wraps(func)
         async def decorator(
-            *args,
-            limit: int | None = None,
-            offset: int | None = None,
-            count: bool | None = False,
-            **kwargs,
+                *args,
+                limit: int | None = None,
+                offset: int | None = None,
+                count: bool | None = False,
+                **kwargs,
         ):
             return LimitOffsetResponse(
                 schema=schema, limit=limit, offset=offset, count=count, content=await func(*args, **kwargs)
@@ -98,11 +98,11 @@ class LimitOffsetPaginator(BasePaginator):
     def _decorate_sync(cls, func: t.Callable[P, R], schema: t.Any) -> t.Callable[P, LimitOffsetResponse[R]]:
         @functools.wraps(func)
         def decorator(
-            *args,
-            limit: int | None = None,
-            offset: int | None = None,
-            count: bool | None = False,
-            **kwargs,
+                *args,
+                limit: int | None = None,
+                offset: int | None = None,
+                count: bool | None = False,
+                **kwargs,
         ):
             return LimitOffsetResponse(
                 schema=schema, limit=limit, offset=offset, count=count, content=func(*args, **kwargs)
@@ -112,7 +112,7 @@ class LimitOffsetPaginator(BasePaginator):
 
     @classmethod
     def wraps(
-        cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature
+            cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature
     ) -> tuple[t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], dict[str, t.Any]]:
         """
         Decorator for adding pagination behavior to a view. That decorator produces a view based on limit-offset and

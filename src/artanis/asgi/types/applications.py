@@ -20,7 +20,6 @@ if t.TYPE_CHECKING:
     from artanis.asgi.asgibase import BaseASGIService
     from artanis.asgi.routing import Router
 
-
 __all__ = ["AppStatus", "is_asgi_instance", "is_router_instance"]
 
 

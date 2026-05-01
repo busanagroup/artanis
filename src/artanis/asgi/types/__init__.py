@@ -14,6 +14,7 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from artanis.asgi.types.applications import *
+from artanis.asgi.types.artanis import *
 from artanis.asgi.types.asgi import *
 from artanis.asgi.types.config import *
 from artanis.asgi.types.endpoints import *
@@ -24,4 +25,3 @@ from artanis.asgi.types.pagination import *
 from artanis.asgi.types.schemas import *
 from artanis.asgi.types.serialize import *
 from artanis.asgi.types.websockets import *
-from artanis.asgi.types.artanis import *

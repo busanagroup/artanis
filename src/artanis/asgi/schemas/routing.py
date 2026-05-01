@@ -31,7 +31,7 @@ __all__ = ["ParametersDescriptor"]
 class ParametersDescriptor:
     def __init__(self, route: "BaseRoute") -> None:
         self._route = route
-        self._parent_app: BaseASGIService  | None = None
+        self._parent_app: BaseASGIService | None = None
 
     @property
     def _app(self) -> "BaseASGIService":
@@ -91,7 +91,7 @@ class ParametersDescriptor:
                     Parameter.build("body", p)
                     for p in parameters
                     if (types.is_schema(p.annotation) or t.get_origin(p.annotation) == list)
-                    and p.name not in self._route.path.parameters
+                       and p.name not in self._route.path.parameters
                 ),
                 None,
             )

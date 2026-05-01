@@ -61,8 +61,9 @@ class BaseErrorMiddleware:
 
     @abc.abstractmethod
     async def process_exception(
-        self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception, response_started: bool
-    ) -> None: ...
+            self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception, response_started: bool
+    ) -> None:
+        ...
 
 
 class ServerErrorMiddleware(BaseErrorMiddleware):
@@ -73,7 +74,7 @@ class ServerErrorMiddleware(BaseErrorMiddleware):
         return self.noop_handler
 
     async def process_exception(
-        self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception, response_started: bool
+            self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception, response_started: bool
     ) -> None:
         logger.exception("Unhandled exception '%s' for scope %s", exc, scope)
 
@@ -91,7 +92,7 @@ class ServerErrorMiddleware(BaseErrorMiddleware):
         raise exc
 
     def debug_handler(
-        self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception
+            self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception
     ) -> http.Response:
         request = http.Request(scope)
         accept = request.headers.get("accept", "")
@@ -103,11 +104,12 @@ class ServerErrorMiddleware(BaseErrorMiddleware):
         return http.PlainTextResponse("Internal Server Error", status_code=500)
 
     def error_handler(
-        self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception
+            self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception
     ) -> http.Response:
         return http.PlainTextResponse("Internal Server Error", status_code=500)
 
-    def noop_handler(self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception) -> None: ...
+    def noop_handler(self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception) -> None:
+        ...
 
 
 class ExceptionMiddleware(BaseErrorMiddleware):
@@ -126,10 +128,10 @@ class ExceptionMiddleware(BaseErrorMiddleware):
         }
 
     def add_exception_handler(
-        self,
-        handler: "Handler",
-        status_code: int | None = None,
-        exc_class: type[Exception] | None = None,
+            self,
+            handler: "Handler",
+            status_code: int | None = None,
+            exc_class: type[Exception] | None = None,
     ) -> None:
         if status_code is None and exc_class is None:
             raise ValueError("Status code or exception class must be defined")
@@ -152,7 +154,7 @@ class ExceptionMiddleware(BaseErrorMiddleware):
                 raise exc
 
     async def process_exception(
-        self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception, response_started: bool
+            self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception, response_started: bool
     ) -> None:
         logger.debug("Handled exception '%s' for scope %s", exc, scope, exc_info=True)
 
@@ -169,7 +171,7 @@ class ExceptionMiddleware(BaseErrorMiddleware):
             await response(scope, receive, send)
 
     def http_exception_handler(
-        self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: exceptions.HTTPException
+            self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: exceptions.HTTPException
     ) -> http.Response:
         if exc.status_code in {204, 304}:
             return http.Response(status_code=exc.status_code, headers=exc.headers)
@@ -187,13 +189,13 @@ class ExceptionMiddleware(BaseErrorMiddleware):
         return http.APIErrorResponse(detail=exc.detail, status_code=exc.status_code, exception=exc)
 
     async def websocket_exception_handler(
-        self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: exceptions.WebSocketException
+            self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: exceptions.WebSocketException
     ) -> None:
         websocket = websockets.WebSocket(scope, receive=receive, send=send)
         await websocket.close(code=exc.code, reason=exc.reason)
 
     async def not_found_handler(
-        self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: exceptions.NotFoundException
+            self, scope: types.Scope, receive: types.Receive, send: types.Send, exc: exceptions.NotFoundException
     ) -> http.Response | None:
         if scope.get("type", "") == "websocket":
             await self.websocket_exception_handler(scope, receive, send, exc=exceptions.WebSocketException(1000))
@@ -205,11 +207,11 @@ class ExceptionMiddleware(BaseErrorMiddleware):
         return http.PlainTextResponse("Not Found", status_code=404)
 
     async def method_not_allowed_handler(
-        self,
-        scope: types.Scope,
-        receive: types.Receive,
-        send: types.Send,
-        exc: exceptions.MethodNotAllowedException,
+            self,
+            scope: types.Scope,
+            receive: types.Receive,
+            send: types.Send,
+            exc: exceptions.MethodNotAllowedException,
     ) -> http.Response | None:
         if scope.get("type", "") == "websocket":
             await self.websocket_exception_handler(scope, receive, send, exc=exceptions.WebSocketException(1000))

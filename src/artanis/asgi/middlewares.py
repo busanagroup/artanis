@@ -46,11 +46,13 @@ __all__ = [
 try:
     import starlette.middleware.sessions
 
+
     class SessionMiddleware(starlette.middleware.sessions.SessionMiddleware):
         def __init__(self, app: types.App, *args, **kwargs):
             super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-        async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
+        async def __call__(self, scope: types.Scope, receive: types.Receive,
+                           send: types.Send) -> None:  # type: ignore[overrid]
             return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 except ModuleNotFoundError:
@@ -61,7 +63,8 @@ class BaseHTTPMiddleware(starlette.middleware.base.BaseHTTPMiddleware):
     def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive,
+                       send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
@@ -69,7 +72,8 @@ class CORSMiddleware(starlette.middleware.cors.CORSMiddleware):
     def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive,
+                       send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
@@ -77,7 +81,8 @@ class GZipMiddleware(starlette.middleware.gzip.GZipMiddleware):
     def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive,
+                       send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
@@ -85,7 +90,8 @@ class HTTPSRedirectMiddleware(starlette.middleware.httpsredirect.HTTPSRedirectMi
     def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive,
+                       send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
@@ -93,7 +99,8 @@ class TrustedHostMiddleware(starlette.middleware.trustedhost.TrustedHostMiddlewa
     def __init__(self, app: types.App, *args, **kwargs):
         super().__init__(app, *args, **kwargs)  # type: ignore[arg-type]
 
-    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:  # type: ignore[overrid]
+    async def __call__(self, scope: types.Scope, receive: types.Receive,
+                       send: types.Send) -> None:  # type: ignore[overrid]
         return await super().__call__(scope, receive, send)  # type: ignore[assignment]
 
 
@@ -127,7 +134,7 @@ class MiddlewareStack:
 
     @property
     def stack(
-        self,
+            self,
     ) -> types.MiddlewareClass | types.App | None:
         if self._stack is None:
             self._stack = functools.reduce(
@@ -147,7 +154,7 @@ class MiddlewareStack:
         self._stack = None
 
     def add_exception_handler(
-        self, key: int | type[Exception], handler: t.Callable[[Request, Exception], Response]
+            self, key: int | type[Exception], handler: t.Callable[[Request, Exception], Response]
     ):
         """Adds a new handler for an exception type or a HTTP status code.
 

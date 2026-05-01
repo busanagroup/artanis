@@ -23,7 +23,6 @@ from artanis.injection.resolver import Parameter as InjectionParameter
 
 __all__ = ["Field", "Schema", "Parameter", "Parameters"]
 
-
 UNKNOWN = t.TypeVar("UNKNOWN")
 
 
@@ -87,14 +86,14 @@ class Field:
         NoneType = type(None)
 
         return (
-            (type_ in types.PARAMETERS_TYPES)
-            or (
-                origin in (t.Union, UnionType)
-                and len(args) == 2
-                and args[0] in types.PARAMETERS_TYPES
-                and args[1] is NoneType
-            )
-            or (origin is list and args[0] in types.PARAMETERS_TYPES)
+                (type_ in types.PARAMETERS_TYPES)
+                or (
+                        origin in (t.Union, UnionType)
+                        and len(args) == 2
+                        and args[0] in types.PARAMETERS_TYPES
+                        and args[1] is NoneType
+                )
+                or (origin is list and args[0] in types.PARAMETERS_TYPES)
         )
 
     @property
@@ -127,11 +126,11 @@ class Schema:
 
     @classmethod
     def build(
-        cls,
-        name: str | None = None,
-        module: str | None = None,
-        schema: t.Any = None,
-        fields: list[Field] | None = None,
+            cls,
+            name: str | None = None,
+            module: str | None = None,
+            schema: t.Any = None,
+            fields: list[Field] | None = None,
     ) -> "Schema":
         return cls(
             schema=schemas.adapter.build_schema(
@@ -205,13 +204,16 @@ class Schema:
         return []
 
     @t.overload
-    def validate(self, values: None, *, partial: bool = False) -> dict[str, t.Any]: ...
+    def validate(self, values: None, *, partial: bool = False) -> dict[str, t.Any]:
+        ...
 
     @t.overload
-    def validate(self, values: dict[str, t.Any], *, partial: bool = False) -> dict[str, t.Any]: ...
+    def validate(self, values: dict[str, t.Any], *, partial: bool = False) -> dict[str, t.Any]:
+        ...
 
     @t.overload
-    def validate(self, values: list[dict[str, t.Any]], *, partial: bool = False) -> list[dict[str, t.Any]]: ...
+    def validate(self, values: list[dict[str, t.Any]], *, partial: bool = False) -> list[dict[str, t.Any]]:
+        ...
 
     def validate(self, values: dict[str, t.Any] | list[dict[str, t.Any]] | None, *, partial=False):
         if isinstance(values, list | tuple):
@@ -220,10 +222,12 @@ class Schema:
         return schemas.adapter.validate(self.schema, values or {}, partial=partial)
 
     @t.overload
-    def load(self, values: dict[str, t.Any]) -> t.Any: ...
+    def load(self, values: dict[str, t.Any]) -> t.Any:
+        ...
 
     @t.overload
-    def load(self, values: list[dict[str, t.Any]]) -> list[t.Any]: ...
+    def load(self, values: list[dict[str, t.Any]]) -> list[t.Any]:
+        ...
 
     def load(self, values):
         if isinstance(values, list | tuple):
@@ -232,10 +236,12 @@ class Schema:
         return schemas.adapter.load(self.schema, values)
 
     @t.overload
-    def dump(self, values: dict[str, t.Any]) -> dict[str, t.Any]: ...
+    def dump(self, values: dict[str, t.Any]) -> dict[str, t.Any]:
+        ...
 
     @t.overload
-    def dump(self, values: list[dict[str, t.Any]]) -> list[dict[str, t.Any]]: ...
+    def dump(self, values: list[dict[str, t.Any]]) -> list[dict[str, t.Any]]:
+        ...
 
     def dump(self, values):
         if isinstance(values, list | tuple):

@@ -30,12 +30,12 @@ logger = logging.getLogger(__name__)
 
 class Mount(BaseRoute):
     def __init__(
-        self,
-        path: str | url.Path,
-        app: types.App,
-        *,
-        name: str | None = None,
-        tags: dict[str, t.Any] | None = None,
+            self,
+            path: str | url.Path,
+            app: types.App,
+            *,
+            name: str | None = None,
+            tags: dict[str, t.Any] | None = None,
     ):
         """A mount point for adding a nested ASGI application or a list of routes.
 
@@ -48,7 +48,7 @@ class Mount(BaseRoute):
 
     async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
         if scope["type"] in ("http", "websocket") or (
-            scope["type"] == "lifespan" and types.is_asgi_instance(self.app)
+                scope["type"] == "lifespan" and types.is_asgi_instance(self.app)
         ):
             await self.handle(types.Scope({**scope, **self.route_scope(scope)}), receive, send)
 

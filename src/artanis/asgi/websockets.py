@@ -56,6 +56,6 @@ class WebSocket(starlette.websockets.WebSocket):
 
 class Close(starlette.websockets.WebSocketClose):
     async def __call__(  # type: ignore[override]
-        self, scope: "types.Scope", receive: "types.Receive", send: "types.Send"
+            self, scope: "types.Scope", receive: "types.Receive", send: "types.Send"
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]

@@ -16,13 +16,14 @@
 from importlib import import_module
 from typing import Callable, Any, Sequence
 
-from starlette.authentication import AuthCredentials
+from starlette.authentication import AuthCredentials, BaseUser, UnauthenticatedUser
 
 from artanis.asgi.types import Scope
 from artanis.exceptions import HTTPException
 
 
 class AccessValidator:
+    allow_unauthenticated_access: bool = True
 
     async def validate(
             self,
@@ -40,6 +41,9 @@ class AccessValidator:
             required_permissions: Sequence[str]
     ) -> bool:
         credentials: AuthCredentials | None = scope.get("auth")
+        user: BaseUser | Any = scope.get("user")
+        if required_permissions and isinstance(user, UnauthenticatedUser):
+            return False
         for scope in required_permissions:
             if scope not in credentials.scopes:
                 return False
@@ -58,7 +62,12 @@ class AccessValidator:
         return self.sqlentity.get_entity(tbname)
 
 
+class MiscAccessValidator(AccessValidator):
+    allow_unauthenticated_access: bool = False
+
+
 class APIAccessValidator(AccessValidator):
+    allow_unauthenticated_access = False
 
     async def check_api_auth(self, usrname: str, svcname: str, fncname: str) -> bool:
         efurob = self.get_entity('efurob')
@@ -90,6 +99,7 @@ class APIAccessValidator(AccessValidator):
 
 
 class MVCAccessValidator(AccessValidator):
+    allow_unauthenticated_access = False
 
     async def validate_access(self, usrname: str, objname: str, acctype: str) -> bool:
         efumob = self.get_entity('efumob')

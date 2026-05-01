@@ -16,7 +16,6 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import asyncio
 import logging
-import uuid
 
 from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.auth import AccessTokenComponent, RefreshTokenComponent, AuthenticationMiddleware

@@ -19,7 +19,6 @@ import typing as t
 if t.TYPE_CHECKING:
     pass
 
-
 Input = t.TypeVar("Input")
 Output = t.TypeVar("Output")
 

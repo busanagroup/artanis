@@ -56,7 +56,7 @@ class RequestDataComponent(Component):
 
 class ValidatePathParamsComponent(Component):
     async def resolve(
-        self, request: http.Request, route: routing.BaseRoute, path_params: types.PathParams
+            self, request: http.Request, route: routing.BaseRoute, path_params: types.PathParams
     ) -> ValidatedPathParams:
         fields = [f.field for f in route.parameters.path[request.method].values()]
 
@@ -69,7 +69,7 @@ class ValidatePathParamsComponent(Component):
 
 class ValidateQueryParamsComponent(Component):
     def resolve(
-        self, request: http.Request, route: routing.BaseRoute, query_params: types.QueryParams
+            self, request: http.Request, route: routing.BaseRoute, query_params: types.QueryParams
     ) -> ValidatedQueryParams:
         fields = [f.field for f in route.parameters.query[request.method].values()]
 

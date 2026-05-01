@@ -330,13 +330,13 @@ class OpenAPISpec:
     OPENAPI_VERSION = "3.1.0"
 
     def __init__(
-        self,
-        info: Info,
-        *,
-        servers: list[Server] | None = None,
-        security: list[Security] | None = None,
-        tags: list[Tag] | None = None,
-        externalDocs: ExternalDocs | None = None,
+            self,
+            info: Info,
+            *,
+            servers: list[Server] | None = None,
+            security: list[Security] | None = None,
+            tags: list[Tag] | None = None,
+            externalDocs: ExternalDocs | None = None,
     ):
         self.spec = OpenAPI(
             openapi=self.OPENAPI_VERSION,

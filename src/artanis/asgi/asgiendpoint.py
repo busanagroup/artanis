@@ -20,6 +20,7 @@ from pathlib import PurePosixPath
 from typing import Callable
 
 from lru import LRU as LRUDict
+from starlette.authentication import UnauthenticatedUser
 
 from artanis import exceptions, concurrency
 from artanis.abc.configurable import Configurable
@@ -27,6 +28,7 @@ from artanis.abc.service import StartableService
 from artanis.abc.startable import StartableListener
 from artanis.asgi import url, types, endpoints, routing
 from artanis.asgi.auth.validator import AccessValidator
+from artanis.asgi.http import APIErrorResponse
 from artanis.asgi.routing import BaseRoute, Route
 from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
 from artanis.asgi.schemas.modules import SchemaModule
@@ -384,8 +386,8 @@ class ASGIEndPoint(ControllerABC):
     def resolve_route(self, scope: types.Scope) -> tuple[BaseRoute, types.Scope]:
         klass: type[ControllerABC] | None = None
         child_scope: types.Scope = types.Scope({})
-        child_scope['access_validator'] = self.access_validator
         config = self.get_configuration()
+        child_scope['access_validator'] = self.access_validator
 
         partial_allowed_methods: set[str] = set()
         partial = None
@@ -403,6 +405,16 @@ class ASGIEndPoint(ControllerABC):
             raise exceptions.MethodNotAllowedException(
                 route_scope.get("root_path", "") + route_scope["path"], route_scope["method"], partial_allowed_methods
             )
+
+        # reduce brute-force attack risk here by checking access validator before loading classes
+        validator: AccessValidator = self.access_validator
+        if validator and (not validator.allow_unauthenticated_access):
+            user = scope.get('user', None)
+            if not user or isinstance(user, UnauthenticatedUser):
+                raise exceptions.HTTPException(
+                    status_code=403,
+                    detail="Insufficient permissions")
+
         if not self.all_classes:
             klass_scope = types.Scope({**scope, **child_scope})
         else:

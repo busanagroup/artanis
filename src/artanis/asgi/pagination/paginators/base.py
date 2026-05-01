@@ -35,7 +35,7 @@ class BasePaginator(abc.ABC):
 
     @classmethod
     def _decorate(
-        cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature, schema: t.Any
+            cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature, schema: t.Any
     ) -> t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]]:
         if "kwargs" not in signature.parameters:
             raise TypeError("Paginated views must define **kwargs param")
@@ -57,7 +57,7 @@ class BasePaginator(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def _decorate_async(
-        cls, func: t.Callable[P, t.Coroutine[R, t.Any, t.Any]], schema: t.Any
+            cls, func: t.Callable[P, t.Coroutine[R, t.Any, t.Any]], schema: t.Any
     ) -> t.Callable[P, t.Coroutine[R, t.Any, t.Any]]: ...
 
     @classmethod
@@ -67,7 +67,7 @@ class BasePaginator(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def wraps(
-        cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature
+            cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature
     ) -> tuple[t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], dict[str, t.Any]]:
         """
         Decorator for adding pagination behavior to a view.

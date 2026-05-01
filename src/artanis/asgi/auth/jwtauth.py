@@ -46,7 +46,7 @@ class JWTAuthBackend(AuthenticationBackend):
                 user=ArtanisUser(user_name, token.payload.data),
                 auth=AuthCredentials(["access:secure"]),
             )
-        except HTTPException:
+        except HTTPException as e:
             try:
                 token: auth.APIKeyToken = await app.injector.value(
                     auth.APIKeyToken, {"request": Request(scope, receive=receive)}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2026 Busana Apparel Group. All rights reserved.
@@ -24,45 +24,56 @@ async def bad_request(scope: types.Scope, receive: types.Receive, send: types.Se
     from .http_400 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=400)
 
+
 async def unauthorized(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_401 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=401)
+
 
 async def forbidden(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_403 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=403)
 
+
 async def not_found(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_404 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=404)
+
 
 async def method_not_allowed(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_405 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=405)
 
+
 async def request_time_out(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_408 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=408)
+
 
 async def server_error(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_500 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=500)
 
+
 async def not_implemented(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_501 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=501)
+
 
 async def bad_gateway(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_502 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=502)
 
+
 async def service_unavailable(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_503 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=503)
 
+
 async def gateway_timeout(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_504 import HTML_PAGE
     return HTMLResponse(content=HTML_PAGE, status_code=504)
+
 
 async def http_version_not_supported(scope: types.Scope, receive: types.Receive, send: types.Send, exc: Exception):
     from .http_505 import HTML_PAGE

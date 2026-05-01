@@ -20,7 +20,7 @@ from artanis.asgi.services.authendpoint import AuthEndPoint
 class AuthAppService(ASGIService):
 
     def configure_services(self, config):
-        AuthEndPoint.register(self,config)
+        AuthEndPoint.register(self, config)
 
 
 app = AuthAppService.get_default_instance()

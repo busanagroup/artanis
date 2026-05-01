@@ -24,7 +24,7 @@ from artanis.asgi.services.staticendpoint import StaticEndPoint
 class DevelAppService(ASGIService):
 
     def configure_services(self, config):
-        AuthEndPoint.register(self,config)
+        AuthEndPoint.register(self, config)
         MVCEndPoint.register(self, config)
         MiscEndPoint.register(self, config)
         StaticEndPoint.register(self, config)

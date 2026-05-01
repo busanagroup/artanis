@@ -14,5 +14,5 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from artanis.asgi.codecs.base import *
-from artanis.asgi.codecs.http import *  
+from artanis.asgi.codecs.http import *
 from artanis.asgi.codecs.websockets import *

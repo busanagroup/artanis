@@ -13,7 +13,6 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import secrets
-import hashlib
 import typing as t
 from datetime import datetime, timedelta, UTC
 from importlib import import_module
@@ -108,9 +107,11 @@ class AuthenticationHandler:
         )
         return jwt_token.encode(self.secret_key).decode()
 
-    async def save_api_key(self, usrname: str, passwd: str, api_key: str, replace_existing: bool = False, auto_commit: bool = True) -> t.Any:
+    async def save_api_key(self, usrname: str, passwd: str, api_key: str, replace_existing: bool = False,
+                           auto_commit: bool = True) -> t.Any:
         efusrs = self.get_entity('efusrs')
-        return await efusrs.save_api_key(usrname, passwd, api_key, replace_existing=replace_existing, auto_commit=auto_commit)
+        return await efusrs.save_api_key(usrname, passwd, api_key, replace_existing=replace_existing,
+                                         auto_commit=auto_commit)
 
     async def verify_user_auth(self, usrname: str, passwd: str) -> bool:
         efusrs = self.get_entity('efusrs')

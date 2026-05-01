@@ -14,6 +14,7 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
+
 import dataclasses
 import logging
 import typing as t
@@ -67,7 +68,7 @@ class APIKey:
     @classmethod
     async def decode(cls, token: bytes) -> t.Self:
         try:
-            record= await cls.get_user_api_key(token.decode())
+            record = await cls.get_user_api_key(token.decode())
             if not record:
                 raise exceptions.Unauthorized("Invalid API key")
 

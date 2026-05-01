@@ -42,12 +42,12 @@ class PageNumberResponse(PaginatedResponse[R]):
     default_page_size = 10
 
     def __init__(
-        self,
-        schema: R,
-        page: int | str | None = None,
-        page_size: int | str | None = None,
-        count: bool | None = True,
-        **kwargs,
+            self,
+            schema: R,
+            page: int | str | None = None,
+            page_size: int | str | None = None,
+            count: bool | None = True,
+            **kwargs,
     ):
         self.page_number = int(page) if page is not None else 1
         self.page_size = int(page_size) if page_size is not None else self.default_page_size
@@ -85,15 +85,15 @@ class PageNumberPaginator(BasePaginator):
 
     @classmethod
     def _decorate_async(
-        cls, func: t.Callable[P, t.Coroutine[R, t.Any, t.Any]], schema: t.Any
+            cls, func: t.Callable[P, t.Coroutine[R, t.Any, t.Any]], schema: t.Any
     ) -> t.Callable[P, t.Coroutine[PageNumberResponse[R], t.Any, t.Any]]:
         @functools.wraps(func)
         async def decorator(
-            *args,
-            page: int | None = None,
-            page_size: int | None = None,
-            count: bool | None = False,
-            **kwargs,
+                *args,
+                page: int | None = None,
+                page_size: int | None = None,
+                count: bool | None = False,
+                **kwargs,
         ):
             return PageNumberResponse(
                 schema=schema, page=page, page_size=page_size, count=count, content=await func(*args, **kwargs)
@@ -105,11 +105,11 @@ class PageNumberPaginator(BasePaginator):
     def _decorate_sync(cls, func: t.Callable[P, R], schema: t.Any) -> t.Callable[P, PageNumberResponse[R]]:
         @functools.wraps(func)
         def decorator(
-            *args,
-            page: int | None = None,
-            page_size: int | None = None,
-            count: bool | None = False,
-            **kwargs,
+                *args,
+                page: int | None = None,
+                page_size: int | None = None,
+                count: bool | None = False,
+                **kwargs,
         ):
             return PageNumberResponse(
                 schema=schema, page=page, page_size=page_size, count=count, content=func(*args, **kwargs)
@@ -119,7 +119,7 @@ class PageNumberPaginator(BasePaginator):
 
     @classmethod
     def wraps(
-        cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature
+            cls, func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], signature: inspect.Signature
     ) -> tuple[t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]], dict[str, t.Any]]:
         """
         Decorator for adding pagination behavior to a view. That decorator produces a view based on page numbering and

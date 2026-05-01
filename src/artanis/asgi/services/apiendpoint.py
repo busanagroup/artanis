@@ -22,4 +22,3 @@ class APIEndPoint(ASGIEndPoint):
     base_path = "/api"
     openapi_support = True
     access_validator = APIAccessValidator()
-

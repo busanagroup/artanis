@@ -141,7 +141,7 @@ class SchemaRegistry(dict[int, SchemaInfo]):
         return refs
 
     def _get_schema_references_from_operation_callbacks(
-        self, callbacks: dict[str, openapi.Callback | openapi.Reference] | None
+            self, callbacks: dict[str, openapi.Callback | openapi.Reference] | None
     ) -> list[str]:
         refs = []
 
@@ -156,7 +156,7 @@ class SchemaRegistry(dict[int, SchemaInfo]):
         return refs
 
     def _get_schema_references_from_operation_request_body(
-        self, request_body: openapi.RequestBody | openapi.Reference | None
+            self, request_body: openapi.RequestBody | openapi.Reference | None
     ) -> list[str]:
         refs = []
 
@@ -170,7 +170,7 @@ class SchemaRegistry(dict[int, SchemaInfo]):
         return refs
 
     def _get_schema_references_from_operation_parameters(
-        self, parameters: list[openapi.Parameter | openapi.Reference] | None
+            self, parameters: list[openapi.Parameter | openapi.Reference] | None
     ) -> list[str]:
         refs = []
 
@@ -269,7 +269,7 @@ class SchemaGenerator:
         self.schemas = SchemaRegistry(schemas=schemas)
 
     def get_endpoints(  # type: ignore[override]
-        self, routes: list[routing.BaseRoute], base_path: str = ""
+            self, routes: list[routing.BaseRoute], base_path: str = ""
     ) -> dict[str, list[EndpointInfo]]:
         """
         Given the routes, yields the following information:
@@ -300,7 +300,7 @@ class SchemaGenerator:
                             EndpointInfo(
                                 path=path,
                                 method=method.lower(),
-                                docstring= route.endpoint.__doc__ if route.docstring is None else route.docstring,
+                                docstring=route.endpoint.__doc__ if route.docstring is None else route.docstring,
                                 query_parameters=route.parameters.query.get(method, {}),
                                 path_parameters=route.parameters.path.get(method, {}),
                                 body_parameter=route.parameters.body.get(method),
@@ -330,7 +330,7 @@ class SchemaGenerator:
         return endpoints_info
 
     def _build_endpoint_parameters(
-        self, endpoint: EndpointInfo, metadata: dict[str, t.Any]
+            self, endpoint: EndpointInfo, metadata: dict[str, t.Any]
     ) -> list[openapi.Parameter] | None:
         if not endpoint.query_parameters and not endpoint.path_parameters:
             return None

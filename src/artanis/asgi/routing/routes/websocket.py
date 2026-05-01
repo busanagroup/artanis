@@ -74,14 +74,14 @@ class WebSocketEndpointWrapper(BaseWebSocketEndpointWrapper):
 
 class WebSocketRoute(BaseRoute):
     def __init__(
-        self,
-        path: str,
-        endpoint: types.WebSocketHandler,
-        *,
-        name: str | None = None,
-        include_in_schema: bool = True,
-        pagination: types.Pagination | None = None,
-        tags: dict[str, t.Any] | None = None,
+            self,
+            path: str,
+            endpoint: types.WebSocketHandler,
+            *,
+            name: str | None = None,
+            include_in_schema: bool = True,
+            pagination: types.Pagination | None = None,
+            tags: dict[str, t.Any] | None = None,
     ):
         """A route definition of a websocket endpoint.
 

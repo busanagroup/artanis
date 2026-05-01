@@ -37,14 +37,14 @@ Field = marshmallow.fields.Field
 
 class MarshmallowAdapter(Adapter[Schema, Field]):
     def build_field(
-        self,
-        name: str,
-        type_: type,
-        nullable: bool = False,
-        required: bool = True,
-        default: t.Any = None,
-        multiple: bool = False,
-        **kwargs,
+            self,
+            name: str,
+            type_: type,
+            nullable: bool = False,
+            required: bool = True,
+            default: t.Any = None,
+            multiple: bool = False,
+            **kwargs,
     ) -> Field:
         field_args = {
             "required": required,
@@ -64,13 +64,13 @@ class MarshmallowAdapter(Adapter[Schema, Field]):
         return MAPPING[type_](**field_args)
 
     def build_schema(
-        self,
-        *,
-        name: str | None = None,
-        module: str | None = None,
-        schema: Schema | type[Schema] | None = None,
-        fields: dict[str, Field] | None = None,
-        partial: bool = False,
+            self,
+            *,
+            name: str | None = None,
+            module: str | None = None,
+            schema: Schema | type[Schema] | None = None,
+            fields: dict[str, Field] | None = None,
+            partial: bool = False,
     ) -> type[Schema]:
         fields_ = {**(self.unique_schema(schema)().fields if schema else {}), **(fields or {})}
 
@@ -82,7 +82,7 @@ class MarshmallowAdapter(Adapter[Schema, Field]):
         return Schema.from_dict(fields=fields_, name=name or self.DEFAULT_SCHEMA_NAME)  # type: ignore
 
     def validate(
-        self, schema: type[Schema] | Schema, values: dict[str, t.Any], *, partial: bool = False
+            self, schema: type[Schema] | Schema, values: dict[str, t.Any], *, partial: bool = False
     ) -> dict[str, t.Any]:
         try:
             return t.cast(

@@ -94,7 +94,7 @@ class SchemaModule(Module):
         """
         schemas._module.setup(library)
 
-    def add_routes(self, openapi_support: bool= True) -> None:
+    def add_routes(self, openapi_support: bool = True) -> None:
         """Add schema and docs routes."""
         if self.schema_path and openapi_support:
             self.app.add_route(self.schema_path, self.schema_view, methods=["GET"], include_in_schema=False)

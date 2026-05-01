@@ -33,14 +33,14 @@ Field = typesystem.Field
 
 class TypesystemAdapter(Adapter[Schema, Field]):
     def build_field(
-        self,
-        name: str,
-        type_: type,
-        nullable: bool = False,
-        required: bool = True,
-        default: t.Any = None,
-        multiple: bool = False,
-        **kwargs,
+            self,
+            name: str,
+            type_: type,
+            nullable: bool = False,
+            required: bool = True,
+            default: t.Any = None,
+            multiple: bool = False,
+            **kwargs,
     ) -> Field:
         if required is False and default is not Parameter.empty:
             kwargs["default"] = default
@@ -60,13 +60,13 @@ class TypesystemAdapter(Adapter[Schema, Field]):
         return MAPPING[type_](**kwargs)
 
     def build_schema(  # type: ignore[return-value]
-        self,
-        *,
-        name: str | None = None,
-        module: str | None = None,
-        schema: Schema | type[Schema] | None = None,
-        fields: dict[str, Field] | None = None,
-        partial: bool = False,
+            self,
+            *,
+            name: str | None = None,
+            module: str | None = None,
+            schema: Schema | type[Schema] | None = None,
+            fields: dict[str, Field] | None = None,
+            partial: bool = False,
     ) -> Schema:
         fields_ = {**(self.unique_schema(schema).fields if self.is_schema(schema) else {}), **(fields or {})}
 
@@ -149,7 +149,7 @@ class TypesystemAdapter(Adapter[Schema, Field]):
             return None
 
     def schema_fields(
-        self, schema: Schema
+            self, schema: Schema
     ) -> dict[
         str,
         tuple[

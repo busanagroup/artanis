@@ -28,20 +28,20 @@ class Adapter(t.Generic[_T_Schema, _T_Field], metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def build_field(
-        self,
-        name: str,
-        type_: type,
-        nullable: bool = False,
-        required: bool = True,
-        default: t.Any = None,
-        multiple: bool = False,
-        **kwargs: t.Any,
+            self,
+            name: str,
+            type_: type,
+            nullable: bool = False,
+            required: bool = True,
+            default: t.Any = None,
+            multiple: bool = False,
+            **kwargs: t.Any,
     ) -> _T_Field: ...
 
     @t.overload
     @abc.abstractmethod
     def build_schema(
-        self, *, name: str | None = None, module: str | None = None, fields: dict[str, t.Any]
+            self, *, name: str | None = None, module: str | None = None, fields: dict[str, t.Any]
     ) -> t.Any: ...
 
     @t.overload
@@ -51,29 +51,29 @@ class Adapter(t.Generic[_T_Schema, _T_Field], metaclass=abc.ABCMeta):
     @t.overload
     @abc.abstractmethod
     def build_schema(
-        self, *, name: str | None = None, module: str | None = None, schema: t.Any, partial: bool
+            self, *, name: str | None = None, module: str | None = None, schema: t.Any, partial: bool
     ) -> t.Any: ...
 
     @t.overload
     @abc.abstractmethod
     def build_schema(
-        self,
-        *,
-        name: str | None = None,
-        module: str | None = None,
-        schema: t.Any,
-        fields: dict[str, t.Any] | None,
+            self,
+            *,
+            name: str | None = None,
+            module: str | None = None,
+            schema: t.Any,
+            fields: dict[str, t.Any] | None,
     ) -> t.Any: ...
 
     @abc.abstractmethod
     def build_schema(
-        self,
-        *,
-        name: str | None = None,
-        module: str | None = None,
-        schema: t.Any | None = None,
-        fields: dict[str, t.Any] | None = None,
-        partial: bool = False,
+            self,
+            *,
+            name: str | None = None,
+            module: str | None = None,
+            schema: t.Any | None = None,
+            fields: dict[str, t.Any] | None = None,
+            partial: bool = False,
     ) -> t.Any: ...
 
     @abc.abstractmethod

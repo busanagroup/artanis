@@ -13,8 +13,8 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-import typing as t
 import dataclasses
+import typing as t
 from http.cookies import SimpleCookie
 from urllib.parse import parse_qsl
 
@@ -140,10 +140,10 @@ class UserInfoComponent(Component):
         retval = dict(zip(fields, output))
         return types.UserInfo(**retval)
 
+
 class ArtanisUserComponent(Component):
     async def resolve(self, scope: types.Scope) -> ArtanisUser | UnauthenticatedUser:
         return scope["user"] if "user" in scope else UnauthenticatedUser()
-
 
 
 ASGI_COMPONENTS = Components(

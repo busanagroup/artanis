@@ -15,6 +15,5 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 __all__ = ["JSONField", "JSONSchema"]
 
-
 JSONField = str | bool | int | float | None | list["JSONField"] | dict[str, "JSONField"]
 JSONSchema = dict[str, JSONField]

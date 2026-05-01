@@ -32,14 +32,14 @@ Field = FieldInfo
 
 class PydanticAdapter(Adapter[Schema, Field]):
     def build_field(
-        self,
-        name: str,
-        type_: type,
-        nullable: bool = False,
-        required: bool = True,
-        default: t.Any = None,
-        multiple: bool = False,
-        **kwargs,
+            self,
+            name: str,
+            type_: type,
+            nullable: bool = False,
+            required: bool = True,
+            default: t.Any = None,
+            multiple: bool = False,
+            **kwargs,
     ) -> Field:
         if not required:
             kwargs["default"] = None if default is Parameter.empty else default
@@ -60,13 +60,13 @@ class PydanticAdapter(Adapter[Schema, Field]):
         return field
 
     def build_schema(
-        self,
-        *,
-        name: str | None = None,
-        module: str | None = None,
-        schema: Schema | type[Schema] | None = None,
-        fields: dict[str, type[Field]] | None = None,
-        partial: bool = False,
+            self,
+            *,
+            name: str | None = None,
+            module: str | None = None,
+            schema: Schema | type[Schema] | None = None,
+            fields: dict[str, type[Field]] | None = None,
+            partial: bool = False,
     ) -> type[Schema]:
         fields_ = {
             **{
@@ -88,7 +88,7 @@ class PydanticAdapter(Adapter[Schema, Field]):
         )
 
     def validate(
-        self, schema: Schema | type[Schema], values: dict[str, t.Any], *, partial: bool = False
+            self, schema: Schema | type[Schema], values: dict[str, t.Any], *, partial: bool = False
     ) -> dict[str, t.Any]:
         schema_cls = self.unique_schema(schema)
 

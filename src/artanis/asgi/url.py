@@ -127,11 +127,13 @@ class _Fragment(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def regex(self) -> re.Pattern: ...
+    def regex(self) -> re.Pattern:
+        ...
 
     @property
     @abc.abstractmethod
-    def template(self) -> str: ...
+    def template(self) -> str:
+        ...
 
 
 @dataclasses.dataclass

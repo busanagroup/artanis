@@ -18,7 +18,6 @@ import typing as t
 
 __all__ = ["Schema", "SchemaList", "SchemaMetadata", "get_schema_metadata", "is_schema", "is_schema_partial"]
 
-
 Schema: t.TypeAlias = dict[str, t.Any]
 SchemaList: t.TypeAlias = list[Schema]
 

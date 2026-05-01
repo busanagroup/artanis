@@ -24,7 +24,6 @@ from artanis.asgi.auth.jwt.jws import JWS
 
 logger = logging.getLogger(__name__)
 
-
 __all__ = ["JWT", "Header", "Payload"]
 
 VALIDATORS = [
@@ -87,16 +86,16 @@ class Payload:
     jti: str | None = None
 
     def __init__(
-        self,
-        data: dict[str, t.Any] | None = None,
-        iss: str | None = None,
-        sub: str | None = None,
-        aud: str | None = None,
-        exp: int | None = None,
-        nbf: int | None = None,
-        iat: int | None = None,
-        jti: str | None = None,
-        **kwargs: t.Any,
+            self,
+            data: dict[str, t.Any] | None = None,
+            iss: str | None = None,
+            sub: str | None = None,
+            aud: str | None = None,
+            exp: int | None = None,
+            nbf: int | None = None,
+            iat: int | None = None,
+            jti: str | None = None,
+            **kwargs: t.Any,
     ) -> None:
         """Initialize the payload.
 
@@ -156,7 +155,7 @@ class JWT:
     _payload = dataclasses.InitVar[Payload | dict[str, t.Any] | None]
 
     def __init__(
-        self, _header: Header | dict[str, t.Any] | None = None, _payload: Payload | dict[str, t.Any] | None = None
+            self, _header: Header | dict[str, t.Any] | None = None, _payload: Payload | dict[str, t.Any] | None = None
     ) -> None:
         object.__setattr__(self, "header", _header if isinstance(_header, Header) else Header(**(_header or {})))
         object.__setattr__(self, "payload", _payload if isinstance(_payload, Payload) else Payload(**(_payload or {})))

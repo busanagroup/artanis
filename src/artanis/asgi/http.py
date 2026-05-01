@@ -65,7 +65,7 @@ Request = starlette.requests.Request
 
 class Response(starlette.responses.Response):
     async def __call__(  # type: ignore[override]
-        self, scope: types.Scope, receive: types.Receive, send: types.Send
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
@@ -82,25 +82,25 @@ class Response(starlette.responses.Response):
 
     def __eq__(self, value: object, /) -> bool:
         return (
-            isinstance(value, Response)
-            and self.status_code == value.status_code
-            and getattr(self, "media_type") == getattr(value, "media_type")
-            and self.background == value.background
-            and self.body == value.body
-            and self.headers == value.headers
+                isinstance(value, Response)
+                and self.status_code == value.status_code
+                and getattr(self, "media_type") == getattr(value, "media_type")
+                and self.background == value.background
+                and self.body == value.body
+                and self.headers == value.headers
         )
 
 
 class HTMLResponse(starlette.responses.HTMLResponse, Response):
     async def __call__(  # type: ignore[override]
-        self, scope: types.Scope, receive: types.Receive, send: types.Send
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
 
 class PlainTextResponse(starlette.responses.PlainTextResponse, Response):
     async def __call__(  # type: ignore[override]
-        self, scope: types.Scope, receive: types.Receive, send: types.Send
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
@@ -145,7 +145,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 
 class JSONResponse(starlette.responses.JSONResponse, Response):
     async def __call__(  # type: ignore[override]
-        self, scope: types.Scope, receive: types.Receive, send: types.Send
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
@@ -162,21 +162,21 @@ class JSONResponse(starlette.responses.JSONResponse, Response):
 
 class RedirectResponse(starlette.responses.RedirectResponse, Response):
     async def __call__(  # type: ignore[override]
-        self, scope: types.Scope, receive: types.Receive, send: types.Send
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
 
 class StreamingResponse(starlette.responses.StreamingResponse, Response):
     async def __call__(  # type: ignore[override]
-        self, scope: types.Scope, receive: types.Receive, send: types.Send
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
 
 class FileResponse(starlette.responses.FileResponse, Response):
     async def __call__(  # type: ignore[override]
-        self, scope: types.Scope, receive: types.Receive, send: types.Send
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
@@ -203,13 +203,13 @@ class APIResponse(JSONResponse):
 
 class APIErrorResponse(APIResponse):
     def __init__(
-        self,
-        detail: t.Any,
-        status_code: int = 400,
-        exception: Exception | None = None,
-        headers: dict[str, str] | None = None,
-        *args,
-        **kwargs,
+            self,
+            detail: t.Any,
+            status_code: int = 400,
+            exception: Exception | None = None,
+            headers: dict[str, str] | None = None,
+            *args,
+            **kwargs,
     ):
         content = {
             "detail": detail,
@@ -260,17 +260,29 @@ class HTMLTemplatesEnvironment(jinja2.Environment):
         self.filters["safe_json"] = self.safe_json
 
     @t.overload
-    def _escape(self, value: str) -> str: ...
+    def _escape(self, value: str) -> str:
+        ...
+
     @t.overload
-    def _escape(self, value: bool) -> bool: ...
+    def _escape(self, value: bool) -> bool:
+        ...
+
     @t.overload
-    def _escape(self, value: int) -> int: ...
+    def _escape(self, value: int) -> int:
+        ...
+
     @t.overload
-    def _escape(self, value: float) -> float: ...
+    def _escape(self, value: float) -> float:
+        ...
+
     @t.overload
-    def _escape(self, value: None) -> None: ...
+    def _escape(self, value: None) -> None:
+        ...
+
     @t.overload
-    def _escape(self, value: types.JSONField) -> types.JSONField: ...
+    def _escape(self, value: types.JSONField) -> types.JSONField:
+        ...
+
     def _escape(self, value: types.JSONField) -> types.JSONField:
         if isinstance(value, list | tuple):
             return [self._escape(x) for x in value]
@@ -320,7 +332,7 @@ class ArtanisTemplateResponse(HTMLTemplateResponse):
 
 class OpenAPIResponse(starlette.schemas.OpenAPIResponse, Response):
     async def __call__(  # type: ignore[override]
-        self, scope: types.Scope, receive: types.Receive, send: types.Send
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
     ) -> None:
         await super().__call__(scope, receive, send)  # type: ignore[arg-type]
 
@@ -329,6 +341,7 @@ class OpenAPIResponse(starlette.schemas.OpenAPIResponse, Response):
             raise ValueError("The schema must be a dictionary")
 
         return json.dumps(content).encode("utf-8")
+
 
 class ArtanisStaticFiles(starlette.staticfiles.StaticFiles):
     def __init__(self, *args) -> None:
@@ -344,7 +357,3 @@ class ArtanisStaticFiles(starlette.staticfiles.StaticFiles):
 
     def resolve_route(self, scope: types.Scope):
         return self, scope
-
-
-
-    

@@ -70,13 +70,13 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
 
         app_name = config.get_property_value(Configuration.ARTANIS_APP_NAME, '')
         self.openapi = openapi or {
-                "info": {
-                    "title": app_name,
-                    "version": "0.1.0",
-                    "summary": f"{app_name} application",
-                    "description": "The future is ours",
-                },
-            }
+            "info": {
+                "title": app_name,
+                "version": "0.1.0",
+                "summary": f"{app_name} application",
+                "description": "The future is ours",
+            },
+        }
 
         default_modules = [
             ResourcesModule(worker=worker),

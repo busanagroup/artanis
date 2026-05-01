@@ -16,15 +16,19 @@
 from artanis.asgi import http
 from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor
+from artanis.asgi.auth.validator import AccessValidator
 from artanis.asgi.http import ArtanisStaticFiles
 from artanis.config import Configuration
+
 
 class StaticDescriptor(Descriptor):
     default_tags = {}
 
+
 class StaticEndPoint(ASGIEndPoint):
     base_path = "/"
     descriptor = StaticDescriptor
+    access_validator = AccessValidator()
 
     @classmethod
     def register(cls, app: BaseASGIService, config: Configuration):

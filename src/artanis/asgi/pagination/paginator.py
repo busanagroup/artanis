@@ -36,11 +36,11 @@ class Paginator:
         self.schemas: dict[str, t.Any] = {}
 
     def apply(
-        self,
-        pagination: types.Pagination,
-        func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]],
-        *,
-        signature: inspect.Signature | None = None,
+            self,
+            pagination: types.Pagination,
+            func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]],
+            *,
+            signature: inspect.Signature | None = None,
     ) -> t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]]:
         """Apply pagination to a function.
 
@@ -57,7 +57,7 @@ class Paginator:
         return paginated_handler
 
     def paginated(
-        self, pagination: types.Pagination
+            self, pagination: types.Pagination
     ) -> t.Callable[[t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]]], t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]]]:
         def wrapper(func: t.Callable[P, R | t.Coroutine[R, t.Any, t.Any]]):
             return self.apply(pagination, func)
