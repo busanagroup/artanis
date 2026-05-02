@@ -71,12 +71,12 @@ def get_field_list(cls):
 
 
 async def get_field_values(obj, adict, fields=None):
-    adict = await obj.get_field_values(adict, fields) if obj else {key: None for key in adict.keys()}
+    adict = obj.get_field_values(adict, fields) if obj else {key: None for key in adict.keys()}
     return adict
 
 
 async def set_field_values(adict, obj, fields=None):
-    return await obj.set_field_values(adict, fields) if obj else False
+    return obj.set_field_values(adict, fields) if obj else False
 
 
 async def record_exist(self, table_name: str, *args, **kwargs):

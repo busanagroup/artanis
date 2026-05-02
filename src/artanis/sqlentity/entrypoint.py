@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import (
     async_scoped_session,
     async_sessionmaker, AsyncEngine
 )
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from artanis.config import Configuration
 from artanis.sqlentity.sqlapool import AsyncQueuePool
@@ -32,7 +33,7 @@ def create_db_engine(db_url, **kwargs) -> AsyncEngine:
     return create_async_engine(db_url, poolclass=AsyncQueuePool, **kwargs)
 
 def create_db_session(engine: AsyncEngine):
-    return async_sessionmaker(engine, autoflush=False, expire_on_commit=False, autocommit=False)
+    return async_sessionmaker(engine, autoflush=False, expire_on_commit=False, autocommit=False, class_=AsyncSession)
 
 def create_scoped_session(db_session: async_sessionmaker):
     return async_scoped_session(db_session, scopefunc=current_task)
