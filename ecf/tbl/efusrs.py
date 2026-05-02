@@ -14,32 +14,32 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 from ecf.core.ecfutils import get_hash_key
 
 
-class efusrs(Entity):
+class efusrs(Entity, table=True):
     """
     User list
     """
-    efususid = Field(String(24), label='User ID', primary_key=True)
-    efusustp = Field(String(3), label='User Type', index=True)
-    efuspswd = Field(String(64), label='Password')
-    efusfsnm = Field(String(48), label='First Name')
-    efuslsnm = Field(String(48), label='Last Name')
-    efusemad = Field(String(64), label='Email Addr')
-    efusdesc = Field(String(64), label='Description')
-    efuscono = Field(String(3), label='Comp. ID', index=True)
-    efusconm = Field(String(48), label='Comp. ID')
-    efusdvno = Field(String(3), label='Division', index=True)
-    efusdvnm = Field(String(48), label='Division')
-    efusapst = Field(Integer, label='API Enabled')
-    efusapky = Field(String(64), label='API Hash Value', index=True)
-    efusstat = Field(Integer, label='Status')
-    efusaudt = Field(Numeric(8, 0), label='Audit date')
-    efusautm = Field(Numeric(6, 0), label='Audit time')
-    efusauus = Field(String(24), label='Audit user')
+    efususid : str = Field(String(24), label='User ID', primary_key=True)
+    efusustp : str = Field(String(3), label='User Type', index=True)
+    efuspswd : str = Field(String(64), label='Password')
+    efusfsnm : str = Field(String(48), label='First Name')
+    efuslsnm : str = Field(String(48), label='Last Name')
+    efusemad : str = Field(String(64), label='Email Addr')
+    efusdesc : str = Field(String(64), label='Description')
+    efuscono : str = Field(String(3), label='Comp. ID', index=True)
+    efusconm : str = Field(String(48), label='Comp. ID')
+    efusdvno : str = Field(String(3), label='Division', index=True)
+    efusdvnm : str = Field(String(48), label='Division')
+    efusapst : int = Field(Integer, label='API Enabled')
+    efusapky : str = Field(String(64), label='API Hash Value', index=True)
+    efusstat : int = Field(Integer, label='Status')
+    efusaudt : int = Field(Numeric(8, 0), label='Audit date')
+    efusautm : int = Field(Numeric(6, 0), label='Audit time')
+    efusauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     async def get_user_info(cls, user_name: str | None):

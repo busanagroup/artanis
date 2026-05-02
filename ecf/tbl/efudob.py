@@ -14,23 +14,23 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2015 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efudob(Entity):
+class efudob(Entity, table=True):
     """
     User Access DataModule Object
     """
 
-    udmusrnm = Field(String(24), label='User name', primary_key=True)
-    udmobjnm = Field(String(32), label='Object Name', primary_key=True)
-    udmobjsl = Field(Integer, label='Access for select')
-    udmobjin = Field(Integer, label='Access for insert')
-    udmobjup = Field(Integer, label='Access for update')
-    udmobjdl = Field(Integer, label='Access for delete')
-    udmoaudt = Field(Numeric(8, 0), label='Audit date')
-    udmoautm = Field(Numeric(6, 0), label='Audit time')
-    udmoauus = Field(String(24), label='Audit user')
+    udmusrnm : str = Field(String(24), label='User name', primary_key=True)
+    udmobjnm : str = Field(String(32), label='Object Name', primary_key=True)
+    udmobjsl : int = Field(Integer, label='Access for select')
+    udmobjin : int = Field(Integer, label='Access for insert')
+    udmobjup : int = Field(Integer, label='Access for update')
+    udmobjdl : int = Field(Integer, label='Access for delete')
+    udmoaudt : int = Field(Numeric(8, 0), label='Audit date')
+    udmoautm : int = Field(Numeric(6, 0), label='Audit time')
+    udmoauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     def check_access(cls, obj: typing.Any, access_type: str):

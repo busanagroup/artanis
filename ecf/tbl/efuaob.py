@@ -14,16 +14,16 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efuaob(Entity):
+class efuaob(Entity, table=True):
     """User Access API Object"""
-    uaousrnm = Field(String(24), label='User name', primary_key=True)
-    uaoobjnm = Field(String(32), label='API Object name', primary_key=True)
-    uaooaudt = Field(Numeric(8, 0), label='Audit date')
-    uaooautm = Field(Numeric(6, 0), label='Audit time')
-    uaooauus = Field(String(24), label='Audit user')
+    uaousrnm : str = Field(String(24), label='User name', primary_key=True)
+    uaoobjnm : str = Field(String(32), label='API Object name', primary_key=True)
+    uaooaudt : int = Field(Numeric(8, 0), label='Audit date')
+    uaooautm : int = Field(Numeric(6, 0), label='Audit time')
+    uaooauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     async def check_api_obj(cls, user_name: str, obj_name: str) -> bool:

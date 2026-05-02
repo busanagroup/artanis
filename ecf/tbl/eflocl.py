@@ -14,19 +14,19 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class eflocl(Entity):
+class eflocl(Entity, table=True):
     """
     Locale message
     """
-    eflclccd = Field(String(16), primary_key=True, label='Language ID')
-    eflcmdcd = Field(String(32), primary_key=True, label='Module')
-    eflcmsid = Field(String(32), primary_key=True, label='Hash ID')
-    eflcmdtp = Field(Integer, label='Module type')
-    eflcmssr = Field(String(250), label='Message')
-    eflcmsls = Field(String(250), label='Translation')
-    eflcaudt = Field(Numeric(8, 0), label='Audit user')
-    eflcautm = Field(Numeric(6, 0), label='Audit time')
-    eflcauus = Field(String(24), label='Audit user')
+    eflclccd : str = Field(String(16), primary_key=True, label='Language ID')
+    eflcmdcd : str = Field(String(32), primary_key=True, label='Module')
+    eflcmsid : str = Field(String(32), primary_key=True, label='Hash ID')
+    eflcmdtp : int = Field(Integer, label='Module type')
+    eflcmssr : str = Field(String(250), label='Message')
+    eflcmsls : str = Field(String(250), label='Translation')
+    eflcaudt : int = Field(Numeric(8, 0), label='Audit user')
+    eflcautm : int = Field(Numeric(6, 0), label='Audit time')
+    eflcauus : str = Field(String(24), label='Audit user')

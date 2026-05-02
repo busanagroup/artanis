@@ -14,28 +14,28 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2014 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class csyxif(Entity):
+class csyxif(Entity, table=True):
     """
     Internal System Xtended info
     """
-    csyxfoid = Field(String(38), label='Info ID', primary_key=True)
-    csyxtx08 = Field(String(8), label='Value 08')
-    csyxtx16 = Field(String(16), label='Value 16')
-    csyxtx24 = Field(String(24), label='Value 24')
-    csyxtx32 = Field(String(32), label='Value 32')
-    csyxtx48 = Field(String(48), label='Value 48')
-    csyxtx64 = Field(String(64), label='Value 64')
-    csyxtx128 = Field(String(128), label='Value 128')
-    csyxival = Field(Integer, label='Int Value')
-    csyxcval = Field(Numeric(15, 2), label='Curr Value')
-    csyxdval = Field(Numeric(8, 0), label='Date Value')
-    csyxtval = Field(Numeric(6, 0), label='Time Value')
-    csyxdtva = Field(Numeric(14, 0), label='Date Time Value')
-    csyxblob = Field(LargeBinary, label='BLOB Data')
-    csyxclob = Field(TEXT, label='CLOB Data')
-    csyxaudt = Field(Numeric(8, 0), label='Audit date')
-    csyxautm = Field(Numeric(6, 0), label='Audit time')
-    csyxauus = Field(String(24), label='Audit user')
+    csyxfoid : str = Field(String(38), label='Info ID', primary_key=True)
+    csyxtx08 : str = Field(String(8), label='Value 08')
+    csyxtx16 : str = Field(String(16), label='Value 16')
+    csyxtx24 : str = Field(String(24), label='Value 24')
+    csyxtx32 : str = Field(String(32), label='Value 32')
+    csyxtx48 : str = Field(String(48), label='Value 48')
+    csyxtx64 : str = Field(String(64), label='Value 64')
+    csyxtx128 : str = Field(String(128), label='Value 128')
+    csyxival : int = Field(Integer, label='Int Value')
+    csyxcval : int = Field(Numeric(15, 2), label='Curr Value')
+    csyxdval : int = Field(Numeric(8, 0), label='Date Value')
+    csyxtval : int = Field(Numeric(6, 0), label='Time Value')
+    csyxdtva : int = Field(Numeric(14, 0), label='Date Time Value')
+    csyxblob : bytes = Field(LargeBinary, label='BLOB Data')
+    csyxclob : str = Field(TEXT, label='CLOB Data')
+    csyxaudt : int = Field(Numeric(8, 0), label='Audit date')
+    csyxautm : int = Field(Numeric(6, 0), label='Audit time')
+    csyxauus : str = Field(String(24), label='Audit user')

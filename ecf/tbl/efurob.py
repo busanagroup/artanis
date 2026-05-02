@@ -14,20 +14,20 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efurob(Entity):
+class efurob(Entity, table=True):
     """
     User Access RPC Module Object
     """
 
-    urmusrnm = Field(String(24), label='User name', primary_key=True)
-    urmobjnm = Field(String(32), label='Object Name', primary_key=True)
-    urmfncnm = Field(String(48), label='Function Name', primary_key=True)
-    urmoaudt = Field(Numeric(8, 0), label='Audit date')
-    urmoautm = Field(Numeric(6, 0), label='Audit time')
-    urmoauus = Field(String(24), label='Audit user')
+    urmusrnm : str = Field(String(24), label='User name', primary_key=True)
+    urmobjnm : str = Field(String(32), label='Object Name', primary_key=True)
+    urmfncnm : str = Field(String(48), label='Function Name', primary_key=True)
+    urmoaudt : int = Field(Numeric(8, 0), label='Audit date')
+    urmoautm : int = Field(Numeric(6, 0), label='Audit time')
+    urmoauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     async def check_public_access(cls, service_name: str, func_name: str):

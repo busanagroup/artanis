@@ -14,21 +14,21 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efumob(Entity):
+class efumob(Entity, table=True):
     """User Access MVC Object"""
-    umousrnm = Field(String(24), label='User name', primary_key=True)
-    umoobjnm = Field(String(32), label='Object Name', primary_key=True)
-    umoobjsl = Field(Integer, label='Access for select')
-    umoobjin = Field(Integer, label='Access for insert')
-    umoobjup = Field(Integer, label='Access for update')
-    umoobjdl = Field(Integer, label='Access for delete')
-    umoobjex = Field(Integer, label='Access for extended functionality')
-    umooaudt = Field(Numeric(8, 0), label='Audit date')
-    umooautm = Field(Numeric(6, 0), label='Audit time')
-    umooauus = Field(String(24), label='Audit user')
+    umousrnm : str = Field(String(24), label='User name', primary_key=True)
+    umoobjnm : str = Field(String(32), label='Object Name', primary_key=True)
+    umoobjsl : int = Field(Integer, label='Access for select')
+    umoobjin : int = Field(Integer, label='Access for insert')
+    umoobjup : int = Field(Integer, label='Access for update')
+    umoobjdl : int = Field(Integer, label='Access for delete')
+    umoobjex : int = Field(Integer, label='Access for extended functionality')
+    umooaudt : int = Field(Numeric(8, 0), label='Audit date')
+    umooautm : int = Field(Numeric(6, 0), label='Audit time')
+    umooauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     def check_access(cls, obj, acctp):

@@ -14,39 +14,39 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efjbls(Entity):
+class efjbls(Entity, table=True):
     """
     Job list management
     """
-    jblsidnm = Field(String(38), label='JOB ID', primary_key=True)
-    jblsindt = Field(Numeric(8, 0), label='Input Date', index=True)
-    jblsintm = Field(Numeric(6, 0), label='Input Time', index=True)
-    jblsjbtp = Field(Integer, label='Job Type', index=True)
-    jblsinid = Field(String(64), label='Input user')
-    jblsrqpg = Field(String(24), label='Request PGM')
-    jblsrpdt = Field(Numeric(8, 0), label='Request date')
-    jblsrptm = Field(Numeric(6, 0), label='Request time')
-    jblsprpg = Field(String(24), label='Job Service Name')
-    jblsprdt = Field(Numeric(8, 0), label='Job Process Date')
-    jblsprtm = Field(Numeric(6, 0), label='Job Process Time')
-    jblscpdt = Field(Numeric(8, 0), label='Job Completion Date')
-    jblscptm = Field(Numeric(6, 0), label='Job Completion Time')
-    jblsprst = Field(Integer, label='Job Status', index=True)
-    jblsmdnm = Field(String(24))
-    jblsmdid = Field(String(32))
-    jblsupdt = Field(Numeric(8, 0), label='Last Update Date')
-    jblsuptm = Field(Numeric(6, 0), label='last Update Time')
-    jblssprq = Field(Integer)
-    jblsspid = Field(String(24))
-    jblsspdt = Field(Numeric(8, 0))
-    jblssptm = Field(Numeric(6, 0))
-    jblsprms = Field(String(128), label='Result Message')
-    jblsaudt = Field(Numeric(8, 0), label='Audit date')
-    jblsautm = Field(Numeric(6, 0), label='Audit time')
-    jblsauus = Field(String(24), label='Audit user')
+    jblsidnm : str = Field(String(38), label='JOB ID', primary_key=True)
+    jblsindt : int = Field(Numeric(8, 0), label='Input Date', index=True)
+    jblsintm : int = Field(Numeric(6, 0), label='Input Time', index=True)
+    jblsjbtp : int = Field(Integer, label='Job Type', index=True)
+    jblsinid : str = Field(String(64), label='Input user')
+    jblsrqpg : str = Field(String(24), label='Request PGM')
+    jblsrpdt : int = Field(Numeric(8, 0), label='Request date')
+    jblsrptm : int = Field(Numeric(6, 0), label='Request time')
+    jblsprpg : str = Field(String(24), label='Job Service Name')
+    jblsprdt : int = Field(Numeric(8, 0), label='Job Process Date')
+    jblsprtm : int = Field(Numeric(6, 0), label='Job Process Time')
+    jblscpdt : int = Field(Numeric(8, 0), label='Job Completion Date')
+    jblscptm : int = Field(Numeric(6, 0), label='Job Completion Time')
+    jblsprst : int = Field(Integer, label='Job Status', index=True)
+    jblsmdnm : str = Field(String(24))
+    jblsmdid : str = Field(String(32))
+    jblsupdt : int = Field(Numeric(8, 0), label='Last Update Date')
+    jblsuptm : int = Field(Numeric(6, 0), label='last Update Time')
+    jblssprq : int = Field(Integer)
+    jblsspid : str = Field(String(24))
+    jblsspdt : int = Field(Numeric(8, 0))
+    jblssptm : int = Field(Numeric(6, 0))
+    jblsprms : str = Field(String(128), label='Result Message')
+    jblsaudt : int = Field(Numeric(8, 0), label='Audit date')
+    jblsautm : int = Field(Numeric(6, 0), label='Audit time')
+    jblsauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     async def send_job_message(cls, jobsession, message, auto_commit=True):

@@ -14,20 +14,20 @@ __author__ = 'Jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efuacd(Entity):
+class efuacd(Entity, table=True):
     """
     Alternate User Division
     """
-    efususid = Field(String(24), label='User ID', primary_key=True)
-    efuscono = Field(String(3), label='Comp. ID', primary_key=True)
-    efusdvno = Field(String(3), label='Division', primary_key=True)
-    efusfsnm = Field(String(48), label='First Name')
-    efuslsnm = Field(String(48), label='Last Name')
-    efusconm = Field(String(48), label='Comp. ID')
-    efusdvnm = Field(String(48), label='Division')
-    efusaudt = Field(Numeric(8, 0), label='Audit date')
-    efusautm = Field(Numeric(6, 0), label='Audit time')
-    efusauus = Field(String(24), label='Audit user')
+    efususid : str = Field(String(24), label='User ID', primary_key=True)
+    efuscono : str = Field(String(3), label='Comp. ID', primary_key=True)
+    efusdvno : str = Field(String(3), label='Division', primary_key=True)
+    efusfsnm : str = Field(String(48), label='First Name')
+    efuslsnm : str = Field(String(48), label='Last Name')
+    efusconm : str = Field(String(48), label='Comp. ID')
+    efusdvnm : str = Field(String(48), label='Division')
+    efusaudt : int = Field(Numeric(8, 0), label='Audit date')
+    efusautm : int = Field(Numeric(6, 0), label='Audit time')
+    efusauus : str = Field(String(24), label='Audit user')

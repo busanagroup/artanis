@@ -14,22 +14,22 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efuafn(Entity):
+class efuafn(Entity, table=True):
     """User access API function"""
-    uafusrnm = Field(String(24), label='User name', primary_key=True)
-    uafobjnm = Field(String(32), label='API object name', primary_key=True)
-    uaffncnm = Field(String(32), label='API function name', primary_key=True)
-    uaffncsl = Field(Boolean, label='Select')
-    uaffncin = Field(Boolean, label='Insert')
-    uaffncup = Field(Boolean, label='Update')
-    uaffncdl = Field(Boolean, label='Delete')
-    uaffncex = Field(Boolean, label='Extended functionality')
-    uaffaudt = Field(Numeric(8, 0), label='Audit date')
-    uaffautm = Field(Numeric(6, 0), label='Audit time')
-    uaffauus = Field(String(24), label='Audit user')
+    uafusrnm : str = Field(String(24), label='User name', primary_key=True)
+    uafobjnm : str = Field(String(32), label='API object name', primary_key=True)
+    uaffncnm : str = Field(String(32), label='API function name', primary_key=True)
+    uaffncsl : bool = Field(Boolean, label='Select')
+    uaffncin : bool = Field(Boolean, label='Insert')
+    uaffncup : bool = Field(Boolean, label='Update')
+    uaffncdl : bool = Field(Boolean, label='Delete')
+    uaffncex : bool = Field(Boolean, label='Extended functionality')
+    uaffaudt : int = Field(Numeric(8, 0), label='Audit date')
+    uaffautm : int = Field(Numeric(6, 0), label='Audit time')
+    uaffauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     async def check_api_func(cls, user_name: str, obj_name: str, func_name: str, access_type: str) -> bool:

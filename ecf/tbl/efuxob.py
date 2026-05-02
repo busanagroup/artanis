@@ -14,16 +14,16 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2014 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efuxob(Entity):
+class efuxob(Entity, table=True):
     """
     RPC XML User Access Object
     """
-    uxousrnm = Field(String(24), label='User name', primary_key=True)
-    uxoobjnm = Field(String(24), label='Business Object name', primary_key=True)
-    uxoofnnm = Field(String(32), label='Function Name', primary_key=True)
-    uxooaudt = Field(Numeric(8, 0), label='Audit date')
-    uxooautm = Field(Numeric(6, 0), label='Audit time')
-    uxooauus = Field(String(24), label='Audit user')
+    uxousrnm : str = Field(String(24), label='User name', primary_key=True)
+    uxoobjnm : str = Field(String(24), label='Business Object name', primary_key=True)
+    uxoofnnm : str = Field(String(32), label='Function Name', primary_key=True)
+    uxooaudt : int = Field(Numeric(8, 0), label='Audit date')
+    uxooautm : int = Field(Numeric(6, 0), label='Audit time')
+    uxooauus : str = Field(String(24), label='Audit user')

@@ -14,21 +14,21 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efapfd(Entity):
+class efapfd(Entity, table=True):
     """API Field status"""
-    apifldob = Field(String(32), label='API Object', primary_key=True)
-    apifldfn = Field(String(32), label='Function', primary_key=True)
-    apifldnm = Field(String(32), label='Field', primary_key=True)
-    apifldds = Field(String(64), label='Description')
-    apifldio = Field(Integer, label='Input/Output')
-    apifldtp = Field(String(16), label='Type')
-    apifldln = Field(Integer, label='Length')
-    apifldpr = Field(Integer, label='Precision')
-    apiflddc = Field(Integer, label='Decimal')
-    apifldrq = Field(Boolean, label='Required')
-    apifaudt = Field(Numeric(8, 0), label='Audit date')
-    apifautm = Field(Numeric(6, 0), label='Audit time')
-    apifauus = Field(String(24), label='Audit user')
+    apifldob : str = Field(String(32), label='API Object', primary_key=True)
+    apifldfn : str = Field(String(32), label='Function', primary_key=True)
+    apifldnm : str = Field(String(32), label='Field', primary_key=True)
+    apifldds : str = Field(String(64), label='Description')
+    apifldio : int = Field(Integer, label='Input/Output')
+    apifldtp : str = Field(String(16), label='Type')
+    apifldln : int = Field(Integer, label='Length')
+    apifldpr : int = Field(Integer, label='Precision')
+    apiflddc : int = Field(Integer, label='Decimal')
+    apifldrq : bool = Field(Boolean, label='Required')
+    apifaudt : int = Field(Numeric(8, 0), label='Audit date')
+    apifautm : int = Field(Numeric(6, 0), label='Audit time')
+    apifauus : str = Field(String(24), label='Audit user')

@@ -14,23 +14,23 @@ __author__ = 'widodo'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2017 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efmxob(Entity):
+class efmxob(Entity, table=True):
     """
     User Exception MVC Object 
     """
-    umoxsrnm = Field(String(24), label='User name', primary_key=True)
-    umoxbjnm = Field(String(32), label='Object Name', primary_key=True)
-    umoxbjsl = Field(Integer, label='Access for select')
-    umoxbjin = Field(Integer, label='Access for insert')
-    umoxbjup = Field(Integer, label='Access for update')
-    umoxbjdl = Field(Integer, label='Access for delete')
-    umoxbjex = Field(Integer, label='Access for extended functionality')
-    umoxaudt = Field(Numeric(8, 0), label='Audit date')
-    umoxautm = Field(Numeric(6, 0), label='Audit time')
-    umoxauus = Field(String(24), label='Audit user')
+    umoxsrnm : str = Field(String(24), label='User name', primary_key=True)
+    umoxbjnm : str = Field(String(32), label='Object Name', primary_key=True)
+    umoxbjsl : int = Field(Integer, label='Access for select')
+    umoxbjin : int = Field(Integer, label='Access for insert')
+    umoxbjup : int = Field(Integer, label='Access for update')
+    umoxbjdl : int = Field(Integer, label='Access for delete')
+    umoxbjex : int = Field(Integer, label='Access for extended functionality')
+    umoxaudt : int = Field(Numeric(8, 0), label='Audit date')
+    umoxautm : int = Field(Numeric(6, 0), label='Audit time')
+    umoxauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     def check_access(cls, obj, acctp):

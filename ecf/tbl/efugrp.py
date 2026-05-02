@@ -14,20 +14,20 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efugrp(Entity):
+class efugrp(Entity, table=True):
     """
     User group
     """
-    efuggrid = Field(String(24), label='Group ID', primary_key=True)
-    efugusid = Field(String(24), label='User ID', primary_key=True)
-    efugfsnm = Field(String(48), label='First name')
-    efuglsnm = Field(String(48), label='Last name')
-    efugaudt = Field(Numeric(8, 0), label='Audit date')
-    efugautm = Field(Numeric(6, 0), label='Audit time')
-    efugauus = Field(String(24), label='Audit user')
+    efuggrid : str = Field(String(24), label='Group ID', primary_key=True)
+    efugusid : str = Field(String(24), label='User ID', primary_key=True)
+    efugfsnm : str = Field(String(48), label='First name')
+    efuglsnm : str = Field(String(48), label='Last name')
+    efugaudt : int = Field(Numeric(8, 0), label='Audit date')
+    efugautm : int = Field(Numeric(6, 0), label='Audit time')
+    efugauus : str = Field(String(24), label='Audit user')
 
     @classmethod
     async def get_user_group(cls, user_name):

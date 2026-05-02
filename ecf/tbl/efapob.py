@@ -14,15 +14,15 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efapob(Entity):
+class efapob(Entity, table=True):
     """API Object status"""
-    apiobjnm = Field(String(32), label='API Object name', primary_key=True)
-    apiobjds = Field(String(64), label='Description')
-    apiobjst = Field(Boolean, label='Status')
-    apiobjvr = Field(String(16), label='Version')
-    apioaudt = Field(Numeric(8, 0), label='Audit date')
-    apioautm = Field(Numeric(6, 0), label='Audit time')
-    apioauus = Field(String(24), label='Audit user')
+    apiobjnm : str = Field(String(32), label='API Object name', primary_key=True)
+    apiobjds : str = Field(String(64), label='Description')
+    apiobjst : bool = Field(Boolean, label='Status')
+    apiobjvr : str = Field(String(16), label='Version')
+    apioaudt : int = Field(Numeric(8, 0), label='Audit date')
+    apioautm : int = Field(Numeric(6, 0), label='Audit time')
+    apioauus : str = Field(String(24), label='Audit user')

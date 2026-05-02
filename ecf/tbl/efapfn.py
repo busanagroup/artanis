@@ -14,21 +14,21 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efapfn(Entity):
+class efapfn(Entity, table=True):
     """API Object Function status"""
-    apifncob = Field(String(32), label='API Object', primary_key=True)
-    apifncnm = Field(String(32), label='Function', primary_key=True)
-    apifncds = Field(String(64), label='Description')
-    apifncst = Field(Boolean, label='Status')
-    apifnctp = Field(String(1), label='Function type')
-    apifncsl = Field(Boolean, label='Can Select')
-    apifncin = Field(Boolean, label='Can Insert')
-    apifncup = Field(Boolean, label='Can Update')
-    apifncdl = Field(Boolean, label='Can Delete')
-    apifncex = Field(Boolean, label='Can Ext')
-    apifaudt = Field(Numeric(8, 0), label='Audit date')
-    apifautm = Field(Numeric(6, 0), label='Audit time')
-    apifauus = Field(String(24), label='Audit user')
+    apifncob : str = Field(String(32), label='API Object', primary_key=True)
+    apifncnm : str = Field(String(32), label='Function', primary_key=True)
+    apifncds : str = Field(String(64), label='Description')
+    apifncst : bool = Field(Boolean, label='Status')
+    apifnctp : str = Field(String(1), label='Function type')
+    apifncsl : bool = Field(Boolean, label='Can Select')
+    apifncin : bool = Field(Boolean, label='Can Insert')
+    apifncup : bool = Field(Boolean, label='Can Update')
+    apifncdl : bool = Field(Boolean, label='Can Delete')
+    apifncex : bool = Field(Boolean, label='Can Ext')
+    apifaudt : int = Field(Numeric(8, 0), label='Audit date')
+    apifautm : int = Field(Numeric(6, 0), label='Audit time')
+    apifauus : str = Field(String(24), label='Audit user')

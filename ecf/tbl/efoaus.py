@@ -14,19 +14,19 @@ __author__ = 'Jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity.sqlorm import *
+from artanis.sqlentity import *
 
 
-class efoaus(Entity):
+class efoaus(Entity, table=True):
     """
     Object Access Group Users
     """
 
-    efougrcd = Field(String(8), label='Obj. Code', primary_key=True, )
-    efouusid = Field(String(24), label='User ID', primary_key=True)
-    efougrnm = Field(String(24), label='Obj. Name')
-    efoufsnm = Field(String(48), label='First Name')
-    efoulsnm = Field(String(48), label='Last Name')
-    efouaudt = Field(Numeric(8, 0), label='Audit date')
-    efouautm = Field(Numeric(6, 0), label='Audit time')
-    efouauus = Field(String(24), label='Audit user')
+    efougrcd : str = Field(String(8), label='Obj. Code', primary_key=True, )
+    efouusid : str = Field(String(24), label='User ID', primary_key=True)
+    efougrnm : str = Field(String(24), label='Obj. Name')
+    efoufsnm : str = Field(String(48), label='First Name')
+    efoulsnm : str = Field(String(48), label='Last Name')
+    efouaudt : int = Field(Numeric(8, 0), label='Audit date')
+    efouautm : int = Field(Numeric(6, 0), label='Audit time')
+    efouauus : str = Field(String(24), label='Audit user')
