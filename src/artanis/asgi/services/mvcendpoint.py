@@ -19,7 +19,6 @@ from starlette.requests import Request
 
 from artanis import concurrency
 from artanis.asgi import types, http
-from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
 from artanis.asgi.auth.validator import MVCAccessValidator
 from artanis.asgi.routing.routes.http import BaseHTTPEndpointWrapper, SafeExecution
