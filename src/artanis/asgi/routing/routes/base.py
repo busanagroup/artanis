@@ -167,7 +167,9 @@ class BaseRoute(abc.ABC):
         :param scope: ASGI scope.
         :return: Route scope.
         """
-        return types.Scope({})
+        return types.Scope(dict(
+            route=self,
+        ))
 
     def resolve_url(self, name: str, **params: t.Any) -> url.URL:
         """Builds URL path for given name and params.

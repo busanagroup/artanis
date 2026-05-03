@@ -91,32 +91,23 @@ class HTTPFunctionWrapper(BaseHTTPEndpointWrapper):
         :param send: ASGI send.
         """
         app: BaseASGIService = scope["app"]
-        scope["path"] = scope.get("root_path", "").rstrip("/") + scope["path"]
-        scope["root_path"] = ""
-        route, route_scope = app.router.resolve_route(scope)
+        route = scope.get("route")
         context = {
-            "scope": route_scope,
+            "scope": scope,
             "receive": receive,
             "send": send,
             "exc": None,
             "app": app,
             "route": route,
-            "request": http.Request(route_scope, receive=receive),
+            "request": http.Request(scope, receive=receive),
         }
         injected_func = await app.injector.inject(self.handler, context)
-        # TODO: this routine is very expensive
-        #         if inspect.ismethod(self.handler):
-        #             owner = self.handler.__self__
-        #             prepare_session = getattr(owner, 'prepare_session', None)
-        #             if prepare_session:
-        #                 if inspect.iscoroutinefunction(prepare_session):
-        #                     await prepare_session(route_scope)
         if concurrency.is_async(injected_func):
             injected_func = functools.partial(SafeExecution.safe_execute, injected_func)
         response = await concurrency.run(injected_func)
         response = self._build_api_response(response)
 
-        await response(route_scope, receive, send)
+        await response(scope, receive, send)
 
 
 class HTTPEndpointWrapper(BaseHTTPEndpointWrapper):

@@ -13,11 +13,28 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import functools
+
 from starlette.requests import Request
 
+from artanis import concurrency
+from artanis.asgi import types, http
+from artanis.asgi.asgibase import BaseASGIService
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
 from artanis.asgi.auth.validator import MVCAccessValidator
-from artanis.asgi.types import UserInfo
+from artanis.asgi.routing.routes.http import BaseHTTPEndpointWrapper, SafeExecution
+
+
+class MVCEndpointWrapper(BaseHTTPEndpointWrapper):
+
+    async def __call__(self, scope: types.Scope, receive: types.Receive, send: types.Send) -> None:
+        request = http.Request(scope, receive=receive)
+        injected_func = functools.partial(self.handler, request)
+        if concurrency.is_async(self.handler):
+            injected_func = functools.partial(SafeExecution.safe_execute, injected_func)
+        response = await concurrency.run(injected_func)
+        response = self._build_api_response(response)
+        await response(scope, receive, send)
 
 
 class MVCDescriptor(Descriptor):
@@ -39,9 +56,9 @@ class MVCEndPoint(ASGIEndPoint):
     async def verify(self, request: Request):
         return {'hello': "world"}
 
-    @published(path="/definition")
-    async def definitions(self, userinfo: UserInfo, request: Request):
-        return {'hello': f"{userinfo.username}"}
+    @published(path="/definition", endpoint_wrapper=MVCEndpointWrapper)
+    async def definitions(self, request: Request):
+        return {'hello': "world"}
 
     @published(path="/initialize")
     async def initialize(self, request: Request):

@@ -30,7 +30,7 @@ from artanis.asgi import url, types, endpoints, routing
 from artanis.asgi.auth.validator import AccessValidator
 from artanis.asgi.http import APIErrorResponse
 from artanis.asgi.routing import BaseRoute, Route
-from artanis.asgi.routing.routes.http import HTTPFunctionWrapper
+from artanis.asgi.routing.routes.http import HTTPFunctionWrapper, BaseHTTPEndpointWrapper
 from artanis.asgi.schemas.modules import SchemaModule
 from artanis.config import Configuration
 from artanis.modules import Module, Modules
@@ -79,6 +79,7 @@ class Descriptor:
         return types.Scope(dict(
             root_path=str(url.Path(scope.get("root_path", "")) / (m.matched or "")),
             path=str(url.Path("/") / (m.unmatched or "")),
+            route=self,
         ))
 
 
@@ -148,11 +149,13 @@ class Published(BaseRoute):
             include_in_schema: bool = True,
             pagination: types.Pagination | None = None,
             tags: dict[str, t.Any] | None = None,
+            endpoint_wrapper: t.Type[BaseHTTPEndpointWrapper] | None = None,
     ):
         self._app: t.Callable[..., t.Any] | None = None
         self._endpoint: t.Callable[..., t.Any] | None = None
         self.pagination = pagination
         self.methods = {"GET"} if methods is None else set(methods)
+        self.endpoint_wrapper = endpoint_wrapper or HTTPFunctionWrapper
         if "GET" in self.methods:
             self.methods.add("HEAD")
         super().__init__(
@@ -174,7 +177,9 @@ class Published(BaseRoute):
         return BaseRoute.Match.full if scope["method"] in self.methods else BaseRoute.Match.partial
 
     def route_scope(self, scope: types.Scope) -> types.Scope:
-        return types.Scope({})
+        return types.Scope(dict(
+            route=self,
+        ))
 
     @property
     def app(self):
@@ -184,7 +189,7 @@ class Published(BaseRoute):
     def app(self, value):
         wrapped_endpoint = None
         if value:
-            wrapped_endpoint = HTTPFunctionWrapper(value, signature=inspect.signature(value),
+            wrapped_endpoint = self.endpoint_wrapper(value, signature=inspect.signature(value),
                                                    pagination=self.pagination)
             self.endpoint = wrapped_endpoint.handler
         self._app = wrapped_endpoint
@@ -242,6 +247,7 @@ def published(
         include_in_schema: bool = True,
         pagination: types.Pagination | None = None,
         tags: dict[str, t.Any] | None = {},
+        endpoint_wrapper: t.Type[BaseHTTPEndpointWrapper] | None = None,
 ) -> t.Callable[..., t.Any]:
     if func:
         _name = get_name(func)
@@ -252,6 +258,7 @@ def published(
             include_in_schema=include_in_schema,
             pagination=pagination,
             tags=tags,
+            endpoint_wrapper=endpoint_wrapper
         )
         return func
     else:
@@ -264,6 +271,7 @@ def published(
                 include_in_schema=include_in_schema,
                 pagination=pagination,
                 tags=tags,
+                endpoint_wrapper=endpoint_wrapper
             )
             return fnc
 
