@@ -19,11 +19,94 @@ import asyncio
 import socket
 
 from taskiq import TaskiqEvents, TaskiqState
+from taskiq.result_backends.dummy import DummyResultBackend
 
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_startup, artanis_shutdown, artanis_monitor
 from artanis.taskiq.base import BaseBrokerService
-from artanis.taskiq.redis import ListQueueBroker, RedisAsyncResultBackend
+from artanis.taskiq.redis import ListQueueBroker, RedisAsyncResultBackend, PubSubBroker
+
+
+class ArtanisEventBusBroker(PubSubBroker, BaseBrokerService):
+
+    def __init__(self, *args, config: Configuration = None, queue_name: str = "artevbus", **kwargs):
+        config = config or Configuration.get_default_instance(create_instance=False)
+        redis_url = config.get_property_value(config.ARTANIS_SPV_BIND) if self.supervisor_enabled(config) else \
+            config.get_property_value(config.ARTANIS_SPV_MASTER)
+        redis_auth = config.get_property_value(config.ARTANIS_SPV_SECURITY_HASH)
+        self.redis_url = "/".join([f"redis://:{redis_auth}@{redis_url}", '0'])
+        ka_options = {
+            socket.TCP_KEEPIDLE: 10,
+            socket.TCP_KEEPINTVL: 5,
+            socket.TCP_KEEPCNT: 5
+        }
+        super(ArtanisEventBusBroker, self).__init__(
+            self.redis_url,
+            *args,
+            queue_name=queue_name,
+            health_check_interval=10,
+            socket_connect_timeout=5,
+            retry_on_timeout=True,
+            socket_keepalive=True,
+            socket_keepalive_options=ka_options,
+            max_connection_pool_size=32,
+            **kwargs)
+        for base in ArtanisEventBusBroker.__bases__:
+            if base is not PubSubBroker:
+                base.__init__(self, *args, **kwargs)  # type: ignore
+        self.set_configuration(config)
+
+    def do_configure(self):
+        super().do_configure()
+        config = self.get_configuration()
+        self.with_result_backend(DummyResultBackend())
+        self.configure_lifespan(config)
+
+    def configure_lifespan(self, config: Configuration):
+        async def internal_scheduler():
+            try:
+                while True:
+                    await asyncio.sleep(60)
+                    await artanis_monitor(config)
+            except asyncio.CancelledError:
+                pass
+
+        async def process_startup(state: TaskiqState):
+            loop = asyncio.get_event_loop()
+            loop.create_task(internal_scheduler())
+            await self.start()
+            await artanis_startup(config)
+            for mod in self.modules.values():
+                await mod.taskiq_startup()
+
+        async def process_shutdown(state: TaskiqState):
+            await artanis_shutdown(config)
+            for mod in self.modules.values():
+                await mod.taskiq_shutdown()
+            await self.stop()
+
+        self.add_event_handler(TaskiqEvents.WORKER_STARTUP, process_startup)
+        self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, process_shutdown)
+
+    def get_redis_pool(self):
+        return self.connection_pool
+
+    @classmethod
+    def _configure_singleton(cls):
+        cls.VM_DEFAULT.configure()
+
+    @classmethod
+    def get_default_instance(cls, *args, create_instance=True, **kwargs):
+        if create_instance and not cls.has_singleton_instance():
+            cls.get_class_locker().acquire()
+            try:
+                config = Configuration.get_default_instance()
+                cls.VM_DEFAULT = object.__new__(cls)
+                cls.VM_DEFAULT.__init__(*args, config=config, **kwargs)
+                cls._configure_singleton()
+            finally:
+                cls.get_class_locker().release()
+        return cls.VM_DEFAULT
 
 
 class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
@@ -54,10 +137,6 @@ class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
             if base is not ListQueueBroker:
                 base.__init__(self, *args, **kwargs)  # type: ignore
         self.set_configuration(config)
-
-    @staticmethod
-    def supervisor_enabled(config: Configuration):
-        return config.get_property_value(config.ARTANIS_SPV_ENABLED, "false").lower() == "true"
 
     def do_configure(self):
         super(ArtanisTaskBroker, self).do_configure()
@@ -121,9 +200,7 @@ class ArtanisJobBroker(ArtanisTaskBroker):
 
     def do_configure(self):
         config = self.get_configuration()
-        self.with_result_backend(RedisAsyncResultBackend(redis_url=self.redis_url,
-                                                         keep_results=False,
-                                                         result_ex_time=600))
+        self.with_result_backend(DummyResultBackend())
 
         async def internal_scheduler():
             try:
@@ -153,5 +230,6 @@ class ArtanisJobBroker(ArtanisTaskBroker):
 
 broker = ArtanisJobBroker.get_default_instance()
 task_broker = ArtanisTaskBroker.get_default_instance()
+event_broker = ArtanisEventBusBroker.get_default_instance()
 
 __all__ = ["broker", "task_broker"]

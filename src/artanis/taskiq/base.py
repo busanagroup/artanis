@@ -22,7 +22,9 @@ from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
 from artanis.abc.service import StartableService
 from artanis.abc.singleton import Singleton
+from artanis.asgi.components import asgi, validation
 from artanis.asgi.schemas.modules import SchemaModule
+from artanis.config import Configuration
 from artanis.ddd import WorkerComponent
 from artanis.injection import injector, Components
 from artanis.models import ModelsModule
@@ -76,6 +78,10 @@ class BaseBrokerService(StartableService, Singleton, SyncLock, ObjectLoader):
         if self._injector.components != components:
             self._injector.components = components
         return self._injector
+
+    @staticmethod
+    def supervisor_enabled(config: Configuration):
+        return config.get_property_value(config.ARTANIS_SPV_ENABLED, "false").lower() == "true"
 
 
 class Context(injection.Context):

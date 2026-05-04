@@ -18,6 +18,7 @@
 from artanis.subsys.authentication import AuthSubsystem
 from artanis.subsys.batchjob import BatchJobSubsystem
 from artanis.subsys.devel import DevelSubsystem
+from artanis.subsys.eventbus import EventBusSubsystem
 from artanis.subsys.interactive import MVCSubsystem
 from artanis.subsys.litetask import LiteTaskSubsystem
 from artanis.subsys.restapi import APISubsystem
@@ -26,6 +27,6 @@ from artanis.subsys.static import StaticSubsystem
 from artanis.subsys.supervisor import SupervisorSubsystem
 from artanis.subsys.websocket import WebsocketSubsystem
 
-__all__ = [SupervisorSubsystem, DevelSubsystem, AuthSubsystem,
-           MVCSubsystem, APISubsystem, SchedulerSubsystem, BatchJobSubsystem,
-           LiteTaskSubsystem, StaticSubsystem, WebsocketSubsystem]
+__all__ = [SupervisorSubsystem, DevelSubsystem, AuthSubsystem, MVCSubsystem,
+           APISubsystem, StaticSubsystem, WebsocketSubsystem,
+           EventBusSubsystem, SchedulerSubsystem, BatchJobSubsystem, LiteTaskSubsystem]

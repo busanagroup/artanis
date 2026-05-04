@@ -22,7 +22,7 @@ from typing import Any, Callable
 from artanis.abc.classprops import classproperty
 from artanis.asgi.auth.authentication import ArtanisUser
 from artanis.config import Configuration
-from artanis.taskiq.broker import broker, task_broker
+from artanis.taskiq.broker import broker, task_broker, event_broker
 from artanis.utils import import_function
 
 
@@ -31,15 +31,20 @@ class TaskType(enum.Enum):
     TK_NONE = 0
     TK_JOB = 1
     TK_TASK = 2
-
+    TK_EVENT = 3
 
 @enum.unique
 class JOBType(enum.Enum):
     REGULAR_JOB = 1
     LIGHT_JOB = 2
 
-
 logger = logging.getLogger("artanis.task")
+
+
+@event_broker.task(task_name="artanis_event")
+async def artanis_event(username: str, func: str, *args, **kwargs):
+    # TODO
+    ...
 
 
 @broker.task(task_name="artanis_task")
