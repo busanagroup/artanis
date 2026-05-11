@@ -39,6 +39,7 @@ from artanis.utils import get_name, import_function, get_route_path
 
 if t.TYPE_CHECKING:
     from artanis.asgi.asgibase import BaseASGIService
+    from artanis.events import EventBus
 
 __all__ = ["ASGIEndPoint", "published", "Descriptor", "ControllerABC"]
 
@@ -138,6 +139,11 @@ class ControllerABC(Configurable):
 
     def get_session(self) -> UserSession | None:
         return getattr(self, '__session', None)
+
+    @property
+    def eventbus(self) -> 'EventBus':
+        config = self.get_configuration()
+        return config.container.eventbus
 
 
 class Published(BaseRoute):

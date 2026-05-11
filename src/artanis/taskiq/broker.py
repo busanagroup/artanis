@@ -27,7 +27,7 @@ from artanis.taskiq.base import BaseBrokerService
 from artanis.taskiq.redis import ListQueueBroker, RedisAsyncResultBackend, PubSubBroker
 
 
-class ArtanisEventBusBroker(PubSubBroker, BaseBrokerService):
+class ArtanisEventBusBroker(ListQueueBroker, BaseBrokerService):
 
     def __init__(self, *args, config: Configuration = None, queue_name: str = "artevbus", **kwargs):
         config = config or Configuration.get_default_instance(create_instance=False)
@@ -52,7 +52,7 @@ class ArtanisEventBusBroker(PubSubBroker, BaseBrokerService):
             max_connection_pool_size=32,
             **kwargs)
         for base in ArtanisEventBusBroker.__bases__:
-            if base is not PubSubBroker:
+            if base is not ListQueueBroker:
                 base.__init__(self, *args, **kwargs)  # type: ignore
         self.set_configuration(config)
 
@@ -232,4 +232,4 @@ broker = ArtanisJobBroker.get_default_instance()
 task_broker = ArtanisTaskBroker.get_default_instance()
 event_broker = ArtanisEventBusBroker.get_default_instance()
 
-__all__ = ["broker", "task_broker"]
+__all__ = ["broker", "task_broker", "event_broker"]

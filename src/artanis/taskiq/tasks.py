@@ -17,11 +17,15 @@
 
 import enum
 import logging
+import json
 from typing import Any, Callable
+
+from taskiq.kicker import AsyncKicker
 
 from artanis.abc.classprops import classproperty
 from artanis.asgi.auth.authentication import ArtanisUser
 from artanis.config import Configuration
+from artanis.events.eventexec import EventDispatcher
 from artanis.taskiq.broker import broker, task_broker, event_broker
 from artanis.utils import import_function
 
@@ -42,9 +46,15 @@ logger = logging.getLogger("artanis.task")
 
 
 @event_broker.task(task_name="artanis_event")
-async def artanis_event(username: str, func: str, *args, **kwargs):
-    # TODO
-    ...
+async def artanis_event(event: bytes):
+    from artanis.events.eventroute import event_route
+    json_event = json.loads(event)
+    event_type = str(json_event["event_type"]).replace(".", "/")
+    if not event_type.startswith("/"):
+        event_type = "/" + event_type
+    handler_list = event_route.get_event_handler(event_type)
+    for klass, func in handler_list:
+        await AsyncKicker(broker=event_broker, task_name="artanis_event_execute", labels={}).kiq(klass, func, event)
 
 
 @broker.task(task_name="artanis_task")
@@ -62,6 +72,10 @@ async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs
     request = TaskRequest(username, func, *args, **kwargs)
     return await handler(request)
 
+
+@event_broker.task(task_name="artanis_event_execute")
+async def artanis_event_execute(klass: str, func: str, event: bytes):
+    await EventDispatcher.dispatch(klass, func, event)
 
 @task_broker.task(task_name="artanis_schedule")
 async def artanis_schedule(*args, **kwargs):

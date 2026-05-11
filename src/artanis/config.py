@@ -74,7 +74,10 @@ _posix_variable: Pattern[str] = re.compile(
 
 class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_APP_NAME: str = 'artanis.app.name'
-    ARTANIS_CMP_NAME: str = 'artanis.cmp.name'
+    ARTANIS_CMP_NAME: str = 'artanis.company.name'
+    ARTANIS_CMP_URL: str = 'artanis.company.url'
+    ARTANIS_BASE_URL: str = 'artanis.base.url'
+
     ARTANIS_AUTH_ENABLED: str = 'artanis.auth.enabled'
     ARTANIS_AUTH_BINDTYPE: str = 'artanis.auth.bindtype'
     ARTANIS_AUTH_BIND: str = 'artanis.auth.bind'
@@ -143,6 +146,8 @@ class Configuration(Singleton, SyncLock, Listenable):
     JWT_ACCESS_COOKIE_KEY: str = 'artanis.jwt.access.key'
     JWT_REFRESH_COOKIE_KEY: str = 'artanis.jwt.refresh.key'
 
+    ARTANIS_EVENT_NAMESPACE: str = 'artanis.event.namepace'
+
     # ARTANIS_DB_EXTCONN_1_NAME: str = 'artanis.db.extconn.1.name'
     # ARTANIS_DB_EXTCONN_1_CONNECTION: str = 'artanis.db.extconn.1.connection'
     # ARTANIS_DB_EXTCONN_1_SCHEMA: str = 'artanis.db.extconn.1.schema'
@@ -179,6 +184,8 @@ class Configuration(Singleton, SyncLock, Listenable):
 
             self.ARTANIS_APP_NAME: 'Artanis',
             self.ARTANIS_CMP_NAME: 'Busana Apparel Group',
+            self.ARTANIS_CMP_URL: 'https://www.busanagroup.com',
+            self.ARTANIS_BASE_URL: 'https://artanis.busanagroup.com',
 
             self.ARTANIS_DEV_ENABLED: 'true',
             self.ARTANIS_DEV_INSTANCES: '1',
@@ -234,6 +241,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_DB_POOL_SIZE: '16',
 
             self.ARTANIS_SECURITY_CORS_ORIGINS: '',
+            self.ARTANIS_EVENT_NAMESPACE: 'bag.artanis',
 
             self.JWT_SECRET_KEY: str(uuid.uuid5(uuid.NAMESPACE_OID, 'Artanis')),
             self.JWT_HEADER_KEY: "Authorization",  # Authorization header identity
