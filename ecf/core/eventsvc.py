@@ -13,19 +13,21 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from artanis.asgi.asgiendpoint import Descriptor
-from artanis.config import Configuration
-from ecf.core.ecfcmn import BaseController
+
+from artanis.events.eventsvc import EventHandlerABC, on_event as on_event
+from ecf.core.ecfcmn import SupportClass
+
+__all__ = ['EventHandler', 'on_event']
+
+class EventHandler(EventHandlerABC, SupportClass):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.service_name = self.__class__.__name__
+
+    def get_service_name(self) -> str:
+        return self.service_name
 
 
-class APIDescriptor(Descriptor):
-    handle_request = True
 
 
-class APIBaseService(BaseController):
-    __config = Configuration.get_default_instance(create_instance=False)
-    descriptor = APIDescriptor
 
-
-class APIService(APIBaseService):
-    description: str

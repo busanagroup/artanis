@@ -15,8 +15,6 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-from http.cookiejar import user_domain_match
-
 from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
 from artanis.sqlentity import entity
@@ -28,7 +26,7 @@ class ECFObject(object):
     pass
 
 
-class SupportClass(ControllerABC):
+class SupportClass:
 
     @staticmethod
     async def record_exist(table_name: str, *args, **kwargs):
@@ -89,7 +87,7 @@ class SupportClass(ControllerABC):
         return model.get_unmapped_fields(fields)
 
 
-class BaseController(SupportClass):
+class BaseController(ControllerABC, SupportClass):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -13,19 +13,17 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from artanis.asgi.asgiendpoint import Descriptor
-from artanis.config import Configuration
-from ecf.core.ecfcmn import BaseController
+from ecf.api.cmnsvc import SalaryCalculationEvent
+from ecf.core.eventsvc import EventHandler, on_event
 
 
-class APIDescriptor(Descriptor):
-    handle_request = True
+class hrmpyr(EventHandler, event_type="com.busanagroup.artanis.hrms.payroll"):
 
+    @on_event(event_type="salary.calculated")
+    def handle_salary_calculated(self, event: SalaryCalculationEvent):
+        print(f"from handle_salary_calculated, event message: {event.message}")
 
-class APIBaseService(BaseController):
-    __config = Configuration.get_default_instance(create_instance=False)
-    descriptor = APIDescriptor
+    @on_event(event_type="salary.calculated")
+    def handle_other_salary_calculated(self, event: SalaryCalculationEvent):
+        print(f"from handle_other_salary_calculated, event message: {event.message}")
 
-
-class APIService(APIBaseService):
-    description: str

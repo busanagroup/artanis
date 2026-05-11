@@ -13,19 +13,15 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from artanis.asgi.asgiendpoint import Descriptor
-from artanis.config import Configuration
-from ecf.core.ecfcmn import BaseController
+from __future__ import annotations
+
+import glob
+from os.path import dirname, basename, isfile, join
 
 
-class APIDescriptor(Descriptor):
-    handle_request = True
+def __dir__():
+    return __all__
 
 
-class APIBaseService(BaseController):
-    __config = Configuration.get_default_instance(create_instance=False)
-    descriptor = APIDescriptor
-
-
-class APIService(APIBaseService):
-    description: str
+__all__ = [basename(f)[:-3] for f in glob.glob(join(dirname(__file__), "*.py")) \
+           if isfile(f) and not f.endswith('__init__.py')]
