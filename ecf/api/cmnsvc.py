@@ -21,7 +21,7 @@ from ecf.core.apisvc import *
 
 
 class SalaryCalculationEvent(BaseEvent, event_type="com.busanagroup.artanis.hrms.payroll.salary.calculated"):
-    message: str
+    message: dict
 
 
 class cmnsvc(APIService):
@@ -29,6 +29,7 @@ class cmnsvc(APIService):
 
     @published(path='/userinfo')
     async def get_user_info(self):
-        await self.eventbus.emit(SalaryCalculationEvent(message="This is the event"))
+        message = {'hello': 'world'}
+        await self.eventbus.emit(SalaryCalculationEvent(message=message))
         return JSONResponse({'hello': 'world'})
 
