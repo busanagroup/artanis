@@ -23,6 +23,8 @@ from ecf.core.apisvc import *
 class SalaryCalculationEvent(BaseEvent, event_type="com.busanagroup.artanis.hrms.payroll.salary.calculated"):
     message: dict
 
+class SalaryRollbackEvent(SalaryCalculationEvent, event_type="com.busanagroup.artanis.hrms.payroll.salary.rollback"):...
+
 
 class cmnsvc(APIService):
     description = 'Common Service API'
@@ -31,5 +33,6 @@ class cmnsvc(APIService):
     async def get_user_info(self):
         message = {'hello': 'world'}
         await self.eventbus.emit(SalaryCalculationEvent(message=message))
+        await self.eventbus.emit(SalaryRollbackEvent(message=message))
         return JSONResponse({'hello': 'world'})
 

@@ -13,7 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from ecf.api.cmnsvc import SalaryCalculationEvent
+from ecf.api.cmnsvc import SalaryCalculationEvent, SalaryRollbackEvent
 from ecf.core.eventsvc import EventHandler, on_event
 
 
@@ -21,9 +21,9 @@ class hrmpyr(EventHandler, event_type="com.busanagroup.artanis.hrms.payroll"):
 
     @on_event(event_type="salary.calculated")
     def handle_salary_calculated(self, event: SalaryCalculationEvent):
-        print(f"from handle_salary_calculated, event message: {event.message}")
+        print(f"from handle_salary_calculated, event: {event.event_type} message: {event.message}")
 
-    @on_event(event_type="salary.calculated")
-    def handle_other_salary_calculated(self, event: SalaryCalculationEvent):
-        print(f"from handle_other_salary_calculated, event message: {event.message}")
+    @on_event(event_type="salary.rollback")
+    def handle_other_salary_rollback(self, event: SalaryRollbackEvent):
+        print(f"from handle_other_salary_rollback, event: {event.event_type} message: {event.message}")
 
