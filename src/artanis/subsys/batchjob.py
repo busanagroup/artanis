@@ -54,20 +54,19 @@ class BatchJobWorkerFactory(WorkerFactory):
 
 
 class BatchJobSubsystem(Subsystem):
-    config_service_enabled = Configuration.ARTANIS_TASK_ENABLED
+    config_service_enabled = Configuration.ARTANIS_JOB_ENABLED
     class_factory = BatchJobWorkerFactory
     worker_args: WorkerArgs
     subsystem_name = 'jobsub'
 
     def do_configure(self):
         config: Configuration = self.get_configuration()
-        self.process_count = 1
-        pool_process = config.get_property_value(config.ARTANIS_TASK_INSTANCES, '2')
+        self.process_count = int(config.get_property_value(config.ARTANIS_JOB_INSTANCES, '2'))
         params = ['--use-process-pool']
-        params.extend(['--max-process-pool-processes', pool_process])
+        params.extend(['--max-process-pool-processes', config.get_property_value(config.ARTANIS_JOB_PROCESSES, '2')])
         params.append('--use-process-pool')
         # params.extend(['--log-format', config.log_format[0]])
-        params.extend(['--max-async-tasks', config.get_property_value(config.ARTANIS_TASK_MAXTASK, '32')])
+        params.extend(['--max-async-tasks', config.get_property_value(config.ARTANIS_JOB_MAXJOB, '32')])
         params.append('artanis.taskiq.broker:broker')
         params.append('artanis.taskiq.tasks')
         params.append('artanis.taskiq.scheduler')

@@ -13,13 +13,14 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
+from __future__ import annotations
 
 import enum
-import logging
 import json
+import logging
 from typing import Any, Callable
 
+from lru import LRU as LRUDict
 from taskiq.kicker import AsyncKicker
 
 from artanis.abc.classprops import classproperty
@@ -108,12 +109,10 @@ class TaskRequest:
 
 
 class BaseTaskHandler:
-    __service_instance = None
     __safe_exec: Callable | None = None
-    __class_registry: dict = dict()
 
     def __init__(self, request: TaskRequest):
-        self.request = request
+        self.request: TaskRequest = request
 
     def __await__(self):
         return self.dispatch().__await__()
@@ -122,69 +121,68 @@ class BaseTaskHandler:
         raise NotImplementedError
 
     @classmethod
+    def get_service_class(cls, service_name: str):
+        return import_function(service_name)
+
+    @classmethod
     async def safe_execute(cls, func, *args, **kwargs):
         if not cls.__safe_exec:
-            cls.__safe_exec = import_function("artanis.sqlentity.entity:safe_execute")
+            cls.__safe_exec = cls.get_service_class("artanis.sqlentity.entity:safe_execute")
         return await cls.__safe_exec(func, *args, **kwargs)
 
-    def get_object(self, instantiate: bool = True):
-        if not instantiate:
-            return self.service_class
-        return self.service_instance
+
+class IntServiceTaskHandler(BaseTaskHandler):
+    __service_namespace: str = "ecf.core.intsvc:IntService"
+    __service_class: Any = None
+
+    @classmethod
+    def get_service_class(cls, service_name: str = None):
+        return super().get_service_class(service_name or cls.__service_namespace)
 
     @classproperty
     def service_class(cls):
-        return cls.get_service_class("ecf.core.intsvc:IntService")
-
-    @classmethod
-    def get_service_class(cls, service_name: str):
-        service_class = cls.__class_registry.get(service_name)
-        if not service_class:
-            service_class = import_function(service_name)
-            cls.__class_registry[service_name] = service_class
-        return service_class
-
-    @property
-    def service_instance(self):
-        if not self.__service_instance:
-            service_class = self.service_class
-            self.__service_instance = object.__new__(service_class)
-            self.__service_instance.__init__()
-        return self.__service_instance
+        if not cls.__service_class:
+            cls.__service_class = cls.get_service_class()
+        return cls.__service_class
 
 
-class CronTaskHandler(BaseTaskHandler):
+class CronTaskHandler(IntServiceTaskHandler):
 
     async def dispatch(self):
         await self.safe_execute(self.execute_cron)
 
     async def execute_cron(self):
-        await self.service_instance.proceed_cron_job(self.request)
-        await self.service_instance.check_unproceeded_job(self.request)
+        await self.service_class.proceed_cron_job(self.request)
+        await self.service_class.check_unproceeded_job(self.request)
 
 
-class JobTaskHandler(BaseTaskHandler):
-
+class JobTaskHandler(IntServiceTaskHandler):
     async def dispatch(self):
-        return await self.safe_execute(self.service_class.execute_job, self.request, self.request.function)
+        return await self.safe_execute(self.execute_job)
+
+    async def execute_job(self):
+        self.service_class.execute_job(self.request, self.request.function)
 
 
 class LightTaskHandler(BaseTaskHandler):
+    __service_instance_cache: dict = LRUDict(size=8)
 
     def __init__(self, request: TaskRequest):
         super().__init__(request)
-        self._class_name, self._func_name = request.function.split('.')
+        self.class_name, self.func_name = request.function.split('.')
+        self.service_namespace = f"ecf.task.{self.class_name}:{self.class_name}"
 
     async def dispatch(self):
-        func = getattr(self._func_name, self.service_instance)
+        func = getattr(self.service_instance, self.func_name)
         args, kwargs = self.request.params
         return await self.safe_execute(func, *args, **kwargs)
 
     @property
     def service_instance(self):
-        if not self.__service_instance:
-            service_name = f"ecf.task.{self._class_name}:{self._class_name}"
-            service_class = self.get_service_class(service_name)
-            self.__service_instance = object.__new__(service_class)
-            self.__service_instance.__init__(self.request)
-        return self.__service_instance
+        if self.class_name not in self.__service_instance_cache:
+            service_class = self.get_service_class(self.service_namespace)
+            instance = service_class(self.request)
+            self.__service_instance_cache[self.class_name] = instance
+        else:
+            instance = self.__service_instance_cache[self.class_name]
+        return instance

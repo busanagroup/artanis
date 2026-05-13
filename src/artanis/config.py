@@ -105,8 +105,17 @@ class Configuration(Singleton, SyncLock, Listenable):
 
     ARTANIS_TASK_ENABLED: str = 'artanis.task.enabled'
     ARTANIS_TASK_INSTANCES: str = 'artanis.task.instances'
+    ARTANIS_TASK_PROCESSES: str = 'artanis.task.processes'
     ARTANIS_TASK_MAXTASK: str = 'artanis.task.maxtask'
-    ARTANIS_LTASK_ENABLED: str = 'artanis.ltask.enabled'
+
+    ARTANIS_JOB_ENABLED: str = 'artanis.job.enabled'
+    ARTANIS_JOB_INSTANCES: str = 'artanis.job.instances'
+    ARTANIS_JOB_PROCESSES: str = 'artanis.job.processes'
+    ARTANIS_JOB_MAXJOB: str = 'artanis.job.maxjob'
+
+    ARTANIS_EVENT_INSTANCES: str = 'artanis.event.instances'
+    ARTANIS_EVENT_PROCESSES: str = 'artanis.event.processes'
+    ARTANIS_EVENT_MAXEVENT: str = 'artanis.event.maxevent'
 
     ARTANIS_SPV_ENABLED: str = 'artanis.supervisor.enabled'
     ARTANIS_SPV_BIND_TYPE: str = 'artanis.supervisor.bindtype',
@@ -217,10 +226,19 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_STATIC_BINDTYPE: 'tcp',
             self.ARTANIS_STATIC_BIND: '0.0.0.0:8005',
 
+            self.ARTANIS_JOB_ENABLED: 'true',
+            self.ARTANIS_JOB_INSTANCES: '1',
+            self.ARTANIS_JOB_PROCESSES: '8',
+            self.ARTANIS_JOB_MAXJOB: '32',
+
             self.ARTANIS_TASK_ENABLED: 'true',
             self.ARTANIS_TASK_INSTANCES: '1',
+            self.ARTANIS_TASK_PROCESSES: '8',
             self.ARTANIS_TASK_MAXTASK: '32',
-            self.ARTANIS_LTASK_ENABLED: 'true',
+
+            self.ARTANIS_EVENT_INSTANCES: '1',
+            self.ARTANIS_EVENT_PROCESSES: '8',
+            self.ARTANIS_EVENT_MAXEVENT: '32',
 
             self.ARTANIS_SPV_ENABLED: 'true',
             self.ARTANIS_SPV_BIND_TYPE: 'tcp',

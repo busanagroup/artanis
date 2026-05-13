@@ -90,8 +90,9 @@ class IntService(BaseController):
                 except:
                     await session.rollback()
 
-    async def check_unproceeded_job(self, request: TaskRequest):
-        efjbls = self.get_entity('efjbls')
+    @classmethod
+    async def check_unproceeded_job(cls, request: TaskRequest):
+        efjbls = cls.get_entity('efjbls')
         objs = await efjbls.get_all_jobs(0)
         date_now = dt.datetime.now()
         for obj in objs:
@@ -103,11 +104,11 @@ class IntService(BaseController):
                         time_request = dt.time.frominteger(obj.jblsrptm)
                         date_span = date_now.time() - time_request
                         if date_span >= dt.timedelta(0):
-                            await JobRunner(self.get_request(), obj.jblsidnm)
+                            await JobRunner(request, obj.jblsidnm)
                     else:
-                        await JobRunner(self.get_request(), obj.jblsidnm)
+                        await JobRunner(request, obj.jblsidnm)
             else:
-                await JobRunner(self.get_request(), obj.jblsidnm)
+                await JobRunner(request, obj.jblsidnm)
 
     @classmethod
     async def update_job_status(cls, user_session: JOBSession, status, msg, info=None):
