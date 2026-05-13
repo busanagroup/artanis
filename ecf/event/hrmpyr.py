@@ -23,7 +23,10 @@ class hrmpyr(EventHandler, event_type="com.busanagroup.artanis.hrms.payroll"):
     def handle_salary_calculated(self, event: SalaryCalculationEvent):
         print(f"from handle_salary_calculated, event: {event.event_type} message: {event.message}")
 
-    @on_event(event_type="salary.rollback")
+    @on_event(event_type=[
+        "salary.calculated",
+        "salary.rollback",
+    ])
     def handle_other_salary_rollback(self, event: SalaryRollbackEvent):
         print(f"from handle_other_salary_rollback, event: {event.event_type} message: {event.message}")
 

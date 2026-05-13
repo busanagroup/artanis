@@ -57,15 +57,21 @@ class EventCapture:
 
     def __init__(
             self,
-            path: str | events.Topic | None = None,
+            path: str | events.Topic | list[str] | None = None,
             name: str | None = None,
     ):
-        self.path = events.Topic(name if path is None else path)
+        if not path or isinstance(path, str):
+            self.path = [events.Topic(name if path is None else path)]
+        else:
+            self.path = [events.Topic(p) for p in path]
         self.name = name
 
     def match(self, event_type: str) -> Match:
-        m = Match.full if self.path.match(event_type).match == self.path.Match.exact \
-            else Match.none
+        m = Match.none
+        for topic in self.path:
+            m = Match.full if topic.match(event_type).match == topic.Match.exact else Match.none
+            if m == Match.full:
+                break
         return m
 
 
@@ -75,7 +81,7 @@ def get_name(endpoint: t.Callable[..., t.Any]) -> str:
 
 def on_event(
         func: t.Callable[..., t.Any] | None = None,
-        event_type: str | events.Topic | None = None,
+        event_type: str | events.Topic | list[str] | None = None,
         name: str | None = None,
 ) -> t.Callable[..., t.Any]:
     if func:
