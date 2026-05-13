@@ -27,6 +27,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from functools import wraps
 from typing import Any, ParamSpec, TypeVar, cast
+from uuid import uuid7
 
 # Define generic type variables for return type and parameters
 R = TypeVar('R')
@@ -45,6 +46,7 @@ _MONOTONIC_CLOCK_ANCHOR_NS = time.monotonic_ns()
 _last_monotonic_datetime_ns = _MONOTONIC_EPOCH_ANCHOR_NS
 _last_monotonic_datetime_lock = threading.Lock()
 
+uuid7str = lambda: str(uuid7())
 
 def _format_epoch_ns_to_iso(epoch_ns: int) -> str:
     seconds, fractional_ns = divmod(epoch_ns, 1_000_000_000)
@@ -322,4 +324,5 @@ __all__ = [
     'extract_basemodel_generic_arg',
     'time_execution',
     'monotonic_datetime',
+    'uuid7str'
 ]

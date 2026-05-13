@@ -30,9 +30,6 @@ from functools import partial
 from typing import Any, Literal, TypeVar, overload
 from uuid import UUID
 
-from .uuid7 import uuid7str
-
-uuid7str: Callable[[], str] = uuid7str
 
 from .base import (
     BUS_LOGGING_LEVEL,
@@ -61,9 +58,12 @@ from .helpers import (
     QueueShutDown,
     _run_with_slow_monitor,  # pyright: ignore[reportPrivateUsage]
     log_filtered_traceback,
+    uuid7str
 )
 from .locking import LockManager, LockManagerProtocol, ReentrantLock
 from .middlewares import EventBusMiddleware
+
+uuid7str: Callable[[], str] = uuid7str
 
 logger = logging.getLogger('artbus')
 logger.setLevel(BUS_LOGGING_LEVEL)

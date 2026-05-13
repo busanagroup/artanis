@@ -26,7 +26,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from functools import partial
 from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Generic, Literal, Self, TypeAlias, Final, cast
-from uuid import UUID
+from uuid import UUID, uuid7
 
 from pydantic import (
     AfterValidator,
@@ -57,6 +57,7 @@ from .helpers import (  # pyright: ignore[reportPrivateUsage]
     cancel_and_await,
     extract_basemodel_generic_arg,
     monotonic_datetime,
+    uuid7str
 )
 from .jsonschema import (
     pydantic_model_from_json_schema,
@@ -64,7 +65,6 @@ from .jsonschema import (
     result_type_identifier_from_schema,
     validate_result_against_type,
 )
-from .uuid7 import uuid7str
 
 if TYPE_CHECKING:
     from .eventbus import EventBus
