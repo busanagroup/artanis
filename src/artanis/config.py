@@ -118,10 +118,10 @@ class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_EVENT_MAXEVENT: str = 'artanis.event.maxevent'
 
     ARTANIS_SPV_ENABLED: str = 'artanis.supervisor.enabled'
-    ARTANIS_SPV_BIND_TYPE: str = 'artanis.supervisor.bindtype',
-    ARTANIS_SPV_BIND: str = 'artanis.supervisor.bind',
-    ARTANIS_SPV_MASTER: str = 'artanis.supervisor.master',
-    ARTANIS_SPV_SECURITY: str = 'artanis.supervisor.security',
+    ARTANIS_SPV_BIND_TYPE: str = 'artanis.supervisor.bindtype'
+    ARTANIS_SPV_BIND: str = 'artanis.supervisor.bind'
+    ARTANIS_SPV_MASTER: str = 'artanis.supervisor.master'
+    ARTANIS_SPV_SECURITY: str = 'artanis.supervisor.security'
     ARTANIS_SPV_SECURITY_HASH: str = 'artanis.supervisor.security.hash'
 
     ARTANIS_STATIC_ENABLED: str = 'artanis.static.enabled'
@@ -270,8 +270,6 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.JWT_ACCESS_COOKIE_KEY: "access_token",
             self.JWT_REFRESH_COOKIE_KEY: "refresh_token",
         }
-        hash = hashlib.sha1(values[self.ARTANIS_SPV_SECURITY].encode(), usedforsecurity=True).hexdigest()
-        values[self.ARTANIS_SPV_SECURITY_HASH] = hash
         return values
 
     def supervisor_enabled(self):
@@ -308,6 +306,7 @@ class Configuration(Singleton, SyncLock, Listenable):
         raw_values = self.parse()
         self._dict = OrderedDict(_dict)
         self._dict.update(resolve_variables(raw_values, override=True))
+        self._dict.update(recalc_variables(self._dict))
         return self._dict
 
     def parse(self) -> Iterator[Tuple[str, Optional[str]]]:
@@ -550,6 +549,15 @@ def parse_variables(value: str) -> Iterator[Atom]:
     length = len(value)
     if cursor < length:
         yield Literal(value=value[cursor:length])
+
+
+def recalc_variables(
+        values: Mapping[str, Optional[str]]
+) -> Mapping[str, Optional[str]]:
+    hash_key = hashlib.sha1(values[Configuration.ARTANIS_SPV_SECURITY].encode(), usedforsecurity=True).hexdigest()
+    return {
+        Configuration.ARTANIS_SPV_SECURITY_HASH: hash_key[:12],
+    }
 
 
 def resolve_variables(

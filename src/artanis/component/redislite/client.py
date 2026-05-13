@@ -14,17 +14,18 @@ import atexit
 import json
 import logging
 import os
-import psutil
-import redis
 import shutil
 import signal
 import subprocess
+import sys
 import tempfile
 import time
-import sys
-from . import configuration
-from . import __redis_executable__, __redis_bin__
 
+import psutil
+import redis
+
+from . import __redis_executable__
+from . import configuration
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -203,10 +204,6 @@ class RedisMixin(object):
         )
         # Write a redis.config to our temp directory
         self.redis_configuration = configuration.config(**kwargs)
-        #         redis_bin = __redis_bin__
-        #         redis_modules = ['rejson.so', 'redisbloom.so', 'redistimeseries.so', 'redisearch.so']
-        #         for module in redis_modules:
-        #             self.redis_configuration += f'\nloadmodule {redis_bin}/{module}'
         with open(self.redis_configuration_filename, 'w') as file_handle:
             file_handle.write(self.redis_configuration)
 
