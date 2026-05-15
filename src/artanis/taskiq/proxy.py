@@ -33,23 +33,9 @@ class _TaskMethod:
         return await self._send(self._method_name, *args, **kwargs)
 
 
-class AbstractJobObjectProxy(object):
-    def __init__(self, request: Any):
-        self.request = request
-
-    async def get_username(self):
-        if not self.request:
-            return None
-        if hasattr(self.request, 'user'):
-            user_name = self.request.user.username
-        else:
-            user_name = self.request.user_name
-        return user_name
-
-
-class TaskObjectProxy(AbstractJobObjectProxy):
-    def __init__(self, request, service_name: str):
-        super().__init__(request)
+class TaskObjectProxy:
+    def __init__(self, username: str, service_name: str):
+        self.username = username or 'ADMIN'
         self.service_name = service_name
 
     def __getattr__(self, func_name: str):
@@ -57,41 +43,14 @@ class TaskObjectProxy(AbstractJobObjectProxy):
 
     async def __request(self, func_name: str, *args, **kwargs):
         service_func = ".".join([self.service_name, func_name])
-        request = self.request
         await AsyncKicker(
             broker=task_broker,
             task_name="artanis_task",
             labels={}
         ).kiq(
             TaskType.TK_TASK,
-            request.user.username,
+            self.username,
             service_func,
             *args,
             **kwargs
         )
-
-
-class JobObjectProxy(AbstractJobObjectProxy):
-
-    def __init__(self, request: Any, job_service: str, job_id: str):
-        super().__init__(request)
-        self.job_id = job_id
-        self.job_service = job_service
-
-    def __await__(self):
-        return self.dispatch().__await__()
-
-    async def dispatch(self):
-        job_channel = broker if self.get_task_type() == JOBType.REGULAR_JOB else task_broker
-        await AsyncKicker(
-            broker=job_channel,
-            task_name="artanis_task",
-            labels={}
-        ).kiq(
-            TaskType.TK_JOB,
-            self.get_username(),
-            self.job_id
-        )
-
-    def get_task_type(self):
-        raise NotImplementedError()  # pragma: no cover

@@ -12,43 +12,19 @@
 # without permission, explicit or implied, of the author.
 #
 # This module is part of Artanis Enterprise Platform and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import inspect
 from typing import Callable, Any
 
 from lru import LRU as LRUDict
 
 from artanis import concurrency
+from artanis.abc.repository import ClassRepository
 from artanis.config import Configuration
 from artanis.events import BaseEvent
 from artanis.utils import import_function
 
 __all__ = ['EventDispatcher']
-
-
-class HandlerRepository(dict[str, type[object] | None]):
-
-    def __init__(self, *args, base_modules: str | None = None, package_func: Callable | None = None, **kwargs):
-        self.base_modules = base_modules
-        self.package_func = package_func
-        super().__init__(*args, **kwargs)
-
-    def __getitem__(self, item):
-        value = super().__getitem__(item)
-        return self.validate(item, value)
-
-    def get(self, key: str, *args, **kwargs):
-        value = super().get(key, *args, **kwargs)
-        return self.validate(key, value)
-
-    def values(self):
-        return [self.get(item) for item in self.keys()]
-
-    def validate(self, key, value):
-        klass = value
-        if isinstance(value, str):
-            klass = self.package_func(value, self.base_modules)
-            self.__setitem__(key, klass)
-        return klass
 
 
 class EventDispatcher:
@@ -71,7 +47,7 @@ class EventDispatcher:
             return
         cls.__all_classes = dict([(klass_name, cls.__get_package_class(klass_name, cls.__base_module)) \
                                   for klass_name in cls.__class_dir]) \
-            if not cls.__dynamic_load else HandlerRepository(
+            if not cls.__dynamic_load else ClassRepository(
             [(klass_name, klass_name) for klass_name in cls.__class_dir],
             base_modules=cls.__base_module,
             package_func=cls.__get_package_class

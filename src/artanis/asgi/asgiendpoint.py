@@ -17,13 +17,13 @@
 import inspect
 import typing as t
 from pathlib import PurePosixPath
-from typing import Callable
 
 from lru import LRU as LRUDict
 from starlette.authentication import UnauthenticatedUser
 
 from artanis import exceptions, concurrency
 from artanis.abc.configurable import Configurable
+from artanis.abc.repository import ClassRepository
 from artanis.abc.service import StartableService
 from artanis.abc.startable import StartableListener
 from artanis.asgi import url, types, endpoints, routing
@@ -282,32 +282,6 @@ def published(
             return fnc
 
         return wrapper
-
-
-class EndPointRepository(dict[str, type[ControllerABC] | None]):
-
-    def __init__(self, *args, base_modules: str | None = None, package_func: Callable | None = None, **kwargs):
-        self.base_modules = base_modules
-        self.package_func = package_func
-        super().__init__(*args, **kwargs)
-
-    def __getitem__(self, item):
-        value = super().__getitem__(item)
-        return self.validate(item, value)
-
-    def get(self, key: str, *args, **kwargs):
-        value = super().get(key, *args, **kwargs)
-        return self.validate(key, value)
-
-    def values(self):
-        return [self.get(item) for item in self.keys()]
-
-    def validate(self, key, value):
-        klass = value
-        if isinstance(value, str):
-            klass = self.package_func(value, self.base_modules)
-            self.__setitem__(key, klass)
-        return klass
 
 
 class ASGIEndPoint(ControllerABC):
@@ -631,7 +605,7 @@ class ASGIEndPoint(ControllerABC):
             return
         self.__all_classes = dict([(f"/{klass_name}", self.__get_package_class(klass_name, self.base_modules)) \
                                    for klass_name in self.__class_dir]) \
-            if not self.dynamic_load else EndPointRepository(
+            if not self.dynamic_load else ClassRepository(
             [(f"/{klass_name}", klass_name) for klass_name in self.__class_dir],
             base_modules=self.base_modules,
             package_func=self.__get_package_class)
