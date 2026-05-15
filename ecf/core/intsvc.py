@@ -21,10 +21,9 @@ import traceback
 
 from artanis.component.validators import validators
 from artanis.sqlentity.sqlorm import Session
-from artanis.taskiq.proxy import JobObjectProxy
 from artanis.taskiq.tasks import TaskRequest
 from ecf.core.croniter import Croniter
-from ecf.core.ecfcmn import BaseController
+from ecf.core.ecfcmn import BaseController, JobObjectHandler
 from ecf.core.jobsvc import JobAssignment, JOBSession, JobRunner
 
 
@@ -157,7 +156,7 @@ class IntService(BaseController):
         program_name = await cls.update_job_status(job_session, 10, None)
         validators.Assertion(messages={'assert': f"No JOB Processor defined for jobID={job_id}"}).to_python(
             program_name is not None)
-        proxy = JobObjectProxy(request)
+        proxy = JobObjectHandler(request)
         try:
             await proxy.execute_job(job_session)
             await cls.update_job_status(job_session, 100, None)

@@ -13,16 +13,8 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
-
-import glob
-from os.path import dirname, basename, isfile, join
+from ecf.core.procsvc import BusinessObject
 
 
-def __dir__():
-    return __all__
-
-
-__all__ = [basename(f) for f in glob.glob(join(dirname(__file__), "*")) \
-           if not isfile(f) and not f.endswith('__pycache__') and not f.endswith('.py')]
-
+class ACTOBJ(BusinessObject):
+    pass

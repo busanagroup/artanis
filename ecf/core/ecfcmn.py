@@ -15,11 +15,21 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+from typing import Mapping, Any, TYPE_CHECKING
+
+from lru import LRU as LRUDict
+
+from artanis.abc.classprops import classproperty
+from artanis.abc.repository import ClassRepository
 from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
+from artanis.config import Configuration
 from artanis.sqlentity import entity
 from artanis.utils import import_function
-from ecf.core.ecfexceptions import ECFServiceError
+
+if TYPE_CHECKING:
+    from ecf.core.jobsvc import JobEngine, JOBSession
+
 
 
 class ECFObject(object):
@@ -86,6 +96,10 @@ class SupportClass:
     def get_unmapped_fields(fields, model):
         return model.get_unmapped_fields(fields)
 
+    @classproperty
+    def get_bo_proxy(cls):
+        return BusinessObjectProxy
+
 
 class BaseController(ControllerABC, SupportClass):
 
@@ -96,66 +110,155 @@ class BaseController(ControllerABC, SupportClass):
     async def get_username(self):
         raise NotImplementedError
 
-    @property
-    def has_request(self):
-        return self._request is not None
-
     def get_bo_proxy(self):
-        raise NotImplementedError
+        raise BusinessObjectProxy
 
     def get_task_proxy(self, service_name):
-        raise NotImplementedError
-
-    def json(self):
         raise NotImplementedError
 
     def get_service_name(self) -> str:
         return self.service_name
 
 
-class ObjectProxy:
-    __all = None
-    __services: dict = None
+class BusinessObjectProxy:
+    __base_module: str = 'ecf.bo'
+    __configured: bool = False
+    __config: Configuration = None
+    __class_dir = None
+    __all_classes: Mapping[str, Any] = None
+    __dynamic_load: bool = True
+    __instances = LRUDict(size=32)
 
-    def __init__(self, request, path: str = 'ecf.bo'):
-        self.base_path = path
-        self.request = request
-
-    def get_object(self, service_name: str, instantiate: bool = True):
+    @classmethod
+    def get_object(cls, service_name: str, instantiate: bool = True) -> Any:
+        cls._ensure_configured()
+        if not (service_name in cls.__class_dir):
+            raise NameError(f"Object [{service_name}] is not available")
+        klass = cls.__all_classes[service_name]
         if not instantiate:
-            return self.get_service_class(service_name)
-        return self.get_service_instance(service_name)
-
-    def get_service_class(self, service_name: str):
-        if not self.class_exist(service_name):
-            raise ECFServiceError(f"Service [{service_name}] is not available")
-        service_class = self.services.get(service_name, None)
-        if not service_class:
-            service_class = self.__get_package_class(service_name, self.base_path)
-            self.services[service_name] = service_class
-        return service_class
-
-    @property
-    def services(self):
-        if self.__services is None:
-            self.__services = dict()
-        return self.__services
-
-    def get_service_instance(self, service_name: str) -> object:
-        service_class = self.get_service_class(service_name)
-        instance = object.__new__(service_class)
-        instance.__init__(self.request)
+            return klass
+        if klass.__name__ in cls.__instances:
+            instance = cls.__instances[klass.__name__]
+        else:
+            instance = klass(config=cls.__config)
+            cls.__instances[klass.__name__] = instance
         return instance
 
-    @property
-    def all_modules(self):
-        if not self.__all:
-            self.__all = import_function(f"{self.base_path}:__all__")
-        return self.__all
+    @classmethod
+    def class_exist(cls, klass_name: str) -> bool:
+        return klass_name in cls.__class_dir
 
-    def __get_package_class(self, class_name: str, base_path: str | None = None):
-        package = f"{self.base_path if not base_path else base_path}:{class_name}"
-        return import_function(package)
+    @classmethod
+    def _ensure_configured(cls):
+        if not cls.__configured:
+            cls.configure()
 
-    def class_exist(self, klass_name: str) -> bool:
-        return klass_name in self.all_modules
+    @classmethod
+    def configure(cls):
+        if cls.__configured:
+            return
+        try:
+            cls._load_class_dir()
+            cls._load_classes()
+            cls.__config = Configuration.get_default_instance(create_instance=False)
+        finally:
+            cls.__configured = True
+
+    @classmethod
+    def _load_class_dir(cls):
+        if (not cls.__base_module) or cls.__class_dir:
+            return
+        cls.__class_dir = import_function(f"{cls.__base_module}:__all__")
+
+    @classmethod
+    def _load_classes(cls):
+        if (not cls.__base_module) or cls.__all_classes:
+            return
+        cls.__all_classes = dict([(klass_name, cls.__get_package_class(klass_name, cls.__base_module)) \
+                                  for klass_name in cls.__class_dir]) \
+            if not cls.__dynamic_load else ClassRepository(
+            [(klass_name, klass_name) for klass_name in cls.__class_dir],
+            base_modules=cls.__base_module,
+            package_func=cls.__get_package_class
+        )
+
+    @classmethod
+    def __get_package_class(cls, class_name: str, base_path: str | None = None, module_name: str | None = None):
+        return import_function(f"{cls.__base_module \
+            if not base_path else base_path}.{class_name \
+            if not module_name else module_name}:{class_name}")
+
+
+class JobObjectHandler(BusinessObjectProxy):
+    __base_module: str = 'ecf.job'
+    __configured: bool = False
+    __config: Configuration = None
+    __class_dir = None
+    __all_classes: Mapping[str, Any] = None
+    __dynamic_load: bool = True
+    __instances = LRUDict(size=32)
+
+    @classmethod
+    async def execute_job(cls, service_name: str, session: 'JOBSession'):
+        instance: 'JobEngine' = cls.get_object(service_name)
+        return await instance.execute(session)
+
+    @classmethod
+    def get_object(cls, service_name: str, instantiate: bool = True) -> Any:
+        cls._ensure_configured()
+        if not (service_name in cls.__class_dir):
+            raise NameError(f"Object [{service_name}] is not available")
+        klass = cls.__all_classes[service_name]
+        if not instantiate:
+            return klass
+        if klass.__name__ in cls.__instances:
+            instance = cls.__instances[klass.__name__]
+        else:
+            instance = klass(config=cls.__config)
+            cls.__instances[klass.__name__] = instance
+        return instance
+
+    @classmethod
+    def class_exist(cls, klass_name: str) -> bool:
+        return klass_name in cls.__class_dir
+
+    @classmethod
+    def _ensure_configured(cls):
+        if not cls.__configured:
+            cls.configure()
+
+    @classmethod
+    def configure(cls):
+        if cls.__configured:
+            return
+        try:
+            cls._load_class_dir()
+            cls._load_classes()
+            cls.__config = Configuration.get_default_instance(create_instance=False)
+        finally:
+            cls.__configured = True
+
+    @classmethod
+    def _load_class_dir(cls):
+        if (not cls.__base_module) or cls.__class_dir:
+            return
+        cls.__class_dir = import_function(f"{cls.__base_module}:__all__")
+
+    @classmethod
+    def _load_classes(cls):
+        if (not cls.__base_module) or cls.__all_classes:
+            return
+        cls.__all_classes = dict([(klass_name, cls.__get_package_class(klass_name, cls.__base_module)) \
+                                  for klass_name in cls.__class_dir]) \
+            if not cls.__dynamic_load else ClassRepository(
+            [(klass_name, klass_name) for klass_name in cls.__class_dir],
+            base_modules=cls.__base_module,
+            package_func=cls.__get_package_class
+        )
+
+    @classmethod
+    def __get_package_class(cls, class_name: str, base_path: str | None = None, module_name: str | None = None):
+        return import_function(f"{cls.__base_module \
+            if not base_path else base_path}.{class_name \
+            if not module_name else module_name}:{class_name}")
+

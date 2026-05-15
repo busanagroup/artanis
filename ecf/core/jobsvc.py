@@ -141,22 +141,13 @@ class JobEngine(BaseJobEngine): ...
 
 class JobRunner:
 
-    def __init__(self, request: Any, job_service: str, job_id: str):
-        self.job_id = job_id
-        self.request = request
+    def __init__(self, username: str, job_service: str, job_id: str):
+        self.username = username
         self.job_service = job_service
+        self.job_id = job_id
 
     def __await__(self):
         return self.dispatch().__await__()
-
-    async def get_username(self):
-        if not self.request:
-            return None
-        if hasattr(self.request, 'user'):
-            user_name = self.request.user.username
-        else:
-            user_name = self.request.user_name
-        return user_name
 
     async def dispatch(self):
         job_channel = broker if self.get_task_type() == JOBType.REGULAR_JOB else task_broker
@@ -168,11 +159,10 @@ class JobRunner:
             labels={}
         ).kiq(
             TaskType.TK_JOB,
-            self.get_username(),
+            self.username,
             self.job_id
         )
 
     def get_task_type(self):
-        proxy = JobObjectProxy(self.request)
-        service_class = proxy.get_service_class(self.job_service)
+        service_class = JobObjectProxy.get_service_class(self.job_service)
         return service_class.__JOB_TYPE__
