@@ -23,9 +23,8 @@ from artanis.sqlentity import entity
 from artanis.sqlentity.baseid import MSSortableUID
 from artanis.sqlentity.sqlorm import Session
 from artanis.taskiq.broker import broker, task_broker
-from artanis.taskiq.proxy import JobObjectProxy
 from artanis.taskiq.tasks import TaskType, JOBType
-from ecf.core.ecfcmn import BaseController
+from ecf.core.ecfcmn import BaseController, JobObjectHandler
 
 
 @enum.unique
@@ -164,5 +163,5 @@ class JobRunner:
         )
 
     def get_task_type(self):
-        service_class = JobObjectProxy.get_service_class(self.job_service)
+        service_class = JobObjectHandler.get_service_class(self.job_service)
         return service_class.__JOB_TYPE__

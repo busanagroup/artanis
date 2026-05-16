@@ -203,6 +203,10 @@ class JobObjectHandler(BusinessObjectProxy):
         return await instance.execute(session)
 
     @classmethod
+    def get_service_class(cls, service_name: str):
+        return cls.get_object(service_name, instantiate=False)
+
+    @classmethod
     def get_object(cls, service_name: str, instantiate: bool = True) -> Any:
         cls._ensure_configured()
         if not (service_name in cls.__class_dir):
