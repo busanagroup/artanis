@@ -25,6 +25,7 @@ from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
 from artanis.config import Configuration
 from artanis.sqlentity import entity
+from artanis.taskiq.proxy import TaskObjectProxy
 from artanis.utils import import_function
 
 if TYPE_CHECKING:
@@ -97,8 +98,12 @@ class SupportClass:
         return model.get_unmapped_fields(fields)
 
     @classproperty
-    def get_bo_proxy(cls):
+    def bo_proxy(cls):
         return BusinessObjectProxy
+
+    @staticmethod
+    def get_task_service(username: str, service_name: str):
+        return TaskObjectProxy(username, service_name)
 
 
 class BaseController(ControllerABC, SupportClass):
@@ -108,12 +113,6 @@ class BaseController(ControllerABC, SupportClass):
         self.service_name = self.__class__.__name__
 
     async def get_username(self):
-        raise NotImplementedError
-
-    def get_bo_proxy(self):
-        raise BusinessObjectProxy
-
-    def get_task_proxy(self, service_name):
         raise NotImplementedError
 
     def get_service_name(self) -> str:

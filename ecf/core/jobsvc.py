@@ -15,7 +15,6 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import datetime as dt
 import enum
-from typing import Any
 
 from taskiq.kicker import AsyncKicker
 
@@ -55,20 +54,21 @@ class JOBSession:
 class JobAssignment(object):
 
     def __init__(self,
-                 sender: BaseController,
+                 user_name: str,
                  job_service_name: str,
+                 service_name: str,
+                 description: str,
                  immediate: bool = False):
-        self.sender = sender
+        self.user_name: str = user_name
+        self.job_service_name = job_service_name
+        self.service_name = service_name
+        self.immediate = immediate
+        self.description: str | None = description
         self.timestamp = dt.datetime.now()
         self.job_id = MSSortableUID(self.timestamp)
-        self.service_name = sender.get_service_name()
-        self.job_service_name = job_service_name
-        self.immediate = immediate
-        self.description: str | None = None
-        self.user_name: str | None = None
 
     async def execute_job(self):
-        await JobRunner(self.sender.get_request(), self.job_service_name, str(self.job_id))
+        await JobRunner(self.user_name, self.job_service_name, str(self.job_id))
 
     async def assign_job(self, immediate=False, auto_commit=True, attachment: dict = None):
         validators.NotEmpty(messages={'empty': "service name has not been assigned"}).to_python(self.service_name)
