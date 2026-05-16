@@ -15,12 +15,12 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 
-from typing import Callable, Any
+from typing import Callable
 
 from taskiq.kicker import AsyncKicker
 
-from artanis.taskiq.broker import broker, task_broker
-from artanis.taskiq.tasks import TaskType, JOBType
+from artanis.taskiq.broker import task_broker
+from artanis.taskiq.tasks import TaskType
 
 
 class _TaskMethod:
@@ -39,9 +39,9 @@ class TaskObjectProxy:
         self.service_name = service_name
 
     def __getattr__(self, func_name: str):
-        return _TaskMethod(self.__request, func_name)
+        return _TaskMethod(self.__submit, func_name)
 
-    async def __request(self, func_name: str, *args, **kwargs):
+    async def __submit(self, func_name: str, *args, **kwargs):
         service_func = ".".join([self.service_name, func_name])
         await AsyncKicker(
             broker=task_broker,
