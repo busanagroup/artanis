@@ -166,3 +166,4 @@ from sqlmodel.sql.sqltypes import AutoString as AutoString  # noqa
 from .sqlorm import Field as Field
 from .sqlorm import Entity as Entity
 from .sqlorm import Relationship as Relationship
+from .sqlcrud import EntityCRUD as EntityCRUD
