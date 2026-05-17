@@ -302,7 +302,7 @@ class ASGIEndPoint(ControllerABC):
         self.apply_lock = False
         self.__class_dir = None
         self.__all_classes = None
-        self.__instances = LRUDict(size=32)
+        self.__instances = LRUDict(size=8)
         schema = "/openapi.json"
         default_modules = [
             SchemaModule(self.parent.openapi, schema=schema, schema_url=f"{self.base_path}{schema}", docs="/docs"),

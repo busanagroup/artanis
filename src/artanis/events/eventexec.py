@@ -32,7 +32,7 @@ class EventDispatcher:
     __dynamic_load: bool = True
     __class_dir = None
     __all_classes = None
-    __instances = LRUDict(size=32)
+    __instances = LRUDict(size=8)
     __config: Configuration = None
 
     @classmethod

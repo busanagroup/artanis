@@ -303,7 +303,10 @@ class HTMLTemplatesEnvironment(jinja2.Environment):
 
 
 class HTMLTemplateResponse(HTMLResponse):
-    templates = HTMLTemplatesEnvironment(loader=jinja2.FileSystemLoader(pathlib.Path(os.curdir) / "templates"))
+    templates = HTMLTemplatesEnvironment(
+        loader=jinja2.FileSystemLoader(pathlib.Path(os.curdir) / "templates"),
+        enable_async=True
+    )
 
     def __init__(self, template: str, context: dict[str, t.Any] | None = None, *args, **kwargs):
         if context is None:
@@ -327,7 +330,7 @@ class TemplateLoader(jinja2.PackageLoader):
 
 
 class ArtanisTemplateResponse(HTMLTemplateResponse):
-    templates = HTMLTemplatesEnvironment(loader=TemplateLoader())
+    templates = HTMLTemplatesEnvironment(loader=TemplateLoader(), enable_async=True)
 
 
 class OpenAPIResponse(starlette.schemas.OpenAPIResponse, Response):
