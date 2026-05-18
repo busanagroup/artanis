@@ -13,3 +13,10 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from .server import ServerCMD
+from .init import InitCMD
+from .build import BuildCMD
+
+__command_classses__ = [ServerCMD, InitCMD, BuildCMD]
+
+__all__ = ['ServerCMD']

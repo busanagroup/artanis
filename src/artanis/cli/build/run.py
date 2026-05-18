@@ -13,10 +13,10 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from artanis.config import Configuration
+from artanis.defs.loader import load_xml
 
-from importlib.metadata import version, PackageNotFoundError
 
-try:
-    __version__ = version("artanis")
-except PackageNotFoundError:
-    __version__ = "(undefined)"
+async def run_build():
+    config = Configuration.get_default_instance(create_instance=False)
+    await load_xml(config)

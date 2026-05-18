@@ -1,7 +1,8 @@
 # Artanis AI Agent Guide
 
 ## Architecture Overview
-Artanis is an enterprise web platform with a Python backend (FastAPI/SQLAlchemy) and React frontend (TanStack Start). The backend uses a modular subsystem architecture with multiprocessing workers. The ECF (Enterprise Component Framework) provides ORM entities (`ecf/tbl/`), business objects (`ecf/bo/`), and service layers.
+Artanis is an enterprise web platform with a Python backend (Starlette/SQLAlchemy) and React frontend (TanStack Start). 
+The backend uses a modular subsystem architecture with multiprocessing workers. The ECF (Enterprise Component Framework) provides ORM entities (`ecf/tbl/`), business objects (`ecf/bo/`), and service layers.
 
 Key components:
 - `src/artanis/`: Core platform (server, config, subsystems like ASGI, REST API, WebSocket)

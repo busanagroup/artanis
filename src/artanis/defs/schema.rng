@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rng:grammar xmlns:rng="http://relaxng.org/ns/structure/1.0"
+             datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+    <rng:define name="any">
+        <rng:element>
+            <rng:anyName/>
+            <rng:zeroOrMore>
+                <rng:choice>
+                    <rng:attribute>
+                        <rng:anyName/>
+                    </rng:attribute>
+                    <rng:text/>
+                    <rng:ref name="any"/>
+                </rng:choice>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="menuitem">
+        <rng:element name="item">
+            <rng:attribute name="name"/>
+            <rng:optional><rng:attribute name="action"/></rng:optional>
+            <rng:optional><rng:attribute name="order"/></rng:optional>
+            <rng:optional><rng:attribute name="title"/></rng:optional>
+            <rng:optional><rng:attribute name="icon"/></rng:optional>
+            <rng:optional><rng:attribute name="type"/></rng:optional>
+            <rng:zeroOrMore>
+                <rng:ref name="menuitem"/>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="menu">
+        <rng:element name="menu">
+            <rng:attribute name="name"/>
+            <rng:attribute name="action"/>
+            <rng:zeroOrMore>
+                <rng:ref name="menuitem"/>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-view">
+        <rng:element name="action-view">
+            <rng:attribute name="name"/>
+            <rng:zeroOrMore>
+                <rng:ref name="action"/>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="grid">
+        <rng:element name="grid">
+            <rng:attribute name="name"/>
+            <rng:attribute name="title"/>
+            <rng:attribute name="service"/>
+            <rng:zeroOrMore>
+                <rng:choice>
+                    <rng:ref name="field"/>
+                    <rng:ref name="button"/>
+                    <rng:ref name="toolbar"/>
+                </rng:choice>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="toolbar">
+        <rng:element name="toolbar">
+            <rng:zeroOrMore>
+                <rng:ref name="button"/>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="button">
+        <rng:element name="button">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="icon"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onClick"/>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="button-group">
+        <rng:element name="button-group">
+            <rng:optional>
+                <rng:attribute name="hideIf"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonlyIf"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colSpan"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showIf"/>
+            </rng:optional>
+            <rng:oneOrMore>
+                <rng:ref name="button"/>
+            </rng:oneOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="spacer">
+        <rng:element name="spacer">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="colSpan"/>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="field">
+        <rng:element name="field">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="title"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showIf"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="type"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="label"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="expr"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="if"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hidden"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonly"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colSpan"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="height"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="canEdit"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onChange"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="required"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="form-view"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="grid-view"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="x-bind"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="canNew"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onSelect"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hideIf"/>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="panel-include">
+        <rng:element name="panel-include">
+            <rng:attribute name="view"/>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="panel-related">
+        <rng:element name="panel-related">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="field"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colSpan"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="grid-view"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="form"/>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="panel">
+        <rng:element name="panel">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="sidebar"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colSpan"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="if"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="expr"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hidden"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonly"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="height"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hideIf"/>
+            </rng:optional>
+            <rng:zeroOrMore>
+                <rng:choice>
+                    <rng:ref name="panel-include"/>
+                    <rng:ref name="panel"/>
+                    <rng:ref name="field"/>
+                    <rng:ref name="button-group"/>
+                    <rng:ref name="button"/>
+                    <rng:ref name="spacer"/>
+                    <rng:ref name="panel-related"/>
+                </rng:choice>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="form">
+        <rng:element name="form">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="service"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="width"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onLoad"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onSave"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onNew"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onCopy"/>
+            </rng:optional>
+            <rng:zeroOrMore>
+                <rng:choice>
+                    <rng:ref name="panel-include"/>
+                    <rng:ref name="panel"/>
+                </rng:choice>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-group">
+        <rng:element name="action-group">
+            <rng:attribute name="name"/>
+            <rng:oneOrMore>
+                <rng:ref name="action"/>
+            </rng:oneOrMore>
+        </rng:element>
+    </rng:define>
+    
+    <rng:define name="view">
+        <rng:element name="view">
+            <rng:attribute name="type"/>
+            <rng:attribute name="name"/>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action">
+        <rng:element name="action">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="service"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title"/>
+            </rng:optional>
+            <rng:zeroOrMore>
+                <rng:choice>
+                <rng:ref name="view"/>
+                </rng:choice>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="call">
+        <rng:element name="call">
+            <rng:attribute name="class"/>
+            <rng:optional>
+                <rng:attribute name="method"/>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="alert">
+        <rng:element name="alert">
+            <rng:attribute name="message"/>
+            <rng:optional>
+                <rng:attribute name="if"/>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="attribute">
+        <rng:element name="attribute">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="if"/>
+                <rng:attribute name="for"/>
+                <rng:attribute name="expr"/>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-method">
+        <rng:element name="action-method">
+            <rng:attribute name="name"/>
+            <rng:zeroOrMore>
+                <rng:ref name="call"/>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-record">
+        <rng:element name="action-record">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="service"/>
+            </rng:optional>
+            <rng:zeroOrMore>
+                <rng:choice>
+                    <rng:ref name="field"/>
+                </rng:choice>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-validate">
+        <rng:element name="action-validate">
+            <rng:attribute name="name"/>
+            <rng:optional>
+                <rng:attribute name="service"/>
+            </rng:optional>
+            <rng:zeroOrMore>
+                <rng:ref name="alert"/>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-attrs">
+        <rng:element name="action-attrs">
+            <rng:attribute name="name"/>
+            <rng:zeroOrMore>
+                <rng:ref name="attribute"/>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="search-filters">
+        <rng:element name="search-filters">
+            <rng:attribute name="name"/>
+            <rng:attribute name="service"/>
+            <rng:attribute name="title"/>
+            <rng:oneOrMore>
+                <rng:ref name="field"/>
+            </rng:oneOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="artanis_data">
+        <rng:element name="artanis">
+            <rng:optional>
+                <rng:attribute name="noupdate"/>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="auto_sequence"/>
+            </rng:optional>
+            <rng:zeroOrMore>
+                <rng:choice>
+                    <rng:text/>
+                    <rng:ref name="artanis_data"/>
+                    <rng:ref name="menu"/>
+                    <rng:ref name="grid"/>
+                    <rng:ref name="form"/>
+                    <rng:ref name="action-view"/>
+                    <rng:ref name="action-group"/>
+                    <rng:ref name="action-method"/>
+                    <rng:ref name="action-record"/>
+                    <rng:ref name="action-validate"/>
+                    <rng:ref name="action-attrs"/>
+                    <rng:ref name="search-filters"/>
+                </rng:choice>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:start>
+        <rng:ref name="artanis_data"/>
+    </rng:start>
+</rng:grammar>

@@ -1,7 +1,12 @@
 #!/data/u01/projects/BAG/artanis/venv/bin/python3.14
 import sys
-from artanis.__main__ import main
+import pathlib
+
 if __name__ == '__main__':
     if sys.argv[0].endswith('.exe'):
         sys.argv[0] = sys.argv[0][:-4]
+    path = pathlib.Path.cwd() / "src"
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+    from artanis.__main__ import main
     sys.exit(main())

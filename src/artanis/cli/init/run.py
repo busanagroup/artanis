@@ -13,10 +13,19 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import logging
 
-from importlib.metadata import version, PackageNotFoundError
+from artanis.config import Configuration
+from artanis.sqlentity.entrypoint import configure_database, setup_all
 
-try:
-    __version__ = version("artanis")
-except PackageNotFoundError:
-    __version__ = "(undefined)"
+
+logger = logging.getLogger(__name__)
+
+async def run_initdb():
+    config = Configuration.get_default_instance(create_instance=False)
+    logger.info("Configuring database connection")
+    await configure_database(config)
+    logger.info("Initializing tables")
+    await setup_all(config=config, create_tables=True)
+    logger.info("... database initialization completed")
+

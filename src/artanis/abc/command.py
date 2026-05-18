@@ -13,10 +13,20 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from abc import ABC, abstractmethod
+from typing import Sequence, TYPE_CHECKING
 
-from importlib.metadata import version, PackageNotFoundError
 
-try:
-    __version__ = version("artanis")
-except PackageNotFoundError:
-    __version__ = "(undefined)"
+class ArtanisCommand(ABC):  # pragma: no cover
+    """Base class for new commands."""
+    name: str
+
+    short_help = ""
+
+    @abstractmethod
+    def exec(self, args: Sequence[str]) -> int | None:
+        """
+        Execute the command.
+
+        :param args: CLI args.
+        """
