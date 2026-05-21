@@ -24,6 +24,7 @@ from lxml import etree, builder
 
 from artanis import exceptions
 from artanis.config import Configuration
+from artanis.defs.xmlimport import XMLImport
 
 logger = logging.getLogger(__name__)
 
@@ -42,12 +43,8 @@ async def convert_xml(source: pathlib.Path, dest: pathlib.Path) -> None:
                 logger.warning(e)
         raise
 
-    if isinstance(source, str):
-        xml_filename = source
-    else:
-        xml_filename = source.name
-    obj = xml_import(xml_filename=xml_filename)
-    obj.parse(doc.getroot())
+    obj = XMLImport()
+    obj.parse(doc.getroot(), dest)
 
 def ensure_exist(path: pathlib.Path):
     if not path.exists():
@@ -68,10 +65,3 @@ async def load_xml(config: Configuration):
             dest_file = json_path / f"{os.path.splitext(basename(f))[0]}.json"
             await convert_xml(pathlib.Path(f), dest_file)
 
-
-class xml_import(object):
-    def __init__(self, xml_filename=None):
-        self.xml_filename = xml_filename
-
-    def parse(self, root):
-        pass
