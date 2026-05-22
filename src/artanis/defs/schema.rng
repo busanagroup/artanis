@@ -9,11 +9,37 @@
         </rng:data>
     </rng:define>
 
+    <rng:define name="ActContext">
+        <rng:ref name="action-field-attr"/>
+    </rng:define>
+
     <!-- anonymous21 -->
     <rng:define name="css-width">
         <rng:data type="string">
             <rng:param name="pattern">(\*)|(\d+(%|px|em)?)</rng:param>
         </rng:data>
+    </rng:define>
+
+    <rng:define name="if-attr">
+        <rng:optional>
+            <rng:attribute name="if">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="ActionMenuItem">
+        <rng:ref name="menu-attr"/>
+        <rng:optional>
+            <rng:attribute name="icon">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="category">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
     </rng:define>
 
     <rng:define name="service-attr">
@@ -168,9 +194,18 @@
     <rng:define name="view-attr">
         <rng:attribute name="type">
             <rng:choice>
-                <rng:value type="string">card</rng:value>
+                <rng:value type="string">calendar</rng:value>
+                <rng:value type="string">cards</rng:value>
+                <rng:value type="string">search-filters</rng:value>
+                <rng:value type="string">custom</rng:value>
+                <rng:value type="string">tree</rng:value>
+                <rng:value type="string">gantt</rng:value>
+                <rng:value type="string">search</rng:value>
                 <rng:value type="string">form</rng:value>
                 <rng:value type="string">grid</rng:value>
+                <rng:value type="string">kanban</rng:value>
+                <rng:value type="string">html</rng:value>
+                <rng:value type="string">chart</rng:value>
                 <rng:value type="string">dashboard</rng:value>
             </rng:choice>
         </rng:attribute>
@@ -191,9 +226,18 @@
         </rng:attribute>
         <rng:attribute name="type">
             <rng:choice>
-                <rng:value type="string">card</rng:value>
+                <rng:value type="string">calendar</rng:value>
+                <rng:value type="string">cards</rng:value>
+                <rng:value type="string">search-filters</rng:value>
+                <rng:value type="string">custom</rng:value>
+                <rng:value type="string">tree</rng:value>
+                <rng:value type="string">gantt</rng:value>
+                <rng:value type="string">search</rng:value>
                 <rng:value type="string">form</rng:value>
                 <rng:value type="string">grid</rng:value>
+                <rng:value type="string">kanban</rng:value>
+                <rng:value type="string">html</rng:value>
+                <rng:value type="string">chart</rng:value>
                 <rng:value type="string">dashboard</rng:value>
             </rng:choice>
         </rng:attribute>
@@ -209,9 +253,382 @@
 
     <rng:define name="action-view">
         <rng:element name="action-view">
-            <rng:oneOrMore>
+            <rng:zeroOrMore>
                 <rng:element name="action">
                     <rng:ref name="action-attr"/>
+                </rng:element>
+            </rng:zeroOrMore>
+            <rng:zeroOrMore>
+                <rng:element name="view-param">
+                    <rng:attribute name="name">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:attribute name="value">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                </rng:element>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-menu">
+        <rng:element name="action-menu">
+            <rng:ref name="ActionMenuItem"/>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="error-attr">
+        <rng:ref name="if-attr"/>
+        <rng:attribute name="message">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:optional>
+            <rng:attribute name="action">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="title">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="confirm-btn-title">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="cancel-btn-title">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="action-validate">
+        <rng:element name="action-validate">
+            <rng:ref name="service-attr"/>
+            <rng:oneOrMore>
+                <rng:choice>
+                    <rng:element name="error">
+                        <rng:ref name="error-attr"/>
+                        <rng:optional>
+                            <rng:attribute name="cancel-btn-title">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                    </rng:element>
+                    <rng:element name="alert">
+                        <rng:ref name="error-attr"/>
+                    </rng:element>
+                    <rng:element name="info">
+                        <rng:ref name="error-attr"/>
+                        <rng:optional>
+                            <rng:attribute name="action">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                        <rng:optional>
+                            <rng:attribute name="cancel-btn-title">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                    </rng:element>
+                    <rng:element name="notify">
+                        <rng:ref name="error-attr"/>
+                        <rng:optional>
+                            <rng:attribute name="action">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                        <rng:optional>
+                            <rng:attribute name="confirm-btn-title">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                        <rng:optional>
+                            <rng:attribute name="cancel-btn-title">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                    </rng:element>
+                </rng:choice>
+            </rng:oneOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-condition">
+        <rng:element name="action-condition">
+            <rng:ref name="service-attr"/>
+            <rng:oneOrMore>
+                <rng:element name="check">
+                    <rng:ref name="if-attr"/>
+                    <rng:optional>
+                        <rng:attribute name="field">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="error">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                </rng:element>
+            </rng:oneOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="module-attr">
+        <rng:optional>
+            <rng:attribute name="if-module">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:attribute name="name">
+            <rng:data type="string"/>
+        </rng:attribute>
+    </rng:define>
+
+    <rng:define name="action-field-attr">
+        <rng:ref name="if-attr"/>
+        <rng:attribute name="name">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:attribute name="expr">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:optional>
+            <rng:attribute name="copy">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="action-record">
+        <rng:element name="action-record">
+            <rng:ref name="module-attr"/>
+            <rng:attribute name="service">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:oneOrMore>
+                <rng:element name="field">
+                    <rng:ref name="action-field-attr"/>
+                </rng:element>
+            </rng:oneOrMore>
+            <rng:optional>
+                <rng:attribute name="search">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="ref">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="copy">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="saveIf">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-attrs">
+        <rng:element name="action-attrs">
+            <rng:ref name="service-attr"/>
+            <rng:oneOrMore>
+                <rng:element name="attribute">
+                    <rng:ref name="if-attr"/>
+                    <rng:attribute name="for">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:attribute name="name">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:attribute name="expr">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                </rng:element>
+            </rng:oneOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-method">
+        <rng:element name="action-method">
+            <rng:ref name="service-attr"/>
+            <rng:element name="call">
+                <rng:ref name="if-attr"/>
+                <rng:attribute name="class">
+                    <rng:data type="string"/>
+                </rng:attribute>
+                <rng:attribute name="method">
+                    <rng:data type="string"/>
+                </rng:attribute>
+                <rng:optional>
+                    <rng:attribute name="if">
+                        <rng:notAllowed/>
+                    </rng:attribute>
+                </rng:optional>
+            </rng:element>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-script">
+        <rng:element name="action-script">
+            <rng:ref name="service-attr"/>
+            <rng:element name="script">
+                <rng:attribute name="language">
+                    <rng:choice>
+                        <rng:value type="string">python</rng:value>
+                    </rng:choice>
+                </rng:attribute>
+                <rng:optional>
+                    <rng:attribute name="transactional">
+                        <rng:data type="boolean"/>
+                    </rng:attribute>
+                </rng:optional>
+                <rng:data type="string"/>
+            </rng:element>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="common-action-attr">
+        <rng:ref name="if-attr"/>
+        <rng:attribute name="name">
+            <rng:data type="string"/>
+        </rng:attribute>
+    </rng:define>
+
+    <rng:define name="action-ws">
+        <rng:element name="action-ws">
+            <rng:ref name="service-attr"/>
+            <rng:oneOrMore>
+                <rng:element name="action">
+                    <rng:ref name="common-action-attr"/>
+                    <rng:attribute name="template">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:optional>
+                        <rng:attribute name="engine">
+                            <rng:choice>
+                                <rng:value type="string">python</rng:value>
+                            </rng:choice>
+                        </rng:attribute>
+                    </rng:optional>
+                </rng:element>
+            </rng:oneOrMore>
+            <rng:optional>
+                <rng:attribute name="connect-timeout">
+                    <rng:data type="int"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="read-timeout">
+                    <rng:data type="int"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-import">
+        <rng:element name="action-import">
+            <rng:ref name="service-attr"/>
+            <rng:oneOrMore>
+                <rng:element name="import">
+                    <rng:optional>
+                        <rng:attribute name="name">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:attribute name="provider">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:attribute name="file">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                </rng:element>
+            </rng:oneOrMore>
+            <rng:attribute name="config">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-export">
+        <rng:element name="action-export">
+            <rng:ref name="service-attr"/>
+            <rng:oneOrMore>
+                <rng:element name="export">
+                    <rng:ref name="if-attr"/>
+                    <rng:attribute name="name">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:attribute name="template">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:optional>
+                        <rng:attribute name="engine">
+                            <rng:choice>
+                                <rng:value type="string">python</rng:value>
+                            </rng:choice>
+                        </rng:attribute>
+                    </rng:optional>
+                </rng:element>
+            </rng:oneOrMore>
+            <rng:optional>
+                <rng:attribute name="attachment">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-report">
+        <rng:element name="action-report">
+            <rng:ref name="service-attr"/>
+            <rng:zeroOrMore>
+                <rng:element name="param">
+                    <rng:ref name="ActContext"/>
+                </rng:element>
+            </rng:zeroOrMore>
+            <rng:attribute name="design">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:attribute name="output">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:optional>
+                <rng:attribute name="format">
+                    <rng:choice>
+                        <rng:value type="string">xlsx</rng:value>
+                        <rng:value type="string">pdf</rng:value>
+                        <rng:value type="string">doc</rng:value>
+                        <rng:value type="string">html</rng:value>
+                        <rng:value type="string">xls</rng:value>
+                        <rng:value type="string">odt</rng:value>
+                        <rng:value type="string">docx</rng:value>
+                        <rng:value type="string">ods</rng:value>
+                    </rng:choice>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="attachment">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="action-group">
+        <rng:element name="action-group">
+            <rng:ref name="service-attr"/>
+            <rng:oneOrMore>
+                <rng:element name="action">
+                    <rng:ref name="common-action-attr"/>
                 </rng:element>
             </rng:oneOrMore>
         </rng:element>
@@ -223,6 +640,18 @@
                 <rng:choice>
                     <rng:ref name="menu"/>
                     <rng:ref name="action-view"/>
+                    <rng:ref name="action-menu"/>
+                    <rng:ref name="action-validate"/>
+                    <rng:ref name="action-condition"/>
+                    <rng:ref name="action-record"/>
+                    <rng:ref name="action-attrs"/>
+                    <rng:ref name="action-method"/>
+                    <rng:ref name="action-script"/>
+                    <rng:ref name="action-ws"/>
+                    <rng:ref name="action-import"/>
+                    <rng:ref name="action-export"/>
+                    <rng:ref name="action-group"/>
+                    <rng:ref name="action-report"/>
                 </rng:choice>
             </rng:oneOrMore>
         </rng:element>
