@@ -4,8 +4,8 @@
         <!-- System Foundation -->
         <item name="base_foundation" title="System Foundation" icon="foundation.png" order="100">
             <item name="common_data" title="Common Basic Data" icon="basic_data.png" order="100">
-                <item name="base_adresses" title="Addresses" action="cmn010" order="100" />
-                <item name="base_states" title="States" action="cmn020" order="100" mode="desktop"/>
+                <item name="base_adresses" key="cmn010" title="Addresses" action="cmn010" order="100" />
+                <item name="base_states" key="cmn020" title="States" action="cmn020" order="100" mode="desktop"/>
             </item>
         </item>
     </menu>
@@ -15,8 +15,8 @@
         <!-- System Foundation -->
         <item name="base_foundation" title="System Foundation" icon="foundation.png" order="100">
             <item name="common_data" title="Common Basic Data" icon="basic_data.png" order="100">
-                <item name="base_adresses" title="Addresses" action="cmn010" order="100" />
-                <item name="base_states" title="States" action="cmn020" order="100" />
+                <item name="base_adresses" key="cmn010" title="Addresses" action="cmn010" order="100" />
+                <item name="base_states" key="cmn020" title="States" action="cmn020" order="100" />
             </item>
         </item>
     </menu>
