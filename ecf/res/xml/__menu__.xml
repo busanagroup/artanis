@@ -1,20 +1,36 @@
 <artanis>
-    <menu name="__default_menu__" action="__default_actions__">
+    <!-- Default Menu definition -->
+    <menu name="__default_menu__">
+        <!-- System Foundation -->
         <item name="base_foundation" title="System Foundation" icon="foundation.png" order="100">
             <item name="common_data" title="Common Basic Data" icon="basic_data.png" order="100">
-                <item name="base_adresses" title="Addresses" action="cmn010" order="100" type="grid"/>
-                <item name="base_states" title="States" action="cmn020" order="100" type="grid"/>
+                <item name="base_adresses" title="Addresses" action="cmn010" order="100" />
+                <item name="base_states" title="States" action="cmn020" order="100" mode="desktop"/>
             </item>
         </item>
     </menu>
-    <action-view name="__default_actions__">
-        <action name="cmn010" service="cmn010" title="Addresses">
-            <view type="cards" name="cmn010-cards"/>
+
+    <!-- Specific Menu definition for BEA CUKAI -->
+    <menu name="__beacukai_menu__">
+        <!-- System Foundation -->
+        <item name="base_foundation" title="System Foundation" icon="foundation.png" order="100">
+            <item name="common_data" title="Common Basic Data" icon="basic_data.png" order="100">
+                <item name="base_adresses" title="Addresses" action="cmn010" order="100" />
+                <item name="base_states" title="States" action="cmn020" order="100" />
+            </item>
+        </item>
+    </menu>
+
+    <!-- Actions definition -->
+    <action-view>
+        <action name="cmn010" service="cmn010" title="Addresses" type="grid">
+            <view type="card" name="cmn010-cards"/>
             <view type="form" name="cmn010-form"/>
             <view type="grid" name="cmn010-grid"/>
+            <view type="dashboard" name="cmn010-dashboard"/>
         </action>
-        <action name="cmn020" service="cmn020" title="States">
-            <view type="cards" name="cmn020-cards"/>
+        <action name="cmn020" service="cmn020" title="States" type="grid">
+            <view type="card" name="cmn020-cards"/>
             <view type="form" name="cmn020-form"/>
             <view type="grid" name="cmn020-grid"/>
         </action>
