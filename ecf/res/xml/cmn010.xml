@@ -1,5 +1,5 @@
 <artanis>
-    <grid name="cmn010-grid" title="Address list" service="cmn010">
+    <grid name="address-grid" title="Address list" service="cmn010">
         <toolbar>
             <button name="checkDuplicateBtn" title="Check Duplicate"
                     onClick="action-base-method-show-duplicate"/>
@@ -23,7 +23,6 @@
             <field name="isDefault" title="Default" showIf="$popup() &amp;&amp; id == null"
                    type="boolean"/>
         </panel>
-
         <panel sidebar="true" name="actionsPanel" title="Actions" colSpan="12">
             <panel name="mapBtnPanel" colSpan="12">
                 <button-group hideIf="$popup()" readonlyIf="!id" colSpan="12">
@@ -49,14 +48,13 @@
                 <field name="certifiedOk" colSpan="4"/>
                 <panel name="actionsPanel" colSpan="4">
                     <button name="validateBtn" title="Validate"
-                            onClick="cmn010:validate,save"/>
+                            onClick="com.axelor.apps.base.web.AddressController:validate,save"/>
                     <button name="selectBtn" title="Choose"
-                            onClick="cmn010:select,save"/>
+                            onClick="com.axelor.apps.base.web.AddressController:select,save"/>
                 </panel>
                 <panel-related name="pickListPanel" title="Pick list" colSpan="12"
-                               field="pickList" grid-view="pick-list-entry-grid" form="pick-list-entry-form"/>
+                               field="pickList" grid-view="pick-list-entry-grid" form-view="pick-list-entry-form"/>
             </panel>
-
         </panel>
     </form>
 
@@ -118,10 +116,10 @@
     </action-group>
 
     <action-method name="action-base-address-get-address-fields">
-        <call class="cmn010" method="getAddressMetaField"/>
+        <call class="com.axelor.apps.base.web.AddressController" method="getAddressMetaField"/>
     </action-method>
 
-    <action-record name="default-address-record" service="cmn010">
+    <action-record name="default-address-record" service="com.axelor.apps.base.db.Address">
         <field name="country" expr="eval: __user__?.activeCompany?.address?.country"
                if="__user__?.activeCompany?.address"/>
         <field name="country" expr="eval: __user__?.localization?.country"
@@ -129,7 +127,7 @@
     </action-record>
 
     <action-record name="action-address-change-city"
-                   service="cmn010">
+                   service="com.axelor.apps.base.db.Address">
         <field name="country" expr="eval: city?.country" if="city"/>
         <field name="zip" expr="eval: city?.zip" if="!zip"/>
         <field name="street" expr="eval: null"/>
@@ -142,30 +140,31 @@
     </action-validate>
 
     <action-record name="action-base-address-set-address-used"
-                   service="cmn010">
+                   service="com.axelor.apps.base.db.Address">
         <field name="isUsed"
-               expr="call:cmn010:checkAddressUsed(id)"/>
+               expr="call:com.axelor.apps.base.service.address.AddressService:checkAddressUsed(id)"/>
     </action-record>
 
     <action-validate name="action-base-address-check-address-used">
-        <alert message="Be aware that the address is already in use on other documents, do you still want to modify it ?"
-               if="isUsed == true"/>
+        <alert
+                message="Be aware that the address is already in use on other documents, do you still want to modify it ?"
+                if="isUsed == true"/>
     </action-validate>
 
     <action-method name="action-base-address-method-view-map">
-        <call class="cmn010" method="viewMap"/>
+        <call class="com.axelor.apps.base.web.AddressController" method="viewMap"/>
     </action-method>
 
     <action-method name="action-base-address-method-view-direction">
-        <call class="cmn010" method="viewDirection"/>
+        <call class="com.axelor.apps.base.web.AddressController" method="viewDirection"/>
     </action-method>
 
     <action-method name="action-base-address-method-update-lat-long">
-        <call class="cmn010" method="updateLatLong"/>
+        <call class="com.axelor.apps.base.web.AddressController" method="updateLatLong"/>
     </action-method>
 
     <action-method name="action-base-address-method-create-partner-address">
-        <call class="cmn010" method="createPartnerAddress"/>
+        <call class="com.axelor.apps.base.web.AddressController" method="createPartnerAddress"/>
     </action-method>
 
     <action-attrs name="action-address-attrs-update-domain-city">
@@ -185,7 +184,7 @@
     </action-attrs>
 
     <action-record name="action-address-record-clear-fields"
-                   service="cmn010">
+                   service="com.axelor.apps.base.db.Address">
         <field name="city" expr="eval: null"/>
         <field name="zip" expr="eval: null"/>
         <field name="postBox" expr="eval: null"/>
@@ -204,11 +203,11 @@
     </action-record>
 
     <action-method name="action-address-method-autocomplete-address">
-        <call class="cmn010" method="autocompleteAddress"/>
+        <call class="com.axelor.apps.base.web.AddressController" method="autocompleteAddress"/>
     </action-method>
 
     <action-record name="action-address-record-change-streetName"
-                   service="cmn010">
+                   service="com.axelor.apps.base.db.Address">
         <field name="streetName" expr="eval: buildingNumber + ' ' + street?.name"
                if="buildingNumber &amp;&amp; street"/>
         <field name="streetName" expr="eval: street?.name" if="!buildingNumber &amp;&amp; street"/>

@@ -23,16 +23,18 @@
 
     <!-- Actions definition -->
     <action-view>
+        <action name="cmn020" service="cmn020" title="States" type="grid">
+            <view type="card" name="cmn020-cards"/>
+            <view type="form" name="cmn020-form"/>
+            <view type="grid" name="cmn020-grid"/>
+            <view type="dashboard" name="cmn010-dashboard"/>
+        </action>
         <action name="cmn010" service="cmn010" title="Addresses" type="grid">
             <view type="card" name="cmn010-cards"/>
             <view type="form" name="cmn010-form"/>
             <view type="grid" name="cmn010-grid"/>
             <view type="dashboard" name="cmn010-dashboard"/>
         </action>
-        <action name="cmn020" service="cmn020" title="States" type="grid">
-            <view type="card" name="cmn020-cards"/>
-            <view type="form" name="cmn020-form"/>
-            <view type="grid" name="cmn020-grid"/>
-        </action>
     </action-view>
+
 </artanis>

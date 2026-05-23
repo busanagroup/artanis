@@ -2,6 +2,38 @@
 <rng:grammar xmlns:rng="http://relaxng.org/ns/structure/1.0"
              datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
+    <rng:define name="CommonAttributes">
+        <rng:optional>
+            <rng:attribute name="x-json-model">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="editable">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:attribute name="service">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:attribute name="name">
+            <rng:data type="string"/>
+        </rng:attribute>
+    </rng:define>
+
+    <rng:define name="AdvanceSearchAttributes">
+        <rng:optional>
+            <rng:attribute name="freeSearch">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="customSearch">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
     <!-- anonymous15 -->
     <rng:define name="css-height">
         <rng:data type="string">
@@ -195,8 +227,8 @@
         <rng:attribute name="type">
             <rng:choice>
                 <rng:value type="string">calendar</rng:value>
-                <rng:value type="string">cards</rng:value>
-                <rng:value type="string">search-filters</rng:value>
+                <rng:value type="string">card</rng:value>
+                <rng:value type="string">search-filter</rng:value>
                 <rng:value type="string">custom</rng:value>
                 <rng:value type="string">tree</rng:value>
                 <rng:value type="string">gantt</rng:value>
@@ -240,9 +272,6 @@
                 <rng:value type="string">chart</rng:value>
                 <rng:value type="string">dashboard</rng:value>
             </rng:choice>
-        </rng:attribute>
-        <rng:attribute name="definition">
-            <rng:data type="string"/>
         </rng:attribute>
         <rng:oneOrMore>
             <rng:element name="view">
@@ -306,7 +335,9 @@
 
     <rng:define name="action-validate">
         <rng:element name="action-validate">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:oneOrMore>
                 <rng:choice>
                     <rng:element name="error">
@@ -439,7 +470,9 @@
 
     <rng:define name="action-attrs">
         <rng:element name="action-attrs">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:oneOrMore>
                 <rng:element name="attribute">
                     <rng:ref name="if-attr"/>
@@ -459,7 +492,9 @@
 
     <rng:define name="action-method">
         <rng:element name="action-method">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:element name="call">
                 <rng:ref name="if-attr"/>
                 <rng:attribute name="class">
@@ -479,7 +514,9 @@
 
     <rng:define name="action-script">
         <rng:element name="action-script">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:element name="script">
                 <rng:attribute name="language">
                     <rng:choice>
@@ -505,7 +542,9 @@
 
     <rng:define name="action-ws">
         <rng:element name="action-ws">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:oneOrMore>
                 <rng:element name="action">
                     <rng:ref name="common-action-attr"/>
@@ -536,7 +575,9 @@
 
     <rng:define name="action-import">
         <rng:element name="action-import">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:oneOrMore>
                 <rng:element name="import">
                     <rng:optional>
@@ -560,7 +601,9 @@
 
     <rng:define name="action-export">
         <rng:element name="action-export">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:oneOrMore>
                 <rng:element name="export">
                     <rng:ref name="if-attr"/>
@@ -589,7 +632,9 @@
 
     <rng:define name="action-report">
         <rng:element name="action-report">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:zeroOrMore>
                 <rng:element name="param">
                     <rng:ref name="ActContext"/>
@@ -625,7 +670,9 @@
 
     <rng:define name="action-group">
         <rng:element name="action-group">
-            <rng:ref name="service-attr"/>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
             <rng:oneOrMore>
                 <rng:element name="action">
                     <rng:ref name="common-action-attr"/>
@@ -634,11 +681,2837 @@
         </rng:element>
     </rng:define>
 
+    <rng:define name="layout-attr">
+        <rng:optional>
+            <rng:attribute name="helpLink">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="width">
+                <rng:data type="string">
+                    <rng:param name="pattern">((\*|mini|mid|large)|(\d+)(%|px|em)?)((:(\d+)(px|em)?){1,2})?</rng:param>
+                </rng:data>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="css">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="groups">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:attribute name="title">
+            <rng:data type="string"/>
+        </rng:attribute>
+    </rng:define>
+
+    <rng:define name="ExtraCollectionAttributes">
+        <rng:optional>
+            <rng:attribute name="x-tree-limit">
+                <rng:data type="int"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-tree-field-title">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-tree-field">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="help-layout-attr">
+        <rng:mixed>
+            <rng:ref name="field-status-attr"/>
+            <rng:optional>
+                <rng:attribute name="name">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showTitle">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonly">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonlyIf">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="help">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:mixed>
+    </rng:define>
+
+    <rng:define name="Help">
+        <rng:group>
+            <rng:ref name="help-layout-attr"/>
+            <rng:optional>
+                <rng:attribute name="variant">
+                    <rng:choice>
+                        <rng:value type="string">success</rng:value>
+                        <rng:value type="string">warning</rng:value>
+                        <rng:value type="string">danger</rng:value>
+                        <rng:value type="string">info</rng:value>
+                    </rng:choice>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="ExtendAttribute">
+        <rng:group>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:attribute name="value">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="ResponsiveNumber">
+        <rng:choice>
+            <rng:data type="int"/>
+            <rng:data type="string">
+                <rng:param name="pattern">(\d+)(,(\d+))*</rng:param>
+            </rng:data>
+        </rng:choice>
+    </rng:define>
+
+    <rng:define name="if-condition">
+        <rng:optional>
+            <rng:attribute name="if-module">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="if">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="field-status-attr">
+        <rng:ref name="if-condition"/>
+        <rng:optional>
+            <rng:attribute name="title">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="showTitle">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="help">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="hidden">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="readonly">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="css">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="height">
+                <rng:ref name="css-height"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="width">
+                <rng:ref name="css-width"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="showIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="hideIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="readonlyIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="depends">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:group>
+            <rng:optional>
+                <rng:attribute name="rowOffset">
+                    <rng:ref name="ResponsiveNumber"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="rowSpan">
+                    <rng:ref name="ResponsiveNumber"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colOffset">
+                    <rng:ref name="ResponsiveNumber"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colSpan">
+                    <rng:ref name="ResponsiveNumber"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="depend-attr">
+        <rng:optional>
+            <rng:attribute name="depends">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="LayoutContainerAttrs">
+        <rng:optional>
+            <rng:attribute name="itemSpan">
+                <rng:data type="int"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="gap">
+                <rng:data type="string">
+                    <rng:param name="pattern">(\d+(px|em|rem)?)</rng:param>
+                </rng:data>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="colWidths">
+                <rng:data type="string">
+                    <rng:param name="pattern">(\d+(px|em|rem|fr|%)?)(,(\d+(px|em|rem|fr|%)?))*</rng:param>
+                </rng:data>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="cols">
+                <rng:data type="int"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="panel-field-attr">
+        <rng:ref name="field-status-attr"/>
+        <rng:zeroOrMore>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="hilite">
+                    <rng:ref name="Hilite"/>
+                </rng:element>
+            </rng:choice>
+        </rng:zeroOrMore>
+        <rng:optional>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="tooltip">
+                    <rng:ref name="ToolTip"/>
+                </rng:element>
+            </rng:choice>
+        </rng:optional>
+        <rng:attribute name="name">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:optional>
+            <rng:attribute name="placeholder">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="type">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="widget">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="selection">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="selection-in">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="required">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="requiredIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="validIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onChange">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="min">
+                <rng:data type="decimal"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="max">
+                <rng:data type="decimal"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="pattern">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="fgColor">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="bgColor">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:ref name="RelationalAttributes"/>
+        <rng:ref name="ExtraAttributes"/>
+    </rng:define>
+
+    <rng:define name="Label">
+        <rng:group>
+            <rng:ref name="field-status-attr"/>
+            <rng:optional>
+                <rng:attribute name="name">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showTitle">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonly">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonlyIf">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="field-name-status-attr">
+        <rng:ref name="field-status-attr"/>
+        <rng:optional>
+            <rng:attribute name="name">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="panel-dash-attr">
+        <rng:ref name="field-name-status-attr"/>
+        <rng:attribute name="action">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:optional>
+            <rng:attribute name="canSearch">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-show-bars">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canNew">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canEdit">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canDelete">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="ExtendFormItems">
+        <rng:oneOrMore>
+            <rng:choice>
+                <rng:element name="field">
+                    <rng:ref name="PanelField"/>
+                </rng:element>
+                <rng:element name="label">
+                    <rng:ref name="Label"/>
+                </rng:element>
+                <rng:element name="help">
+                    <rng:ref name="Help"/>
+                </rng:element>
+                <rng:element name="static">
+                    <rng:ref name="help-layout-attr"/>
+                </rng:element>
+                <rng:element name="spacer">
+                    <rng:ref name="Spacer"/>
+                </rng:element>
+                <rng:element name="separator">
+                    <rng:ref name="Separator"/>
+                </rng:element>
+                <rng:element name="button-group">
+                    <rng:ref name="field-name-status-attr"/>
+                    <rng:oneOrMore>
+                        <rng:element name="button">
+                            <rng:ref name="Button"/>
+                        </rng:element>
+                    </rng:oneOrMore>
+                </rng:element>
+                <rng:element name="button">
+                    <rng:ref name="Button"/>
+                </rng:element>
+                <rng:element name="panel-dashlet">
+                    <rng:ref name="PanelDashlet"/>
+                </rng:element>
+                <rng:element name="panel-include">
+                    <rng:ref name="FormInclude"/>
+                </rng:element>
+                <rng:element name="panel">
+                    <rng:ref name="panel-attr"/>
+                    <rng:ref name="PanelItems"/>
+                </rng:element>
+                <rng:element name="hilite">
+                    <rng:ref name="Hilite"/>
+                </rng:element>
+                <rng:element name="toolbar">
+                    <rng:ref name="Toolbar"/>
+                </rng:element>
+                <rng:element name="menubar">
+                    <rng:ref name="Menubar"/>
+                </rng:element>
+                <rng:element name="menu">
+                    <rng:ref name="MenubarMenu"/>
+                </rng:element>
+                <rng:element name="item">
+                    <rng:ref name="MenubarMenuItem"/>
+                </rng:element>
+                <rng:element name="divider">
+                    <rng:ref name="MenubarMenuDivider"/>
+                </rng:element>
+                <rng:element name="tooltip">
+                    <rng:ref name="ToolTip"/>
+                </rng:element>
+                <rng:element name="viewer">
+                    <rng:ref name="PanelViewer"/>
+                </rng:element>
+                <rng:element name="editor">
+                    <rng:ref name="PanelEditor"/>
+                </rng:element>
+                <rng:element name="panel-stack">
+                    <rng:ref name="PanelTabs"/>
+                </rng:element>
+                <rng:element name="panel-tabs">
+                    <rng:ref name="PanelTabs"/>
+                </rng:element>
+                <rng:element name="panel-mail">
+                    <rng:ref name="PanelMail"/>
+                </rng:element>
+            </rng:choice>
+        </rng:oneOrMore>
+    </rng:define>
+
+    <rng:define name="main-panel-attr">
+        <rng:ref name="panel-attr"/>
+        <rng:zeroOrMore>
+            <rng:choice>
+                <rng:choice>
+                    <rng:notAllowed/>
+                    <rng:element name="field">
+                        <rng:ref name="BaseField"/>
+                    </rng:element>
+                </rng:choice>
+                <rng:choice>
+                    <rng:notAllowed/>
+                    <rng:element name="button">
+                        <rng:ref name="Button"/>
+                    </rng:element>
+                </rng:choice>
+                <rng:choice>
+                    <rng:notAllowed/>
+                    <rng:element name="spacer">
+                        <rng:ref name="Spacer"/>
+                    </rng:element>
+                </rng:choice>
+                <rng:choice>
+                    <rng:notAllowed/>
+                    <rng:element name="separator">
+                        <rng:ref name="Separator"/>
+                    </rng:element>
+                </rng:choice>
+                <rng:choice>
+                    <rng:notAllowed/>
+                    <rng:element name="label">
+                        <rng:ref name="Label"/>
+                    </rng:element>
+                </rng:choice>
+                <rng:choice>
+                    <rng:notAllowed/>
+                    <rng:element name="panel">
+                        <rng:ref name="main-panel-attr"/>
+                        <rng:optional>
+                            <rng:attribute name="layout">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                        <rng:optional>
+                            <rng:attribute name="onNew">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                        <rng:optional>
+                            <rng:attribute name="x-viewer">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                        <rng:optional>
+                            <rng:attribute name="x-show-titles">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                        <rng:optional>
+                            <rng:attribute name="x-show-on-new">
+                                <rng:notAllowed/>
+                            </rng:attribute>
+                        </rng:optional>
+                    </rng:element>
+                </rng:choice>
+            </rng:choice>
+        </rng:zeroOrMore>
+        <rng:optional>
+            <rng:attribute name="layout">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onNew">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-viewer">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-show-titles">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-show-on-new">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="depends">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onTabSelect">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="sidebar">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="BaseField">
+        <rng:ref name="panel-field-attr"/>
+    </rng:define>
+
+    <rng:define name="Separator">
+        <rng:group>
+            <rng:optional>
+                <rng:attribute name="name">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showTitle">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="help">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonly">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonlyIf">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="if-module">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="if">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="id">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hidden">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="css">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="height">
+                    <rng:ref name="css-height"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="width">
+                    <rng:ref name="css-width"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showIf">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hideIf">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="depends">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="rowOffset">
+                    <rng:ref name="ResponsiveNumber"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="rowSpan">
+                    <rng:ref name="ResponsiveNumber"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colOffset">
+                    <rng:ref name="ResponsiveNumber"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colSpan">
+                    <rng:ref name="ResponsiveNumber"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="Spacer">
+        <rng:group>
+            <rng:ref name="field-status-attr"/>
+            <rng:optional>
+                <rng:attribute name="name">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showTitle">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hidden">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="help">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonly">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonlyIf">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="Button">
+        <rng:ref name="button-attr"/>
+    </rng:define>
+
+    <rng:define name="PanelViewer">
+        <rng:ref name="depend-attr"/>
+    </rng:define>
+
+    <rng:define name="PanelTabs">
+        <rng:group>
+            <rng:ref name="panel-attr"/>
+            <rng:oneOrMore>
+                <rng:choice>
+                    <rng:choice>
+                        <rng:notAllowed/>
+                        <rng:element name="panel">
+                            <rng:ref name="Panel"/>
+                        </rng:element>
+                    </rng:choice>
+                    <rng:choice>
+                        <rng:notAllowed/>
+                        <rng:element name="panel-related">
+                            <rng:ref name="PanelRelated"/>
+                        </rng:element>
+                    </rng:choice>
+                    <rng:choice>
+                        <rng:notAllowed/>
+                        <rng:element name="panel-dashlet">
+                            <rng:ref name="PanelDashlet"/>
+                        </rng:element>
+                    </rng:choice>
+                    <rng:choice>
+                        <rng:notAllowed/>
+                        <rng:element name="panel-include">
+                            <rng:ref name="FormInclude"/>
+                        </rng:element>
+                    </rng:choice>
+                </rng:choice>
+            </rng:oneOrMore>
+            <rng:optional>
+                <rng:attribute name="stacked">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="cols">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colWidths">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="itemSpan">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showFrame">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showTitle">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="title">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="help">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onTabSelect">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="x-row-height">
+                    <rng:data type="int"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="FormInclude">
+        <rng:group>
+            <rng:ref name="if-condition"/>
+            <rng:attribute name="view">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:optional>
+                <rng:attribute name="from">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="PanelDashlet">
+        <rng:ref name="panel-dash-attr"/>
+    </rng:define>
+
+    <rng:define name="PanelRelated">
+        <rng:ref name="panel-attr"/>
+        <rng:optional>
+            <rng:attribute name="cols">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="colWidths">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="itemSpan">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="stacked">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:attribute name="field">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:optional>
+            <rng:attribute name="editable">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="required">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="requiredIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="validIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="orderBy">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="groupBy">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onNew">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onChange">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onCopy">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onDelete">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canMove">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-selector">
+                <rng:choice>
+                    <rng:value type="string">checkbox</rng:value>
+                    <rng:value type="string">none</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="widget">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="showTitle">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:ref name="RelationalAttributes"/>
+        <rng:ref name="ExtraAttributes"/>
+        <rng:zeroOrMore>
+            <rng:choice>
+                <rng:element name="field">
+                    <rng:ref name="PanelField"/>
+                </rng:element>
+                <rng:element name="button">
+                    <rng:ref name="Button"/>
+                </rng:element>
+            </rng:choice>
+        </rng:zeroOrMore>
+    </rng:define>
+
+    <rng:define name="PanelEditor">
+        <rng:ref name="main-panel-attr"/>
+    </rng:define>
+
+    <rng:define name="PanelMail">
+        <rng:group>
+            <rng:ref name="panel-attr"/>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="mail-messages">
+                    <rng:optional>
+                        <rng:attribute name="limit">
+                            <rng:data type="int"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="filter">
+                            <rng:choice>
+                                <rng:value type="string">all</rng:value>
+                                <rng:value type="string">notification</rng:value>
+                                <rng:value type="string">comment</rng:value>
+                            </rng:choice>
+                        </rng:attribute>
+                    </rng:optional>
+                </rng:element>
+            </rng:choice>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="PanelField">
+        <rng:group>
+            <rng:ref name="panel-field-attr"/>
+            <rng:optional>
+                <rng:choice>
+                    <rng:notAllowed/>
+                    <rng:element name="viewer">
+                        <rng:ref name="PanelViewer"/>
+                    </rng:element>
+                </rng:choice>
+            </rng:optional>
+            <rng:optional>
+                <rng:choice>
+                    <rng:notAllowed/>
+                    <rng:element name="editor">
+                        <rng:ref name="PanelEditor"/>
+                    </rng:element>
+                </rng:choice>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="PanelItems">
+        <rng:zeroOrMore>
+            <rng:choice>
+                <rng:element name="field">
+                    <rng:ref name="PanelField"/>
+                </rng:element>
+                <rng:element name="label">
+                    <rng:ref name="Label"/>
+                </rng:element>
+                <rng:element name="help">
+                    <rng:ref name="Help"/>
+                </rng:element>
+                <rng:element name="static">
+                    <rng:ref name="help-layout-attr"/>
+                </rng:element>
+                <rng:element name="spacer">
+                    <rng:ref name="Spacer"/>
+                </rng:element>
+                <rng:element name="separator">
+                    <rng:ref name="Separator"/>
+                </rng:element>
+                <rng:element name="button-group">
+                    <rng:ref name="field-name-status-attr"/>
+                    <rng:oneOrMore>
+                        <rng:element name="button">
+                            <rng:ref name="Button"/>
+                        </rng:element>
+                    </rng:oneOrMore>
+                </rng:element>
+                <rng:element name="button">
+                    <rng:ref name="Button"/>
+                </rng:element>
+                <rng:element name="panel-dashlet">
+                    <rng:ref name="PanelDashlet"/>
+                </rng:element>
+                <rng:element name="panel-include">
+                    <rng:ref name="FormInclude"/>
+                </rng:element>
+                <rng:element name="panel">
+                    <rng:ref name="panel-attr"/>
+                    <rng:ref name="PanelItems"/>
+                </rng:element>
+                <rng:element name="panel-related">
+                    <rng:ref name="PanelRelated"/>
+                </rng:element>
+            </rng:choice>
+        </rng:zeroOrMore>
+    </rng:define>
+
+    <rng:define name="panel-attr">
+        <rng:ref name="field-name-status-attr"/>
+        <rng:optional>
+            <rng:attribute name="showFrame">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="sidebar">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="stacked">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="attached">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onTabSelect">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:ref name="LayoutContainerAttrs"/>
+        <rng:optional>
+            <rng:attribute name="width">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="Panel">
+        <rng:ref name="panel-attr"/>
+        <rng:optional>
+            <rng:attribute name="canCollapse">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="collapseIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="icon">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="icon-background">
+                <rng:choice>
+                    <rng:choice>
+                        <rng:value type="string">pink</rng:value>
+                        <rng:value type="string">green</rng:value>
+                        <rng:value type="string">bluegrey</rng:value>
+                        <rng:value type="string">deeporange</rng:value>
+                        <rng:value type="string">lime</rng:value>
+                        <rng:value type="string">yellow</rng:value>
+                        <rng:value type="string">black</rng:value>
+                        <rng:value type="string">violet</rng:value>
+                        <rng:value type="string">teal</rng:value>
+                        <rng:value type="string">amber</rng:value>
+                        <rng:value type="string">lightgreen</rng:value>
+                        <rng:value type="string">brown</rng:value>
+                        <rng:value type="string">deeppurple</rng:value>
+                        <rng:value type="string">cyan</rng:value>
+                        <rng:value type="string">grey</rng:value>
+                        <rng:value type="string">red</rng:value>
+                        <rng:value type="string">orange</rng:value>
+                        <rng:value type="string">blue</rng:value>
+                        <rng:value type="string">lightblue</rng:value>
+                        <rng:value type="string">white</rng:value>
+                        <rng:value type="string">olive</rng:value>
+                        <rng:value type="string">purple</rng:value>
+                        <rng:value type="string">indigo</rng:value>
+                    </rng:choice>
+                    <rng:data type="string">
+                        <rng:param name="pattern">#[\dA-Fa-f]{6}([\dA-Fa-f][\dA-Fa-f])?</rng:param>
+                    </rng:data>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:zeroOrMore>
+            <rng:choice>
+                <rng:element name="menu">
+                    <rng:oneOrMore>
+                        <rng:element name="item">
+                            <rng:ref name="MenubarMenuItem"/>
+                        </rng:element>
+                    </rng:oneOrMore>
+                </rng:element>
+                <rng:element name="field">
+                    <rng:ref name="PanelField"/>
+                </rng:element>
+                <rng:element name="label">
+                    <rng:ref name="Label"/>
+                </rng:element>
+                <rng:element name="help">
+                    <rng:ref name="Help"/>
+                </rng:element>
+                <rng:element name="static">
+                    <rng:ref name="help-layout-attr"/>
+                </rng:element>
+                <rng:element name="spacer">
+                    <rng:ref name="Spacer"/>
+                </rng:element>
+                <rng:element name="separator">
+                    <rng:ref name="Separator"/>
+                </rng:element>
+                <rng:element name="button-group">
+                    <rng:ref name="field-name-status-attr"/>
+                    <rng:oneOrMore>
+                        <rng:element name="button">
+                            <rng:ref name="Button"/>
+                        </rng:element>
+                    </rng:oneOrMore>
+                </rng:element>
+                <rng:element name="button">
+                    <rng:ref name="Button"/>
+                </rng:element>
+                <rng:element name="panel-dashlet">
+                    <rng:ref name="PanelDashlet"/>
+                </rng:element>
+                <rng:element name="panel-include">
+                    <rng:ref name="FormInclude"/>
+                </rng:element>
+                <rng:element name="panel">
+                    <rng:ref name="panel-attr"/>
+                    <rng:ref name="PanelItems"/>
+                </rng:element>
+            </rng:choice>
+        </rng:zeroOrMore>
+    </rng:define>
+
+    <rng:define name="form-extend-elements">
+        <rng:oneOrMore>
+            <rng:choice>
+                <rng:element name="attribute">
+                    <rng:ref name="ExtendAttribute"/>
+                </rng:element>
+                <rng:element name="insert">
+                    <rng:attribute name="position">
+                        <rng:choice>
+                            <rng:value type="string">before</rng:value>
+                            <rng:value type="string">after</rng:value>
+                            <rng:value type="string">inside</rng:value>
+                        </rng:choice>
+                    </rng:attribute>
+                    <rng:ref name="ExtendFormItems"/>
+                </rng:element>
+                <rng:element name="replace">
+                    <rng:ref name="ExtendFormItems"/>
+                </rng:element>
+                <rng:element name="move">
+                    <rng:attribute name="position">
+                        <rng:choice>
+                            <rng:value type="string">before</rng:value>
+                            <rng:value type="string">after</rng:value>
+                            <rng:value type="string">inside</rng:value>
+                        </rng:choice>
+                    </rng:attribute>
+                    <rng:attribute name="source">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                </rng:element>
+            </rng:choice>
+        </rng:oneOrMore>
+    </rng:define>
+
+    <rng:define name="form-elements">
+        <rng:zeroOrMore>
+            <rng:choice>
+                <rng:element name="toolbar">
+                    <rng:ref name="Toolbar"/>
+                </rng:element>
+                <rng:element name="menubar">
+                    <rng:ref name="Menubar"/>
+                </rng:element>
+                <rng:element name="help">
+                    <rng:ref name="Help"/>
+                </rng:element>
+                <rng:element name="panel">
+                    <rng:ref name="Panel"/>
+                </rng:element>
+                <rng:element name="panel-include">
+                    <rng:ref name="FormInclude"/>
+                </rng:element>
+                <rng:element name="panel-dashlet">
+                    <rng:ref name="PanelDashlet"/>
+                </rng:element>
+                <rng:element name="panel-related">
+                    <rng:ref name="PanelRelated"/>
+                </rng:element>
+                <rng:element name="panel-stack">
+                    <rng:ref name="PanelTabs"/>
+                </rng:element>
+                <rng:element name="panel-tabs">
+                    <rng:ref name="PanelTabs"/>
+                </rng:element>
+                <rng:element name="panel-mail">
+                    <rng:ref name="PanelMail"/>
+                </rng:element>
+                <rng:element name="extend">
+                    <rng:optional>
+                        <rng:attribute name="if-module">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="if-feature">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:attribute name="target">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:ref name="form-extend-elements"/>
+                </rng:element>
+            </rng:choice>
+        </rng:zeroOrMore>
+    </rng:define>
+
+    <rng:define name="form-attr">
+        <rng:ref name="layout-attr"/>
+        <rng:ref name="LayoutContainerAttrs"/>
+        <rng:optional>
+            <rng:attribute name="onLoad">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onSave">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onNew">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onDelete">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onCopy">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="readonlyIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canNew">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canEdit">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canSave">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canDelete">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canArchive">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canCopy">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canAttach">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="Hilite">
+        <rng:group>
+            <rng:attribute name="if">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:optional>
+                <rng:attribute name="strong">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="background">
+                    <rng:choice>
+                        <rng:choice>
+                            <rng:value type="string">pink</rng:value>
+                            <rng:value type="string">green</rng:value>
+                            <rng:value type="string">bluegrey</rng:value>
+                            <rng:value type="string">deeporange</rng:value>
+                            <rng:value type="string">lime</rng:value>
+                            <rng:value type="string">yellow</rng:value>
+                            <rng:value type="string">black</rng:value>
+                            <rng:value type="string">violet</rng:value>
+                            <rng:value type="string">teal</rng:value>
+                            <rng:value type="string">amber</rng:value>
+                            <rng:value type="string">lightgreen</rng:value>
+                            <rng:value type="string">brown</rng:value>
+                            <rng:value type="string">deeppurple</rng:value>
+                            <rng:value type="string">cyan</rng:value>
+                            <rng:value type="string">grey</rng:value>
+                            <rng:value type="string">red</rng:value>
+                            <rng:value type="string">orange</rng:value>
+                            <rng:value type="string">blue</rng:value>
+                            <rng:value type="string">lightblue</rng:value>
+                            <rng:value type="string">white</rng:value>
+                            <rng:value type="string">olive</rng:value>
+                            <rng:value type="string">purple</rng:value>
+                            <rng:value type="string">indigo</rng:value>
+                        </rng:choice>
+                        <rng:choice>
+                            <rng:value type="string">default</rng:value>
+                            <rng:value type="string">success</rng:value>
+                            <rng:value type="string">warning</rng:value>
+                            <rng:value type="string">danger</rng:value>
+                            <rng:value type="string">primary</rng:value>
+                            <rng:value type="string">info</rng:value>
+                        </rng:choice>
+                    </rng:choice>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="color">
+                    <rng:choice>
+                        <rng:choice>
+                            <rng:value type="string">pink</rng:value>
+                            <rng:value type="string">green</rng:value>
+                            <rng:value type="string">bluegrey</rng:value>
+                            <rng:value type="string">deeporange</rng:value>
+                            <rng:value type="string">lime</rng:value>
+                            <rng:value type="string">yellow</rng:value>
+                            <rng:value type="string">black</rng:value>
+                            <rng:value type="string">violet</rng:value>
+                            <rng:value type="string">teal</rng:value>
+                            <rng:value type="string">amber</rng:value>
+                            <rng:value type="string">lightgreen</rng:value>
+                            <rng:value type="string">brown</rng:value>
+                            <rng:value type="string">deeppurple</rng:value>
+                            <rng:value type="string">cyan</rng:value>
+                            <rng:value type="string">grey</rng:value>
+                            <rng:value type="string">red</rng:value>
+                            <rng:value type="string">orange</rng:value>
+                            <rng:value type="string">blue</rng:value>
+                            <rng:value type="string">lightblue</rng:value>
+                            <rng:value type="string">white</rng:value>
+                            <rng:value type="string">olive</rng:value>
+                            <rng:value type="string">purple</rng:value>
+                            <rng:value type="string">indigo</rng:value>
+                        </rng:choice>
+                        <rng:choice>
+                            <rng:value type="string">default</rng:value>
+                            <rng:value type="string">success</rng:value>
+                            <rng:value type="string">warning</rng:value>
+                            <rng:value type="string">danger</rng:value>
+                            <rng:value type="string">primary</rng:value>
+                            <rng:value type="string">info</rng:value>
+                        </rng:choice>
+                    </rng:choice>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="ToolTip">
+        <rng:group>
+            <rng:optional>
+                <rng:attribute name="call">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:ref name="depend-attr"/>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="RelationalAttributes">
+        <rng:optional>
+            <rng:attribute name="x-popup-maximized">
+                <rng:choice>
+                    <rng:value type="string">all</rng:value>
+                    <rng:value type="string">editor</rng:value>
+                    <rng:value type="string">selector</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-image-field">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-color-field">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-search-limit">
+                <rng:data type="int"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-call-onSave">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-can-reload">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canRemove">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canEdit">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canView">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canNew">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canSelect">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canSuggest">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onSelect">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="summary-view">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="grid-view">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="form-view">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="edit-window">
+                <rng:choice>
+                    <rng:value type="string">popup</rng:value>
+                    <rng:value type="string">blank</rng:value>
+                    <rng:value type="string">self</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="domain">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="target-name"/>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="target"/>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="ExtraAttributes">
+        <rng:ref name="ExtraCollectionAttributes"/>
+        <rng:optional>
+            <rng:attribute name="x-barcode-format">
+                <rng:choice>
+                    <rng:value type="string">Codabar</rng:value>
+                    <rng:value type="string">CODE128</rng:value>
+                    <rng:value type="string">ITF14</rng:value>
+                    <rng:value type="string">EAN8</rng:value>
+                    <rng:value type="string">UPC</rng:value>
+                    <rng:value type="string">CODE39</rng:value>
+                    <rng:value type="string">EAN13</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-barcode-display-value">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-barcode-background-color">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-barcode-width">
+                <rng:data type="decimal"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-barcode-line-color">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-color-picker-show-alpha">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-slider-show-min-max">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-stepper-completed">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-stepper-show-description">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-stepper-type">
+                <rng:choice>
+                    <rng:value type="string">icon</rng:value>
+                    <rng:value type="string">numeric</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-drawing-width">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-drawing-height">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-stroke-color">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-stroke-width">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-only-countries">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-preferred-countries">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-initial-country">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-placeholder-number-type">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-rating-highlight-selected">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-rating-fill">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-rating-color">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-rating-icon">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-selection-show-checkbox">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-dirty">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-hide-mode-switch">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-initial-edit-type">
+                <rng:choice>
+                    <rng:value type="string">markdown</rng:value>
+                    <rng:value type="string">wysiwyg</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-preview-style">
+                <rng:choice>
+                    <rng:value type="string">tab</rng:value>
+                    <rng:value type="string">vertical</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-accept">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-seconds">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-big">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-false-text">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-true-text">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-currency">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-step">
+                <rng:data type="decimal"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-scale">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-precision">
+                <rng:data type="integer"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-limit">
+                <rng:data type="int"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-order">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-labels">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-lite">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-code-theme">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-code-syntax">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-direction">
+                <rng:choice>
+                    <rng:value type="string">horizontal</rng:value>
+                    <rng:value type="string">vertical</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-can-export">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-can-copy">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-show-bars">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-reset-state">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-show-icons">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-exclusive">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-icon-active">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-icon-hover">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-icon">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-create">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-related">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-enum-type"/>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-bind">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="grid-attr">
+        <rng:ref name="layout-attr"/>
+        <rng:optional>
+            <rng:attribute name="widget">
+                <rng:data type="string">
+                    <rng:param name="pattern">[Ee]xpandable|[Tt]ree-?[Gg]rid</rng:param>
+                </rng:data>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="sortable">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="orderBy">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="groupBy">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="summary-view">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-row-height">
+                <rng:data type="int"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-col-width">
+                <rng:data type="int"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-no-fetch">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-selector">
+                <rng:choice>
+                    <rng:value type="string">checkbox</rng:value>
+                    <rng:value type="string">none</rng:value>
+                </rng:choice>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="edit-icon">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onNew">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onSave">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="onDelete">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canNew">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canEdit">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canSave">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canDelete">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canArchive">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="canMove">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:ref name="ExtraCollectionAttributes"/>
+    </rng:define>
+
+    <rng:define name="button-attr">
+        <rng:attribute name="name">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:optional>
+            <rng:attribute name="icon">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="iconHover">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="link">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="prompt">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="showTitle">
+                <rng:notAllowed/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:attribute name="onClick">
+            <rng:data type="string"/>
+        </rng:attribute>
+        <rng:optional>
+            <rng:attribute name="widget">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="x-field">
+                <rng:data type="string">
+                    <rng:param name="minLength">1</rng:param>
+                </rng:data>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="if-module">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="if">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="title">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="help">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="hidden">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="readonly">
+                <rng:data type="boolean"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="css">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="height">
+                <rng:ref name="css-height"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="width">
+                <rng:ref name="css-width"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="showIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="hideIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="readonlyIf">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="depends">
+                <rng:data type="string"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="rowOffset">
+                <rng:ref name="ResponsiveNumber"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="rowSpan">
+                <rng:ref name="ResponsiveNumber"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="colOffset">
+                <rng:ref name="ResponsiveNumber"/>
+            </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+            <rng:attribute name="colSpan">
+                <rng:ref name="ResponsiveNumber"/>
+            </rng:attribute>
+        </rng:optional>
+    </rng:define>
+
+    <rng:define name="GridButton">
+        <rng:group>
+            <rng:ref name="button-attr"/>
+            <rng:optional>
+                <rng:attribute name="colSpan">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colOffset">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="rowSpan">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="rowOffset">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="height">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="link">
+                    <rng:notAllowed/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="Toolbar">
+        <rng:oneOrMore>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="button">
+                    <rng:ref name="button-attr"/>
+                    <rng:optional>
+                        <rng:attribute name="link">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-field">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="height">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="width">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="colSpan">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="colOffset">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="rowSpan">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="rowOffset">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="iconHover">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                </rng:element>
+            </rng:choice>
+        </rng:oneOrMore>
+    </rng:define>
+
+    <rng:define name="MenubarMenuItem">
+        <rng:group>
+            <rng:ref name="if-condition"/>
+            <rng:attribute name="title">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:attribute name="action">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:optional>
+                <rng:attribute name="name">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="prompt">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="depends">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showIf">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hideIf">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="readonlyIf">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="MenubarMenuDivider">
+        <rng:group>
+            <rng:ref name="if-condition"/>
+            <rng:optional>
+                <rng:attribute name="name">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="depends">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showIf">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="hideIf">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="MenubarMenu">
+        <rng:group>
+            <rng:ref name="if-condition"/>
+            <rng:oneOrMore>
+                <rng:choice>
+                    <rng:choice>
+                        <rng:notAllowed/>
+                        <rng:element name="item">
+                            <rng:ref name="MenubarMenuItem"/>
+                        </rng:element>
+                    </rng:choice>
+                    <rng:choice>
+                        <rng:notAllowed/>
+                        <rng:element name="divider">
+                            <rng:ref name="MenubarMenuDivider"/>
+                        </rng:element>
+                    </rng:choice>
+                    <rng:choice>
+                        <rng:notAllowed/>
+                        <rng:element name="menu">
+                            <rng:ref name="MenubarMenu"/>
+                        </rng:element>
+                    </rng:choice>
+                </rng:choice>
+            </rng:oneOrMore>
+            <rng:optional>
+                <rng:attribute name="name">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:attribute name="title">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:optional>
+                <rng:attribute name="icon">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="showTitle">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+        </rng:group>
+    </rng:define>
+
+    <rng:define name="Menubar">
+        <rng:oneOrMore>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="menu">
+                    <rng:ref name="MenubarMenu"/>
+                </rng:element>
+            </rng:choice>
+        </rng:oneOrMore>
+    </rng:define>
+
+    <rng:define name="GridWidgets">
+        <rng:choice>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="field">
+                    <rng:ref name="panel-field-attr"/>
+                    <rng:optional>
+                        <rng:element name="grid">
+                            <rng:ref name="grid-attr"/>
+                            <rng:optional>
+                                <rng:attribute name="editable">
+                                    <rng:data type="boolean"/>
+                                </rng:attribute>
+                            </rng:optional>
+                        </rng:element>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:element name="form">
+                            <rng:ref name="form-attr"/>
+                            <rng:optional>
+                                <rng:attribute name="editable">
+                                    <rng:data type="boolean"/>
+                                </rng:attribute>
+                            </rng:optional>
+                            <rng:ref name="form-elements"/>
+                        </rng:element>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="aggregate">
+                            <rng:choice>
+                                <rng:value type="string">avg</rng:value>
+                                <rng:value type="string">min</rng:value>
+                                <rng:value type="string">max</rng:value>
+                                <rng:value type="string">sum</rng:value>
+                            </rng:choice>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="sortable">
+                            <rng:data type="boolean"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="massUpdate">
+                            <rng:data type="boolean"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="canSelect">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="edit-window">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="summary-view">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="colSpan">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="colOffset">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="rowSpan">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="rowOffset">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="showTitle">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="height">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="depends">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-call-onSave">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-can-copy">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-can-reload">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-can-export">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-labels">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-show-icons">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-show-bars">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                </rng:element>
+            </rng:choice>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="button">
+                    <rng:ref name="GridButton"/>
+                </rng:element>
+            </rng:choice>
+        </rng:choice>
+    </rng:define>
+
+    <rng:define name="ExtendGridItems">
+        <rng:choice>
+            <rng:ref name="GridWidgets"/>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="toolbar">
+                    <rng:ref name="Toolbar"/>
+                </rng:element>
+            </rng:choice>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="menubar">
+                    <rng:ref name="Menubar"/>
+                </rng:element>
+            </rng:choice>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="menu">
+                    <rng:ref name="MenubarMenu"/>
+                </rng:element>
+            </rng:choice>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="item">
+                    <rng:ref name="MenubarMenuItem"/>
+                </rng:element>
+            </rng:choice>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="divider">
+                    <rng:ref name="MenubarMenuDivider"/>
+                </rng:element>
+            </rng:choice>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="help">
+                    <rng:ref name="Help"/>
+                </rng:element>
+            </rng:choice>
+            <rng:choice>
+                <rng:notAllowed/>
+                <rng:element name="hilite">
+                    <rng:ref name="Hilite"/>
+                </rng:element>
+            </rng:choice>
+        </rng:choice>
+    </rng:define>
+
+    <rng:define name="grid-elements">
+        <rng:oneOrMore>
+            <rng:choice>
+                <rng:element name="field">
+                    <rng:ref name="panel-field-attr"/>
+                    <rng:optional>
+                        <rng:element name="grid">
+                            <rng:ref name="grid-attr"/>
+                            <rng:optional>
+                                <rng:attribute name="editable">
+                                    <rng:data type="boolean"/>
+                                </rng:attribute>
+                            </rng:optional>
+                            <rng:ref name="grid-elements"/>
+                        </rng:element>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:element name="form">
+                            <rng:ref name="form-attr"/>
+                            <rng:optional>
+                                <rng:attribute name="editable">
+                                    <rng:data type="boolean"/>
+                                </rng:attribute>
+                            </rng:optional>
+                            <rng:ref name="form-elements"/>
+                        </rng:element>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="aggregate">
+                            <rng:choice>
+                                <rng:value type="string">avg</rng:value>
+                                <rng:value type="string">min</rng:value>
+                                <rng:value type="string">max</rng:value>
+                                <rng:value type="string">sum</rng:value>
+                            </rng:choice>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="sortable">
+                            <rng:data type="boolean"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="massUpdate">
+                            <rng:data type="boolean"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="canSelect">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="edit-window">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="summary-view">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="colSpan">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="colOffset">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="rowSpan">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="rowOffset">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="showTitle">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="height">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="depends">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-call-onSave">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-can-copy">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-can-reload">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-can-export">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-labels">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-show-icons">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="x-show-bars">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                </rng:element>
+                <rng:element name="toolbar">
+                    <rng:ref name="Toolbar"/>
+                </rng:element>
+                <rng:element name="button">
+                    <rng:ref name="GridButton"/>
+                </rng:element>
+                <rng:element name="help">
+                    <rng:ref name="Help"/>
+                </rng:element>
+                <rng:element name="menubar">
+                    <rng:ref name="Menubar"/>
+                </rng:element>
+                <rng:element name="hilite">
+                    <rng:ref name="Hilite"/>
+                </rng:element>
+                <rng:element name="extend">
+                    <rng:optional>
+                        <rng:attribute name="if-module">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="if-feature">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:attribute name="target">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:oneOrMore>
+                        <rng:choice>
+                            <rng:element name="attribute">
+                                <rng:ref name="ExtendAttribute"/>
+                            </rng:element>
+                            <rng:element name="insert">
+                                <rng:attribute name="position">
+                                    <rng:choice>
+                                        <rng:value type="string">before</rng:value>
+                                        <rng:value type="string">after</rng:value>
+                                        <rng:value type="string">inside</rng:value>
+                                    </rng:choice>
+                                </rng:attribute>
+                                <rng:oneOrMore>
+                                    <rng:ref name="ExtendGridItems"/>
+                                </rng:oneOrMore>
+                            </rng:element>
+                            <rng:element name="replace">
+                                <rng:zeroOrMore>
+                                    <rng:ref name="ExtendGridItems"/>
+                                </rng:zeroOrMore>
+                            </rng:element>
+                            <rng:element name="move">
+                                <rng:attribute name="position">
+                                    <rng:choice>
+                                        <rng:value type="string">before</rng:value>
+                                        <rng:value type="string">after</rng:value>
+                                        <rng:value type="string">inside</rng:value>
+                                    </rng:choice>
+                                </rng:attribute>
+                                <rng:attribute name="source">
+                                    <rng:data type="string"/>
+                                </rng:attribute>
+                            </rng:element>
+                        </rng:choice>
+                    </rng:oneOrMore>
+                </rng:element>
+            </rng:choice>
+        </rng:oneOrMore>
+    </rng:define>
+
+    <rng:define name="grid">
+        <rng:element name="grid">
+            <rng:ref name="CommonAttributes"/>
+            <rng:ref name="AdvanceSearchAttributes"/>
+            <rng:optional>
+                <rng:attribute name="extension">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:ref name="grid-attr"/>
+            <rng:ref name="grid-elements"/>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="named-layout-attr">
+        <rng:ref name="layout-attr"/>
+        <rng:attribute name="name">
+            <rng:data type="string"/>
+        </rng:attribute>
+    </rng:define>
+
+    <rng:define name="search-filters">
+        <rng:element name="search-filters">
+            <rng:ref name="named-layout-attr"/>
+            <rng:attribute name="service">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:zeroOrMore>
+                <rng:element name="field">
+                    <rng:optional>
+                        <rng:attribute name="selection">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="if">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="hidden">
+                            <rng:data type="boolean"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="title">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:attribute name="name">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                </rng:element>
+            </rng:zeroOrMore>
+            <rng:zeroOrMore>
+                <rng:element name="filter">
+                    <rng:ref name="if-condition"/>
+                    <rng:element name="domain">
+                        <rng:data type="string"/>
+                    </rng:element>
+                    <rng:zeroOrMore>
+                        <rng:element name="context">
+                            <rng:attribute name="value">
+                                <rng:data type="string"/>
+                            </rng:attribute>
+                            <rng:attribute name="name">
+                                <rng:data type="string"/>
+                            </rng:attribute>
+                        </rng:element>
+                    </rng:zeroOrMore>
+                    <rng:optional>
+                        <rng:attribute name="name">
+                            <rng:data type="string"/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:attribute name="title">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                </rng:element>
+            </rng:zeroOrMore>
+        </rng:element>
+    </rng:define>
+
+    <rng:define name="form">
+        <rng:element name="form">
+            <rng:ref name="CommonAttributes"/>
+            <rng:ref name="AdvanceSearchAttributes"/>
+            <rng:ref name="form-attr"/>
+            <rng:ref name="form-elements"/>
+        </rng:element>
+    </rng:define>
+
     <rng:define name="artanis_data">
         <rng:element name="artanis">
             <rng:oneOrMore>
                 <rng:choice>
+                    <rng:ref name="grid"/>
+                    <rng:ref name="form"/>
                     <rng:ref name="menu"/>
+                    <rng:ref name="search-filters"/>
                     <rng:ref name="action-view"/>
                     <rng:ref name="action-menu"/>
                     <rng:ref name="action-validate"/>
