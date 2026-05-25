@@ -157,7 +157,7 @@
         </rng:optional>
         <rng:optional>
             <rng:attribute name="order">
-                <rng:data type="string"/>
+                <rng:data type="int"/>
             </rng:attribute>
         </rng:optional>
         <rng:optional>
@@ -1689,23 +1689,17 @@
 
     <rng:define name="PanelField">
         <rng:group>
+            <rng:optional>
+                <rng:element name="viewer">
+                    <rng:ref name="PanelViewer"/>
+                </rng:element>
+            </rng:optional>
+            <rng:optional>
+                <rng:element name="editor">
+                    <rng:ref name="PanelEditor"/>
+                </rng:element>
+            </rng:optional>
             <rng:ref name="panel-field-attr"/>
-            <rng:optional>
-                <rng:choice>
-                    <rng:notAllowed/>
-                    <rng:element name="viewer">
-                        <rng:ref name="PanelViewer"/>
-                    </rng:element>
-                </rng:choice>
-            </rng:optional>
-            <rng:optional>
-                <rng:choice>
-                    <rng:notAllowed/>
-                    <rng:element name="editor">
-                        <rng:ref name="PanelEditor"/>
-                    </rng:element>
-                </rng:choice>
-            </rng:optional>
         </rng:group>
     </rng:define>
 
@@ -3504,12 +3498,128 @@
         </rng:element>
     </rng:define>
 
+    <rng:define name="calendar">
+        <rng:element name="calendar">
+            <rng:ref name="layout-attr"/>
+            <rng:ref name="CommonAttributes"/>
+            <rng:attribute name="eventStart">
+                <rng:data type="string"/>
+            </rng:attribute>
+            <rng:optional>
+                <rng:attribute name="eventStop">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="eventLength">
+                    <rng:data type="integer">
+                        <rng:param name="minInclusive">1</rng:param>
+                        <rng:param name="maxInclusive">24</rng:param>
+                    </rng:data>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onChange">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="onDelete">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="colorBy">
+                    <rng:data type="string"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="mode">
+                    <rng:choice>
+                        <rng:value type="string">week</rng:value>
+                        <rng:value type="string">month</rng:value>
+                        <rng:value type="string">day</rng:value>
+                    </rng:choice>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="canNew">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+                <rng:attribute name="canDelete">
+                    <rng:data type="boolean"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:zeroOrMore>
+                <rng:element name="hilite">
+                    <rng:optional>
+                        <rng:attribute name="styles">
+                            <rng:data type="string">
+                                <rng:param name="pattern">
+                                    (fill|outline|stripe|strike|fade)(\W+(fill|outline|stripe|strike|fade))*
+                                </rng:param>
+                            </rng:data>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:attribute name="if">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                </rng:element>
+            </rng:zeroOrMore>
+            <rng:oneOrMore>
+                <rng:element name="field">
+                    <rng:attribute name="name">
+                        <rng:data type="string"/>
+                    </rng:attribute>
+                    <rng:optional>
+                        <rng:attribute name="colSpan">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="colOffset">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="rowSpan">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="rowOffset">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="showTitle">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="hidden">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:attribute name="readonly">
+                            <rng:notAllowed/>
+                        </rng:attribute>
+                    </rng:optional>
+                </rng:element>
+            </rng:oneOrMore>
+        </rng:element>
+    </rng:define>
+
     <rng:define name="artanis_data">
         <rng:element name="artanis">
             <rng:oneOrMore>
                 <rng:choice>
                     <rng:ref name="grid"/>
                     <rng:ref name="form"/>
+                    <rng:ref name="calendar"/>
                     <rng:ref name="menu"/>
                     <rng:ref name="search-filters"/>
                     <rng:ref name="action-view"/>
