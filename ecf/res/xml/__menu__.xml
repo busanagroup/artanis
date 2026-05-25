@@ -8,6 +8,10 @@
                 <item name="base_states" key="cmn020" title="States" action="cmn020" order="100" mode="desktop"/>
             </item>
         </item>
+        <item name="sales_module" title="Sales Module" icon="sales.png" order="200">
+            <item name="sales_orders" key="sales_orders" title="Sales Orders" action="sales_orders" order="100" />
+            <item name="sales_invoices" key="sales_invoices" title="Sales Invoices" action="sales_invoices" order="200" />
+        </item>
     </menu>
 
     <!-- Specific Menu definition for BEA CUKAI -->
@@ -36,5 +40,4 @@
             <view type="dashboard" name="cmn010-dashboard"/>
         </action>
     </action-view>
-
 </artanis>
