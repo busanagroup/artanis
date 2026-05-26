@@ -14,13 +14,68 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import pathlib
-import json
+from xml.etree.ElementTree import ParseError
+
 from lxml import etree
-import xmltodict
 
 
 class XMLImport:
     identifier: str = "artanis"
+
+    CAST_MAP = {
+        "boolean": lambda v: v.strip().lower() in ("true", "1", "yes"),
+        "int": int,
+        "integer": int,
+        "decimal": float,
+        "string": str,
+    }
+
+    def __init__(self, relax_tree):
+        self.initialized: bool = False
+        self.relaxng_tree = relax_tree
+        self.menu_definition: dict = dict()
+        self.action_view = dict()
+        self.registry = dict()
+        self._tags = {
+            'menu': self.tag_menu,
+            'action-view': self.tag_action_view,
+            'grid': self.tag_grid,
+            'form': self.tag_form,
+            'search-filters': self.tag_search_filters,
+            'action-menu': self.tag_action_menu,
+            'action-validate': self.tag_action_validate,
+            'action-condition': self.tag_action_condition,
+            'action-record': self.tag_action_record,
+            'action-attrs': self.tag_action_attrs,
+            'action-method': self.tag_action_method,
+            'action-script': self.tag_action_script,
+            'action-ws': self.tag_action_ws,
+            'action-import': self.tag_action_import,
+            'action-export': self.tag_action_export,
+            'action-group': self.tag_action_group,
+            'action-report': self.tag_action_report,
+        }
+
+    def init_registry(self):
+        if self.initialized:
+            return None
+        ns = {'rng': 'http://relaxng.org/ns/structure/1.0'}
+        attributes = self.relaxng_tree.xpath("//rng:attribute", namespaces=ns)
+        try:
+            for attr in attributes:
+                name = attr.get("name")
+                # Look for the data type inside the attribute
+                data_tag = attr.find(".//rng:data", namespaces=ns)
+
+                if name and data_tag is not None:
+                    rng_type = data_tag.get("type")
+                    if rng_type in self.CAST_MAP:
+                        self.registry[name] = self.CAST_MAP[rng_type]
+        finally:
+            self.initialized = True
+        return self.registry
+
+
 
     def parse(self, root: etree._Element, dest: pathlib.Path):
         """
@@ -31,37 +86,94 @@ class XMLImport:
                                         It is assumed to be an lxml element for schema validation.
             dest (pathlib.Path): The path to the output JSON file.
         """
+        self.init_registry()
         assert root.tag == self.identifier, f"Root XML tag must be <{self.identifier}>, but got <{root.tag}>."
 
-        # Determine the path to the schema.rng file.
-        # Assuming schema.rng is located in the same directory as this xmlimport.py file.
-        schema_path = pathlib.Path(__file__).parent / "schema.rng"
+        self.tag_root(root)
 
-        if not schema_path.exists():
-            raise FileNotFoundError(f"RelaxNG schema file not found at '{schema_path}'.")
+    def tag_root(self, element):
+        for rec in element:
+            func = self._tags.get(rec.tag)
+            if func is None:
+                continue
+            try:
+                func(rec)
+            except ParseError:
+                raise
 
-        # Load the RelaxNG schema for validation
-        try:
-            relaxng = etree.RelaxNG(file=str(schema_path))
-        except etree.XMLSyntaxError as e:
-            raise ValueError(f"Failed to parse RelaxNG schema from '{schema_path}': {e}")
+    def convert_dict(self, attrib, **kwargs):
+        def convert_val(key, val):
+            try:
+                return self.registry[key](val) if key in self.registry else val
+            except (ValueError, TypeError):
+                return val
+        return dict([(key, convert_val(key, val)) for key, val in attrib.items()], **kwargs)
 
-        # Validate the XML document against the loaded schema
-        try:
-            relaxng.assertValid(root)
-        except etree.DocumentInvalid as e:
-            raise ValueError(f"XML document validation failed against schema '{schema_path}': {e}")
 
-        # Convert the lxml element back to a string, then parse it with xmltodict.
-        # pretty_print is used for readability of the intermediate XML string,
-        # though xmltodict can parse non-pretty-printed XML just fine.
-        xml_string = etree.tostring(root, pretty_print=True, encoding='utf-8').decode('utf-8')
+    def tag_menu_item(self, element, parent) -> list:
+        el_list = [self.convert_dict(element.attrib)] if parent is None else [self.convert_dict(element.attrib, parent=parent.get("name"))]
+        for rec in element:
+            if element.tag == "item":
+                el_list += self.tag_menu_item(rec, element)
+        return el_list
 
-        # Convert the XML string to a Python dictionary using xmltodict.
-        # xmltodict.parse typically returns an OrderedDict, which is compatible with json.dump.
-        xml_dict = xmltodict.parse(xml_string)
+    def tag_menu(self, element):
+        is_root = element.tag == "menu"
+        assert is_root, "Identifier must be a 'menu'"
+        el_list = []
+        for rec in element:
+            if rec.tag == "item":
+                el_list += self.tag_menu_item(rec, None)
+        self.menu_definition[element.get("name")] = el_list
 
-        # Write the resulting dictionary to the destination JSON file.
-        # indent=4 is used for pretty-printing the JSON output.
-        with open(dest, 'w', encoding='utf-8') as f:
-            json.dump(xml_dict, f, indent=4)
+    def tag_action_view(self, element):
+        is_root = element.tag == "action-view"
+        assert is_root, "Identifier must be a 'action-view'"
+        for rec in element:
+            if rec.tag == "action":
+                self.action_view[rec.get("name")] = self.convert_dict(rec.attrib, views=[self.convert_dict(view.attrib) for view in rec])
+
+    def tag_grid(self, element):
+        ...
+
+    def tag_form(self, element):
+        ...
+
+    def tag_search_filters(self, element):
+        ...
+
+    def tag_action_menu(self, element):
+        ...
+
+    def tag_action_validate(self, element):
+        ...
+
+    def tag_action_condition(self, element):
+        ...
+
+    def tag_action_record(self, element):
+        ...
+
+    def tag_action_attrs(self, element):
+        ...
+
+    def tag_action_method(self, element):
+        ...
+
+    def tag_action_script(self, element):
+        ...
+
+    def tag_action_ws(self, element):
+        ...
+
+    def tag_action_import(self, element):
+        ...
+
+    def tag_action_export(self, element):
+        ...
+
+    def tag_action_group(self, element):
+        ...
+
+    def tag_action_report(self, element):
+        ...

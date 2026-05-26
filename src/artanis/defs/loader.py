@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import glob
+import json
 import importlib.util
 import logging
 import os.path
@@ -34,7 +35,8 @@ async def convert_xml(source: pathlib.Path, dest: pathlib.Path) -> None:
     try:
         doc = etree.parse(source)
         schema = os.path.join(dirname(__file__), 'schema.rng')
-        relaxng = etree.RelaxNG(etree.parse(schema))
+        relax_tree = etree.parse(schema)
+        relaxng = etree.RelaxNG(relax_tree)
         relaxng.assert_(doc)
     except Exception:
         logger.exception("The XML file '%s' does not fit the required schema!", source.name)
@@ -42,9 +44,9 @@ async def convert_xml(source: pathlib.Path, dest: pathlib.Path) -> None:
             for e in relaxng.error_log:
                 logger.warning(e)
         raise
-
-    obj = XMLImport()
+    obj = XMLImport(relax_tree)
     obj.parse(doc.getroot(), dest)
+    print(json.dumps(obj.menu_definition))
 
 def ensure_exist(path: pathlib.Path):
     if not path.exists():
