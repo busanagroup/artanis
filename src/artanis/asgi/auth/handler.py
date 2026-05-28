@@ -125,6 +125,10 @@ class AuthenticationHandler:
         efusrs = self.get_entity('efusrs')
         return await efusrs.get_user_info(username)
 
+    async def get_user_menudef(self, username: str | None) -> t.Any:
+        efupro = self.get_entity('efupro')
+        return await efupro.get_default_menu(username)
+
     @property
     def sqlentity(self):
         if not hasattr(self, '_sqlentity'):

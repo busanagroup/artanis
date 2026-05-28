@@ -313,3 +313,6 @@ class FrameworkNotInstalled(Exception):
 class FrameworkVersionWarning(Warning):
     """Warning for when a framework version does not match."""
     ...
+
+class DefinitionNotFoundError(ArtanisException):
+    ...

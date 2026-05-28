@@ -275,6 +275,9 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
 
             elif self.status in (types.AppStatus.SHUT_DOWN, types.AppStatus.SHUTTING_DOWN):
                 raise exceptions.ApplicationError("Application is already shut down.")
+            config: Configuration = self.get_configuration()
+            if not config.server_is_ready:
+                raise exceptions.ApplicationError("Application loading is still in progress")
 
         scope["app"] = self
         scope.setdefault("root_app", self)

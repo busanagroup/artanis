@@ -15,12 +15,14 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import glob
-import json
 import importlib.util
 import logging
 import os.path
 import pathlib
 from os.path import basename, isfile, dirname
+from pprint import pprint
+from typing import OrderedDict
+
 from lxml import etree, builder
 
 from artanis import exceptions
@@ -46,7 +48,18 @@ async def convert_xml(source: pathlib.Path, dest: pathlib.Path) -> None:
         raise
     obj = XMLImport(relax_tree)
     obj.parse(doc.getroot(), dest)
-    print(json.dumps(obj.menu_definition))
+    action_menu = dict()
+    if '__default_menu__' in obj.menu_definition:
+        action_menu['menu_definition'] = obj.menu_definition
+    if obj.action_view:
+        action_menu['action_view'] = obj.action_view
+    with open(dest, "w+") as file:
+        if len(obj.view_def) > 0:
+            pprint(obj.view_def, stream=file, indent=1)
+        if action_menu:
+            pprint(action_menu, stream=file, indent=1)
+
+
 
 def ensure_exist(path: pathlib.Path):
     if not path.exists():
@@ -58,12 +71,12 @@ async def load_xml(config: Configuration):
         raise exceptions.ApplicationError("ECF package not found")
 
     resource_path = pathlib.Path(spec.origin).parent.joinpath("res", "xml")
-    json_path = pathlib.Path(spec.origin).parent.joinpath("res", "json")
+    json_path = pathlib.Path(spec.origin).parent.joinpath("res")
     ensure_exist(resource_path)
     ensure_exist(json_path)
     resource_files = resource_path / "*.xml"
     for f in glob.glob(str(resource_files)):
         if isfile(f):
-            dest_file = json_path / f"{os.path.splitext(basename(f))[0]}.json"
+            dest_file = json_path / f"{os.path.splitext(basename(f))[0]}.py"
             await convert_xml(pathlib.Path(f), dest_file)
 

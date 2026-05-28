@@ -14,8 +14,12 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
+from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.asgi.auth.validator import MiscAccessValidator
 from artanis.asgi.services.mvcendpoint import MVCDescriptor
+from artanis.asgi.types import UserInfo
+from artanis.config import Configuration
+from ecf.res import MenuDefinition
 
 
 class MiscEndPoint(ASGIEndPoint):
@@ -23,6 +27,7 @@ class MiscEndPoint(ASGIEndPoint):
     base_path = "/misc"
     openapi_support = True
     access_validator = MiscAccessValidator()
+    auth_handler = AuthenticationHandler(Configuration.get_default_instance(create_instance=False))
 
     @published(path="/info")
     async def get_app_info(self):
@@ -41,7 +46,7 @@ class MiscEndPoint(ASGIEndPoint):
         return {"name": "Artanis ASGI Service", "version": "1.0.0"}
 
     @published(path="/menu")
-    async def get_menu(self):
+    async def get_menu(self, user: UserInfo):
         """
         tags:
             - Miscelaneous
@@ -54,4 +59,6 @@ class MiscEndPoint(ASGIEndPoint):
                 description:
                     Successful ping.
         """
-        return {"message": "pong"}
+        default_def = await self.auth_handler.get_user_menudef(user.username)
+        menu_def = MenuDefinition()
+        return menu_def.get_menu_definition(default_def)

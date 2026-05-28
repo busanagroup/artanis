@@ -14,6 +14,8 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import pathlib
+from collections.abc import Callable
+from typing import Any, OrderedDict
 from xml.etree.ElementTree import ParseError
 
 from lxml import etree
@@ -35,12 +37,14 @@ class XMLImport:
         self.relaxng_tree = relax_tree
         self.menu_definition: dict = dict()
         self.action_view = dict()
+        self.view_def = []
         self.registry = dict()
         self._tags = {
             'menu': self.tag_menu,
             'action-view': self.tag_action_view,
             'grid': self.tag_grid,
             'form': self.tag_form,
+            'calendar': self.tag_calendar,
             'search-filters': self.tag_search_filters,
             'action-menu': self.tag_action_menu,
             'action-validate': self.tag_action_validate,
@@ -54,6 +58,31 @@ class XMLImport:
             'action-export': self.tag_action_export,
             'action-group': self.tag_action_group,
             'action-report': self.tag_action_report,
+        }
+
+        self._tags_grid = {
+            'field': self.tag_grid_field,
+            'toolbar': self.tag_grid_toolbar,
+            'button': self.tag_grid_button,
+            'help': self.tag_grid_help,
+            'menubar': self.tag_grid_menubar,
+            'hilite': self.tag_grid_hilite,
+            'extend': self.tag_grid_extend,
+        }
+
+        self._tags_form = {
+            'field': self.tag_grid_field,
+            'toolbar': self.tag_grid_toolbar,
+            'menubar': self.tag_grid_menubar,
+            'help': self.tag_grid_help,
+            'panel': self.tag_form_panel,
+            'panel-include': self.tag_form_panel,
+            'panel-dashlet': self.tag_form_panel,
+            'panel-related': self.tag_form_panel,
+            'panel-stack': self.tag_form_panel,
+            'panel-tabs': self.tag_form_panel,
+            'panel-mail': self.tag_form_panel,
+            'extend': self.tag_grid_extend,
         }
 
     def init_registry(self):
@@ -131,13 +160,85 @@ class XMLImport:
         assert is_root, "Identifier must be a 'action-view'"
         for rec in element:
             if rec.tag == "action":
-                self.action_view[rec.get("name")] = self.convert_dict(rec.attrib, views=[self.convert_dict(view.attrib) for view in rec])
+                self.action_view[rec.get("name")] = self.convert_dict(rec.attrib, defkind="action",
+                                                                      views=[self.convert_dict(view.attrib) for view in rec])
+
+    def tag_toolbar(self, element):
+        el_list = []
+        for rec in element:
+            if rec.tag == "button":
+                el_list.append(self.convert_dict(rec.attrib, defkind="button"))
+        return el_list
+
+    def tag_menubar(self, element):
+        el_list = []
+        for rec in element:
+            if rec.tag == "menu":
+                el_list.append(self.convert_dict(rec.attrib,
+                                                 defkind="menu",
+                                                 items=[self.convert_dict(item.attrib, defkind="item") for item in rec]))
+        return el_list
+
+    def tag_grid_field(self, main_dict: dict, element):
+        main_dict["items"].append(self.convert_dict(element.attrib, defkind=element.tag))
+
+    def tag_grid_toolbar(self, main_dict: dict, element):
+        main_dict["toolbar"] = self.tag_toolbar(element)
+
+    def tag_grid_menubar(self, main_dict: dict, element):
+        main_dict["menubar"] = self.tag_menubar(element)
+
+    def tag_grid_extend(self, main_dict: dict, element):
+        main_dict["items"].append(self.convert_dict(element.attrib, defkind=element.tag))
+
+    def tag_grid_hilite(self, main_dict: dict, element):
+        main_dict["items"].append(self.convert_dict(element.attrib, defkind=element.tag))
+
+    def tag_grid_button(self, main_dict: dict, element):
+        main_dict["items"].append(self.convert_dict(element.attrib, defkind=element.tag))
+
+    def tag_grid_help(self, main_dict: dict, element):
+        main_dict["items"].append(self.convert_dict(element.attrib, defkind=element.tag))
 
     def tag_grid(self, element):
-        ...
+        main_grid = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        for rec in element:
+            if rec.tag in self._tags_grid:
+                func: Callable[dict, Any] = self._tags_grid[rec.tag]
+                func(main_grid, rec)
+
+        self.view_def.append(main_grid)
+
+    def tag_formpanel(self, element):
+        main_form = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        for rec in element:
+            if rec.tag in ["menu", "button-group"]:
+                main_form["items"].append(self.convert_dict(rec.attrib,
+                                                           defkind=rec.tag,
+                                                           items=[self.convert_dict(item.attrib, defkind=item.tag) \
+                                                                  for item in rec]))
+            elif rec.tag in ["button"]:
+                main_form["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        return main_form
+
+    def tag_form_panel(self, main_dict: dict, element):
+        main_dict["items"].append(self.tag_formpanel(element))
 
     def tag_form(self, element):
-        ...
+        main_form = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        for rec in element:
+            if rec.tag in self._tags_form:
+                func: Callable[dict, Any] = self._tags_form[rec.tag]
+                func(main_form, rec)
+        self.view_def.append(main_form)
+
+    def tag_calendar(self, element):
+        main_dict = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        for rec in element:
+            if rec.tag == "field":
+                main_dict["items"].append(self.convert_dict(element.attrib, defkind=element.tag))
+
+        self.view_def.append(main_dict)
 
     def tag_search_filters(self, element):
         ...
