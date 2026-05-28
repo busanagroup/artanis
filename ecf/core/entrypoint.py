@@ -28,7 +28,6 @@ def load_modules():
 async def do_startup():
     config = Configuration.get_default_instance(create_instance=False)
     load_modules()
-    await setup_all(config, True)
 
 
 async def do_shutdown():
