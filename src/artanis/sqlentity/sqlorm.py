@@ -69,10 +69,12 @@ __internal_field_prefix__ = ['audt', 'autm', 'auus', 'kuid']
 
 class Entity(SQLModel):
     """Base class for SQLModel entities."""
-    __app_config__ = Configuration.get_default_instance(create_instance=False)
+    __app_config__: Configuration = Configuration.get_default_instance(create_instance=False)
     __abstract__ = True
 
     def __init_subclass__(cls, **kwargs):
+        if not cls.__app_config__:
+            cls.__app_config__ = Configuration.get_default_instance(create_instance=False)
         cls.metadata = cls.__app_config__.container.db_metadata
         super().__init_subclass__(**kwargs)
 

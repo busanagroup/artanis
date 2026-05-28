@@ -30,9 +30,13 @@ class efupro(Entity, table=True):
     efusauus: str = Field(String(24), label='Audit user')
 
     @classmethod
-    async def get_default_menu(cls, user_name: str):
-        default_menu = "__default_menu__"
+    async def get_default_menu(cls, user_name: str) -> str:
+        """
+        Retrieve default menu name
+        :param user_name:
+        :return: default menu name
+        """
+        default_menu: str = "__default_menu__"
         ob = await cls.get(user_name)
         return default_menu if not ob else default_menu if not ob.efusmunm else ob.efusmunm
-
 

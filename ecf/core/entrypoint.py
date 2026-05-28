@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from artanis import utils
 from artanis.config import Configuration
-from artanis.sqlentity.entrypoint import setup_all
 
 
 def load_modules():

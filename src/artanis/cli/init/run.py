@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import logging
 
+from artanis import utils
 from artanis.config import Configuration
 from artanis.sqlentity.entrypoint import configure_database, setup_all
 
@@ -26,6 +27,7 @@ async def run_initdb():
     logger.info("Configuring database connection")
     await configure_database(config)
     logger.info("Initializing tables")
+    utils.load_ecf_modules("ecf.tbl", True)
+    logger.info("... loading models completed")
     await setup_all(config=config, create_tables=True)
     logger.info("... database initialization completed")
-
