@@ -122,4 +122,7 @@ class MiscEndPoint(ASGIEndPoint):
         """
         default_def = await self.auth_handler.get_user_menudef(user.username)
         menu_def = MenuDefinition()
-        return menu_def.get_menu_definition(default_def)
+        return dict(
+            statius=0,
+            data=menu_def.get_menu_definition(default_def)
+        )
