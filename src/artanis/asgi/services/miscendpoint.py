@@ -30,7 +30,7 @@ class MiscEndPoint(ASGIEndPoint):
     auth_handler = AuthenticationHandler(Configuration.get_default_instance(create_instance=False))
 
     @published(path="/info")
-    async def get_app_info(self):
+    async def get_app_info(self, userInfo: UserInfo):
         """
         tags:
             - Miscelaneous
@@ -44,10 +44,65 @@ class MiscEndPoint(ASGIEndPoint):
                     Successful ping.
         """
         config = self.get_configuration()
+        feature = dict()
+        view = dict(
+            allowCustomization=False,
+            form=dict(checkVersion=False),
+            grid=dict(selectin=None),
+            advancedSearch=dict(
+                exportFull=True,
+                share=True,
+            ),
+            singleTab=False,
+            maxTabs=5,
+        )
+        application = dict(
+            copyright=f"Copyright (c) 2026 {config.get_property_value(config.ARTANIS_CMP_NAME)}. All Rights Reserved",
+            author="Jaimy & Garnes",
+            aopVersion=config.get_property_value(config.ARTANIS_APP_VERSION),
+            pollingInterval= 5,
+            signIn=dict(
+                footer="",
+                title="<h3>Welcome to the Artanis</h3>",
+            ),
+            name=config.get_property_value(config.ARTANIS_APP_NAME),
+            theme="auto",
+            swaggerUI=dict(
+                enabled=True,
+                allowTryItOut=False,
+            ),
+            lang="en-US",
+        )
+        fullname = (userInfo.first_name + ' ' + userInfo.last_name) if userInfo.last_name else userInfo.first_name
         result = dict(
-            name=config.get_property_value(config.ARTANIS_APP_TITLE),
-            version=f"v{config.get_property_value(config.ARTANIS_APP_VERSION)}",
-
+            feature=feature,
+            view=view,
+            application=application,
+            api=dict(
+                pagination=dict(
+                    maxPerPage=1000,
+                    defaultPerPage=100,
+                )
+            ),
+            data=dict(
+                upload=dict(
+                    maxSize=5,
+                )
+            ),
+            authentication=dict(
+                callbackUrl="/auth/callback"
+            ),
+            user=dict(
+                name=fullname,
+                action=None,
+                theme=None,
+                id=userInfo.username,
+                lang="en-US",
+                nameField="name",
+                singleTab=False,
+                navigator=None,
+                login=userInfo.username,
+            )
         )
         return result
 
