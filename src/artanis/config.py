@@ -74,6 +74,8 @@ _posix_variable: Pattern[str] = re.compile(
 
 class Configuration(Singleton, SyncLock, Listenable):
     ARTANIS_APP_NAME: str = 'artanis.app.name'
+    ARTANIS_APP_TITLE: str = 'artanis.app.title'
+    ARTANIS_APP_VERSION: str = 'artanis.app.version'
     ARTANIS_CMP_NAME: str = 'artanis.company.name'
     ARTANIS_CMP_URL: str = 'artanis.company.url'
     ARTANIS_BASE_URL: str = 'artanis.base.url'
@@ -192,6 +194,8 @@ class Configuration(Singleton, SyncLock, Listenable):
         values: Dict[str, Optional[str]] = {
 
             self.ARTANIS_APP_NAME: 'Artanis',
+            self.ARTANIS_APP_TITLE: 'Artanis Enterprise Server',
+            self.ARTANIS_APP_VERSION: '1.0.0',
             self.ARTANIS_CMP_NAME: 'Busana Apparel Group',
             self.ARTANIS_CMP_URL: 'https://www.busanagroup.com',
             self.ARTANIS_BASE_URL: 'https://artanis.busanagroup.com',

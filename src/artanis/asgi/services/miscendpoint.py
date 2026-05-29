@@ -43,7 +43,13 @@ class MiscEndPoint(ASGIEndPoint):
                 description:
                     Successful ping.
         """
-        return {"name": "Artanis ASGI Service", "version": "1.0.0"}
+        config = self.get_configuration()
+        result = dict(
+            name=config.get_property_value(config.ARTANIS_APP_TITLE),
+            version=f"v{config.get_property_value(config.ARTANIS_APP_VERSION)}",
+
+        )
+        return result
 
     @published(path="/menu")
     async def get_menu(self, user: UserInfo):
