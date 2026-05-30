@@ -19,6 +19,8 @@ import ast
 import importlib.util
 import pathlib
 
+from lru import LRU as LRUDict
+
 from artanis import exceptions
 
 
@@ -52,5 +54,36 @@ class MenuDefinition(BaseDefinition):
         definition = definition if definition in menu else '__default_menu__'
         return menu[definition]
 
+    def get_action_view(self, definition: str):
+        action_view = self.definition['action_view']
+        view: dict = action_view.get(definition)
+        if not view:
+            return None
+        viewdef = {key: view[key] for key in ['service', 'title', 'type'] if key in view}
+        if 'type' not in viewdef.keys():
+            viewdef['type'] = 'grid'
+        for item in view['views']:
+            if item['defkind'] == 'view-param':
+                viewdef['params'] = {item['name']: item['value']}
+                break
+        viewdef['views'] = [item for item in view['views'] if item['defkind'] != 'view-param']
+        return viewdef
 
 
+class ViewDefinition(BaseDefinition):
+    __instances = LRUDict(size=16)
+
+    def get_definition(self, service_name: str) -> dict:
+        definition: dict = ViewDefinition.__instances.get(service_name)
+        if not definition:
+            path = self.__base_path__.joinpath(f"{service_name}.py")
+            if not path.is_file():
+                raise exceptions.DefinitionNotFoundError(f"View definition file not found: {str(path)}")
+            with open(path, "r+") as file:
+                definition = ast.literal_eval(file.read())
+                ViewDefinition.__instances[service_name] = definition
+        return definition
+
+    def get_viewdef(self, service_name: str, view: str):
+        definition: dict = self.get_definition(service_name)
+        return definition.get(view)

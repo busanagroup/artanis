@@ -13,21 +13,49 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import typing as t
+
+import pydantic
+
 from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
 from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.asgi.auth.validator import MiscAccessValidator
+from artanis.asgi import schemas
 from artanis.asgi.services.mvcendpoint import MVCDescriptor
-from artanis.asgi.types import UserInfo
+from artanis.asgi.types import UserInfo, RequestData
 from artanis.config import Configuration
-from ecf.res import MenuDefinition
+from artanis.exceptions import HTTPException
+from ecf.res import MenuDefinition, ViewDefinition
+
+
+class ViewDefRequest(pydantic.BaseModel):
+    service: str | None
+    name: str | None
+    type: str | None
+
+
+class MiscResponseData(pydantic.BaseModel):
+    status: int
+    data: dict | None
+
+MiscResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(MiscResponseData)]
 
 
 class MiscEndPoint(ASGIEndPoint):
+    menu_def: MenuDefinition | None = None
+
     descriptor: Descriptor = MVCDescriptor
     base_path = "/misc"
     openapi_support = True
     access_validator = MiscAccessValidator()
     auth_handler = AuthenticationHandler(Configuration.get_default_instance(create_instance=False))
+
+    @property
+    def menu_definition(self) -> MenuDefinition:
+        if self.menu_def is None:
+            self.menu_def = MenuDefinition()
+        return self.menu_def
+
 
     @published(path="/info")
     async def get_app_info(self, userInfo: UserInfo):
@@ -121,8 +149,66 @@ class MiscEndPoint(ASGIEndPoint):
                     Successful ping.
         """
         default_def = await self.auth_handler.get_user_menudef(user.username)
-        menu_def = MenuDefinition()
         return dict(
-            statius=0,
-            data=menu_def.get_menu_definition(default_def)
+            status=0,
+            data=self.menu_definition.get_menu_definition(default_def)
         )
+
+    @published(path="/action-view/{action_name:str}")
+    async def get_action(self, action_name: str):
+        """
+        tags:
+            - Miscelaneous
+        title:
+            Get Application Menu
+        description:
+            Returns menu definition for this application
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        return dict(
+            status=0,
+            data=self.menu_definition.get_action_view(action_name))
+
+    @published(path="/view", methods=["POST"])
+    async def get_view(self, req: RequestData):
+        """
+        tags:
+            - Miscelaneous
+        title:
+            Get Application Menu
+        description:
+            Returns menu definition for this application
+            status:
+                0 :    Success
+                -1:    Server Failure
+                -2:    Validation Failure
+                -3:    Unauthorized Error
+                -4:    Timeout
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        try:
+            if not req or not req.data:
+                raise HTTPException(status_code=400, detail="Invalid request data")
+            service = req.data.get('service')
+            view_name = req.data.get('name')
+            view_type = req.data.get('type')
+            if view_type in [None, '']:
+                view_type = 'grid'
+            if view_name in [None, '']:
+                view_name = f"{service}-{view_type}"
+            definition = ViewDefinition()
+            view = definition.get_viewdef(service, view_name)
+            if view['defkind'] != view_type:
+                raise HTTPException(status_code=400, detail="Invalid request data")
+            status = 0
+            result = dict(status=status, data=view)
+        except HTTPException as ex:
+            status = -1
+            result = dict(status=status, data=None)
+        return result

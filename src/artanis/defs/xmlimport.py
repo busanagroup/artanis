@@ -37,7 +37,7 @@ class XMLImport:
         self.relaxng_tree = relax_tree
         self.menu_definition: dict = dict()
         self.action_view = dict()
-        self.view_def = []
+        self.view_def: dict = dict()
         self.registry = dict()
         self._tags = {
             'menu': self.tag_menu,
@@ -161,7 +161,7 @@ class XMLImport:
         for rec in element:
             if rec.tag == "action":
                 self.action_view[rec.get("name")] = self.convert_dict(rec.attrib, defkind="action",
-                                                                      views=[self.convert_dict(view.attrib) for view in rec])
+                                                                      views=[self.convert_dict(view.attrib, defkind=view.tag) for view in rec])
 
     def tag_toolbar(self, element):
         el_list = []
@@ -202,12 +202,18 @@ class XMLImport:
 
     def tag_grid(self, element):
         main_grid = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'service' not in main_grid:
+            raise Exception("service name must be defined in grid")
+        name = main_grid.get('name')
+        if name in [None, '']:
+            name = f"{main_grid['service']}-{main_grid['defkind']}"
+            main_grid['name'] = name
         for rec in element:
             if rec.tag in self._tags_grid:
                 func: Callable[dict, Any] = self._tags_grid[rec.tag]
                 func(main_grid, rec)
 
-        self.view_def.append(main_grid)
+        self.view_def[name] = main_grid
 
     def tag_formpanel(self, element):
         main_form = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
@@ -226,19 +232,31 @@ class XMLImport:
 
     def tag_form(self, element):
         main_form = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'service' not in main_form:
+            raise Exception("service name must be defined in grid")
+        name = main_form.get('name')
+        if name in [None, '']:
+            name = f"{main_form['service']}-{main_form['defkind']}"
+            main_form['name'] = name
         for rec in element:
             if rec.tag in self._tags_form:
                 func: Callable[dict, Any] = self._tags_form[rec.tag]
                 func(main_form, rec)
-        self.view_def.append(main_form)
+        self.view_def[name] = main_form
 
     def tag_calendar(self, element):
         main_dict = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'service' not in main_dict:
+            raise Exception("service name must be defined in grid")
+        name = main_dict.get('name')
+        if name in [None, '']:
+            name = f"{main_dict['service']}-{main_dict['defkind']}"
+            main_dict['name'] = name
         for rec in element:
             if rec.tag == "field":
                 main_dict["items"].append(self.convert_dict(element.attrib, defkind=element.tag))
 
-        self.view_def.append(main_dict)
+        self.view_def[name] = main_dict
 
     def tag_search_filters(self, element):
         ...

@@ -220,7 +220,7 @@ class TLRUCache(TimedCache):
         def __lt__(self, other):
             return self.expires < other.expires
 
-    def __init__(self, maxsize, ttu, timer=monotonic, getsizeof=None):
+    def __init__(self, maxsize, ttu = lambda _, v, t: t + v + 1, timer=monotonic, getsizeof=None):
         super().__init__(maxsize, timer, getsizeof)
         self.__items = collections.OrderedDict()
         self.__order = []
