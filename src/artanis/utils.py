@@ -19,6 +19,7 @@ import functools
 import os
 import re
 import sys
+import traceback
 from collections.abc import Callable, Awaitable
 from importlib import import_module
 from inspect import iscoroutinefunction
@@ -129,10 +130,15 @@ def import_function(path: str, attach=None):
             raise NoAppError(f"Cannot load function from '{module_path}', module not found.")
         else:
             raise
+    except Exception as error:
+        traceback.print_exception(error)
+        raise error
     try:
         func = eval(func_name, vars(module))
     except NameError:
         raise NoAppError(f"Cannot load application from '{module_path}', application not found.")
+    except Exception as error:
+        raise error
 
     if attach:
         setattr(attach, func_name, func)
@@ -165,5 +171,5 @@ def generate_unique_id(route: "Route") -> str:
     return operation_id
 
 
-def get_name(endpoint: Callable[..., Any]) -> str:
+def get_name(endpoint: Callable[..., Any]) -> str | None:
     return getattr(endpoint, "__name__", endpoint.__class__.__name__)

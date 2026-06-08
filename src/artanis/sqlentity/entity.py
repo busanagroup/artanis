@@ -32,7 +32,7 @@ def get_table_repository():
     return __ecf_tbl
 
 
-def get_entity(table_name: str):
+def get_entity(table_name: str) -> Entity:
     repo = get_table_repository()
     result = getattr(repo, table_name, None)
     if not result:
@@ -66,8 +66,12 @@ def get_entities():
     return [getattr(repository, table, None) for table in repository.__all__]
 
 
-def get_field_list(cls):
-    return cls.init_field_dict()
+def get_field_list(model: Entity):
+    return model.get_field_list()
+
+
+def init_field_dict(model: Entity):
+    return model.init_field_dict()
 
 
 async def get_field_values(obj, adict, fields=None):

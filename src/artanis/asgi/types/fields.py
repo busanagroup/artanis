@@ -13,7 +13,25 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from ecf.core.mvcsvc import MVCService
+from enum import Enum
 
+class FieldType(str, Enum):
+    BOOLEAN = "BOOLEAN"
+    INTEGER = "INTEGER"
+    LONG = "LONG"
+    DECIMAL = "DECIMAL"
+    STRING = "STRING"
+    TEXT = "TEXT"
+    DATE = "DATE"
+    TIME = "TIME"
+    DATETIME = "DATETIME"
+    BINARY = "BINARY"
+    SELECTION = "SELECTION"
+    MANY_TO_ONE = "MANY_TO_ONE"
+    ONE_TO_MANY = "ONE_TO_MANY"
+    MANY_TO_MANY = "MANY_TO_MANY"
 
-class FAS400(MVCService): ...
+    @property
+    def is_relation(self) -> bool:
+        return self in (self.MANY_TO_ONE, self.ONE_TO_MANY, self.MANY_TO_MANY)
+

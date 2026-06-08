@@ -1,5 +1,5 @@
 <artanis>
-    <grid name="address-grid" title="Address list" service="cmn010">
+    <grid name="cmn010-grid" title="Address list" service="cmn010">
         <toolbar>
             <button name="checkDuplicateBtn" title="Check Duplicate"
                     onClick="action-base-method-show-duplicate"/>
@@ -9,7 +9,7 @@
         <button name="directionsBtn" icon="near_me" onClick="action-base-address-method-view-direction"/>
     </grid>
 
-    <form name="address-form" title="Address" service="cmn010"
+    <form name="cmn010-form" title="Address" service="cmn010"
           width="large" onLoad="action-group-base-address-onload"
           onSave="action-group-base-address-onsave" onNew="action-group-base-address-onnnew"
           onCopy="action-group-base-address-onload">

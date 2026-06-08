@@ -15,6 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+import asyncio
+import threading
 from typing import Mapping, Any, TYPE_CHECKING
 
 from lru import LRU as LRUDict
@@ -31,6 +33,21 @@ from artanis.utils import import_function
 if TYPE_CHECKING:
     from ecf.core.jobsvc import JobEngine, JOBSession
 
+
+class CounterMeta(type):
+    __counter: int = 0
+    __lock: asyncio.Lock = threading.Lock()
+
+    def __call__(cls, *args, **kwargs):
+        super().__call__(*args, **kwargs)
+        instance = type.__new__(cls, *args, **kwargs)
+        instance.__counter = CounterMeta.__counter
+        CounterMeta.__lock.acquire()
+        try:
+            CounterMeta.__counter += 1
+        finally:
+            CounterMeta.__lock.release()
+        return instance
 
 
 class ECFObject(object):
@@ -72,12 +89,12 @@ class SupportClass:
         return entity.get_entity_field_info(entity, field_name)
 
     @staticmethod
-    def get_field_list(cls):
-        return entity.get_field_list(cls)
+    def get_field_list(model):
+        return model.get_field_list()
 
     @staticmethod
     async def get_field_values(obj, adict=None):
-        adict = entity.get_field_list(obj.__class__) if adict is None else adict
+        adict = entity.init_field_dict(obj.__class__) if adict is None else adict
         await entity.get_field_values(obj, adict)
         return adict
 

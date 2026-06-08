@@ -61,7 +61,7 @@ from artanis.config import Configuration
 
 _T = TypeVar("_T", bound="Any")
 
-Session: AsyncSession
+Session: AsyncSession = None  # type: ignore[assignment]
 
 # -- added by Jaimy for ECF
 __internal_field_prefix__ = ['audt', 'autm', 'auus', 'kuid']

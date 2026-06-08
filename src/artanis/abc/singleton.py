@@ -17,8 +17,11 @@
 
 __all__ = ['Singleton', 'AsyncSingleton']
 
+import typing as t
 from artanis.abc.objlock import BaseLocker
 
+if t.TYPE_CHECKING:
+    from typing import Self, Any
 
 class Singleton(BaseLocker):
     VM_DEFAULT = None
@@ -31,7 +34,7 @@ class Singleton(BaseLocker):
         return cls.VM_DEFAULT is not None
 
     @classmethod
-    def get_default_instance(cls, *args, create_instance=True, **kwargs):
+    def get_default_instance(cls, *args, create_instance=True, **kwargs) -> Self:
         if not cls.has_singleton_instance() and create_instance:
             cls.get_class_locker().acquire()
             try:

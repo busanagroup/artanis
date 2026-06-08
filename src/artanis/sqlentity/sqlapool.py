@@ -18,6 +18,7 @@
 import asyncio
 import enum
 import time
+import weakref
 from typing import Any
 from typing import Optional
 from typing import Type
@@ -37,7 +38,7 @@ from sqlalchemy.util.langhelpers import memoized_property
 
 _T = TypeVar("_T", bound=Any)
 
-queue_list = list()
+queue_list = weakref.WeakSet()
 LOOP_TIME_MAX = 2
 
 
@@ -74,7 +75,7 @@ class QueueItem(object):
             self.state = new_state
             self.start_time = time.time()
 
-    def get_state(self) -> ConnectionStates:
+    def get_state(self) -> ConnectionStates | None:
         return self.state
 
     def get_start_time(self):
@@ -184,9 +185,9 @@ class AsyncActiveQueue(BaseActiveQueue):
         self.max_idletime = max_idletime
 
     @memoized_property
-    def _queue(self) -> AsyncBaseQueue[_T]:
+    def _queue(self) -> AsyncBaseQueue:
 
-        queue: AsyncBaseQueue[_T]
+        queue: AsyncBaseQueue
         if self.use_lifo:
             queue = AsyncLifoQueue(maxsize=self.maxsize)
         else:
@@ -198,7 +199,7 @@ class AsyncActiveQueue(BaseActiveQueue):
         if item.connection is None:
             queue_item.set_state(ConnectionStates.PENDING_CLOSE)
         else:
-            start_time = None
+            start_time: float | None = None
             if hasattr(item, 'start_time'):
                 start_time = getattr(item, 'start_time', None)
             if start_time:
@@ -283,7 +284,7 @@ class AsyncQueuePool(QueuePool):
     )
 
     _dialect = _AsyncConnDialect()
-    _pool: BaseActiveQueue[ConnectionPoolEntry]
+    _pool: BaseActiveQueue
 
     def __init__(
             self,
@@ -296,7 +297,7 @@ class AsyncQueuePool(QueuePool):
         super(AsyncQueuePool, self).__init__(creator, pool_size=pool_size, max_overflow=max_overflow,
                                              timeout=timeout, use_lifo=use_lifo, **kw)
         self.monitor = QueueProcess(self._pool, self)
-        queue_list.append(self.monitor)
+        queue_list.add(self.monitor)
 
     def _do_get(self) -> ConnectionPoolEntry:
         use_overflow = self._max_overflow > -1
@@ -334,7 +335,7 @@ class AsyncQueuePool(QueuePool):
             return self._do_get()
 
     def dispose(self) -> None:
-        queue_list.remove(self.monitor)
+        queue_list.discard(self.monitor)
         self.monitor.queue = None
         self.monitor = None
         while True:
@@ -350,6 +351,5 @@ class AsyncQueuePool(QueuePool):
 
 
 async def do_monitor_queue():
-    if len(queue_list) > 0:
-        for queue in queue_list:
-            await queue.do_monitor_queue()
+    for queue in list(queue_list):
+        await queue.do_monitor_queue()

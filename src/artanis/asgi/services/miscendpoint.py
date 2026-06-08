@@ -16,6 +16,7 @@
 import typing as t
 
 import pydantic
+from starlette.requests import Request
 
 from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
 from artanis.asgi.auth.handler import AuthenticationHandler
@@ -181,17 +182,17 @@ class MiscEndPoint(ASGIEndPoint):
             Get Application Menu
         description:
             Returns menu definition for this application
-            status:
-                0 :    Success
-                -1:    Server Failure
-                -2:    Validation Failure
-                -3:    Unauthorized Error
-                -4:    Timeout
         responses:
             200:
                 description:
                     Successful ping.
         """
+        #             status:
+        #                 0 :    Success
+        #                 -1:    Server Failure
+        #                 -2:    Validation Failure
+        #                 -3:    Unauthorized Error
+        #                 -4:    Timeout
         try:
             if not req or not req.data:
                 raise HTTPException(status_code=400, detail="Invalid request data")

@@ -13,7 +13,39 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from ecf.core.mvcsvc import MVCService
+from __future__ import annotations
 
-
-class CMN200(MVCService): ...
+STRING='STRING'
+NUMBER='FMTBCDFIELD'
+DATETIME='DATETIME'
+BINARY='BLOB'
+BOOLEAN='BOOLEAN'
+INT='INTEGER'
+CHAR='STRING'
+VARCHAR='STRING'
+NCHAR='STRING'
+TEXT='MEMO'
+FLOAT='FMTBCDFIELD'
+NUMERIC='FMTBCDFIELD'
+DECIMAL='FMTBCDFIELD'
+CURRENCY='CURRENCY'
+TIMESTAMP='DATETIME'
+CLOB='MEMO'
+BLOB='BLOB'
+SMALLINT='SMALLINT'
+DATE='DATE'
+TIME='TIME'
+String='STRING'
+Integer='INTEGER'
+SmallInteger='SMALLINT'
+Numeric='FMTBCDFIELD'
+Float='FMTBCDFIELD'
+DateTime='DATETIME'
+Date='DATE'
+Time='TIME'
+Binary='BLOB'
+Blob='BLOB'
+Image='BLOB'
+Boolean='BOOLEAN'
+BIT='BOOLEAN'
+BIGINT='LARGEINT'
