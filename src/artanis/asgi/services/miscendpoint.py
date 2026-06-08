@@ -16,12 +16,11 @@
 import typing as t
 
 import pydantic
-from starlette.requests import Request
 
+from artanis.asgi import schemas
 from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
 from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.asgi.auth.validator import MiscAccessValidator
-from artanis.asgi import schemas
 from artanis.asgi.services.mvcendpoint import MVCDescriptor
 from artanis.asgi.types import UserInfo, RequestData
 from artanis.config import Configuration
@@ -29,17 +28,22 @@ from artanis.exceptions import HTTPException
 from ecf.res import MenuDefinition, ViewDefinition
 
 
-class ViewDefRequest(pydantic.BaseModel):
+class ActionDef(pydantic.BaseModel):
     service: str | None
     name: str | None
+
+class ViewDef(ActionDef):
     type: str | None
 
 
-class MiscResponseData(pydantic.BaseModel):
+class DefaultResp(pydantic.BaseModel):
     status: int
     data: dict | None
 
-MiscResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(MiscResponseData)]
+
+DefinitionRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(ActionDef)]
+ViewDefinitionRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(ViewDef)]
+DefaultResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(DefaultResp)]
 
 
 class MiscEndPoint(ASGIEndPoint):
@@ -56,7 +60,6 @@ class MiscEndPoint(ASGIEndPoint):
         if self.menu_def is None:
             self.menu_def = MenuDefinition()
         return self.menu_def
-
 
     @published(path="/info")
     async def get_app_info(self, userInfo: UserInfo):
@@ -89,7 +92,7 @@ class MiscEndPoint(ASGIEndPoint):
             copyright=f"Copyright (c) 2026 {config.get_property_value(config.ARTANIS_CMP_NAME)}. All Rights Reserved",
             author="Jaimy & Garnes",
             aopVersion=config.get_property_value(config.ARTANIS_APP_VERSION),
-            pollingInterval= 5,
+            pollingInterval=5,
             signIn=dict(
                 footer="",
                 title="<h3>Welcome to the Artanis</h3>",
@@ -156,7 +159,7 @@ class MiscEndPoint(ASGIEndPoint):
         )
 
     @published(path="/action-view/{action_name:str}")
-    async def get_action(self, action_name: str):
+    async def get_action(self, action_name: str) -> DefaultResponse:
         """
         tags:
             - Miscelaneous
@@ -174,7 +177,7 @@ class MiscEndPoint(ASGIEndPoint):
             data=self.menu_definition.get_action_view(action_name))
 
     @published(path="/view", methods=["POST"])
-    async def get_view(self, req: RequestData):
+    async def get_view(self, req: ViewDefinitionRequest) -> DefaultResponse:
         """
         tags:
             - Miscelaneous
@@ -194,21 +197,93 @@ class MiscEndPoint(ASGIEndPoint):
         #                 -3:    Unauthorized Error
         #                 -4:    Timeout
         try:
-            if not req or not req.data:
+            if not req:
                 raise HTTPException(status_code=400, detail="Invalid request data")
-            service = req.data.get('service')
-            view_name = req.data.get('name')
-            view_type = req.data.get('type')
+            service = req.get('service')
+            view_name = req.get('name')
+            view_type = req.get('type')
             if view_type in [None, '']:
                 view_type = 'grid'
             if view_name in [None, '']:
                 view_name = f"{service}-{view_type}"
             definition = ViewDefinition()
             view = definition.get_viewdef(service, view_name)
-            if view['defkind'] != view_type:
+            if not view or view['defkind'] != view_type:
                 raise HTTPException(status_code=400, detail="Invalid request data")
             status = 0
             result = dict(status=status, data=view)
+        except HTTPException as ex:
+            status = -1
+            result = dict(status=status, data=None)
+        return result
+
+    @published(path="/action", methods=["POST"])
+    async def get_action(self, req: DefinitionRequest) -> DefaultResponse:
+        """
+        tags:
+            - Miscelaneous
+        title:
+            Get action definition
+        description:
+            Returns action definition for this application
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        #             status:
+        #                 0 :    Success
+        #                 -1:    Server Failure
+        #                 -2:    Validation Failure
+        #                 -3:    Unauthorized Error
+        #                 -4:    Timeout
+        try:
+            if not req:
+                raise HTTPException(status_code=400, detail="Invalid request data")
+            service = req.get('service')
+            action_name = req.get('name')
+            definition = ViewDefinition()
+            item_def = definition.get_action(service, action_name)
+            if not item_def:
+                raise HTTPException(status_code=400, detail="Invalid request data")
+            status = 0
+            result = dict(status=status, data=item_def)
+        except HTTPException as ex:
+            status = -1
+            result = dict(status=status, data=None)
+        return result
+
+    @published(path="/search-filter", methods=["POST"])
+    async def get_search_filter(self, req: DefinitionRequest) -> DefaultResponse:
+        """
+        tags:
+            - Miscelaneous
+        title:
+            Get search filter definition
+        description:
+            Returns search filter definition for this application
+        responses:
+            200:
+                description:
+                    Successful ping.
+        """
+        #             status:
+        #                 0 :    Success
+        #                 -1:    Server Failure
+        #                 -2:    Validation Failure
+        #                 -3:    Unauthorized Error
+        #                 -4:    Timeout
+        try:
+            if not req:
+                raise HTTPException(status_code=400, detail="Invalid request data")
+            service = req.get('service')
+            action_name = req.get('name')
+            definition = ViewDefinition()
+            item_def = definition.get_search_filter(service, action_name)
+            if not item_def:
+                raise HTTPException(status_code=400, detail="Invalid request data")
+            status = 0
+            result = dict(status=status, data=item_def)
         except HTTPException as ex:
             status = -1
             result = dict(status=status, data=None)

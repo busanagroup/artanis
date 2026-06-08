@@ -86,4 +86,15 @@ class ViewDefinition(BaseDefinition):
 
     def get_viewdef(self, service_name: str, view: str):
         definition: dict = self.get_definition(service_name)
-        return definition.get(view)
+        views = definition.get('views', {})
+        return views.get(view)
+
+    def get_search_filter(self, service_name: str, filter: str):
+        definition: dict = self.get_definition(service_name)
+        filters = definition.get('search_filters', {})
+        return filters.get(filter)
+
+    def get_action(self, service_name: str, action: str):
+        definition: dict = self.get_definition(service_name)
+        actions = definition.get('actions', {})
+        return actions.get(action)

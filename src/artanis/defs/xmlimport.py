@@ -38,6 +38,8 @@ class XMLImport:
         self.menu_definition: dict = dict()
         self.action_view = dict()
         self.view_def: dict = dict()
+        self.search_filters: dict = dict()
+        self.actions: dict = dict()
         self.registry = dict()
         self._tags = {
             'menu': self.tag_menu,
@@ -233,7 +235,7 @@ class XMLImport:
     def tag_form(self, element):
         main_form = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
         if 'service' not in main_form:
-            raise Exception("service name must be defined in grid")
+            raise Exception("service name must be defined")
         name = main_form.get('name')
         if name in [None, '']:
             name = f"{main_form['service']}-{main_form['defkind']}"
@@ -247,52 +249,148 @@ class XMLImport:
     def tag_calendar(self, element):
         main_dict = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
         if 'service' not in main_dict:
-            raise Exception("service name must be defined in grid")
+            raise Exception("service name must be defined")
         name = main_dict.get('name')
         if name in [None, '']:
             name = f"{main_dict['service']}-{main_dict['defkind']}"
             main_dict['name'] = name
         for rec in element:
             if rec.tag == "field":
-                main_dict["items"].append(self.convert_dict(element.attrib, defkind=element.tag))
+                main_dict["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
 
         self.view_def[name] = main_dict
 
     def tag_search_filters(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'service' not in entity:
+            raise Exception("service name must be defined")
+        name = entity.get('name')
+        if name in [None, '']:
+            name = f"{entity['service']}-{entity['defkind']}"
+            entity['name'] = name
+        for rec in element:
+            if rec.tag == "field":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.search_filters[name] = entity
 
     def tag_action_menu(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'service' not in entity:
+            raise Exception("service name must be defined")
+        name = entity.get('name')
+        if name in [None, '']:
+            name = f"{entity['service']}-{entity['defkind']}"
+            entity['name'] = name
+        for rec in element:
+            if rec.tag == "action":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_validate(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'name' not in entity:
+            raise Exception("action name must be defined")
+        name = entity.get('name')
+        for rec in element:
+            entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_condition(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'name' not in entity:
+            raise Exception("action name must be defined")
+        name = entity.get('name')
+        for rec in element:
+            entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_record(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'name' not in entity:
+            raise Exception("action name must be defined")
+        name = entity.get('name')
+        for rec in element:
+            if rec.tag == "field":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_attrs(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'name' not in entity:
+            raise Exception("action name must be defined")
+        name = entity.get('name')
+        for rec in element:
+            if rec.tag == "field":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_method(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'name' not in entity:
+            raise Exception("action name must be defined")
+        name = entity.get('name')
+        for rec in element:
+            if rec.tag == "call":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_script(self, element):
         ...
 
     def tag_action_ws(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'service' not in entity:
+            raise Exception("service name must be defined")
+        name = entity.get('name')
+        if name in [None, '']:
+            name = f"{entity['service']}-{entity['defkind']}"
+            entity['name'] = name
+        for rec in element:
+            if rec.tag == "field":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_import(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'service' not in entity:
+            raise Exception("service name must be defined")
+        name = entity.get('name')
+        if name in [None, '']:
+            name = f"{entity['service']}-{entity['defkind']}"
+            entity['name'] = name
+        for rec in element:
+            if rec.tag == "field":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_export(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'service' not in entity:
+            raise Exception("service name must be defined")
+        name = entity.get('name')
+        if name in [None, '']:
+            name = f"{entity['service']}-{entity['defkind']}"
+            entity['name'] = name
+        for rec in element:
+            if rec.tag == "field":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_group(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'name' not in entity:
+            raise Exception("action name must be defined")
+        name = entity.get('name')
+        for rec in element:
+            if rec.tag == "action":
+                entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity
 
     def tag_action_report(self, element):
-        ...
+        entity = dict(defkind=element.tag, **self.convert_dict(element.attrib), items=[])
+        if 'name' not in entity:
+            raise Exception("action name must be defined")
+        name = entity.get('name')
+        for rec in element:
+            entity["items"].append(self.convert_dict(rec.attrib, defkind=rec.tag))
+        self.actions[name] = entity

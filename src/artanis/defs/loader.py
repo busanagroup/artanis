@@ -49,13 +49,20 @@ async def convert_xml(source: pathlib.Path, dest: pathlib.Path) -> None:
     obj = XMLImport(relax_tree)
     obj.parse(doc.getroot(), dest)
     action_menu = dict()
+    view_def = dict()
     if '__default_menu__' in obj.menu_definition:
         action_menu['menu_definition'] = obj.menu_definition
     if obj.action_view:
         action_menu['action_view'] = obj.action_view
+    if len(obj.view_def) > 0:
+        view_def["views"] = obj.view_def
+    if len(obj.search_filters) > 0:
+        view_def["search_filters"] = obj.search_filters
+    if len(obj.actions) > 0:
+        view_def["actions"] = obj.actions
     with open(dest, "w+") as file:
-        if len(obj.view_def) > 0:
-            pprint(obj.view_def, stream=file, indent=1)
+        if len(view_def) > 0:
+            pprint(view_def, stream=file, indent=1)
         if action_menu:
             pprint(action_menu, stream=file, indent=1)
 
