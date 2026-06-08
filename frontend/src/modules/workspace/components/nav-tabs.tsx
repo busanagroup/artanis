@@ -69,7 +69,7 @@ export function NavTabs({ tabs, activeTabId, onChange, onClose, getTabHref }: Na
   if (!tabs.length) {
     return (
       <div className="border-b border-indigo-100 bg-white px-4 py-2 text-xs text-slate-500">
-        Belum ada tab terbuka. Pilih menu untuk membuka tab.
+        No tabs are open. Select a menu to open a tab.
       </div>
     )
   }

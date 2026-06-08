@@ -20,8 +20,8 @@ export function useGetAppInfo() {
 }
 
 export async function fetchMenuItems(): Promise<MenuItem[]> {
-  const live = await axelorJson<ApiListResponse<MenuItem>>('ws/action/menu/all')
-  return live.status === 0 ? live.data : []
+  const live = await axelorJson<ApiListResponse<MenuItem>>('misc/menu')
+  return live.status == 0 ? live.data : []
 }
 
 export function useGetMenuItems() {
@@ -54,8 +54,8 @@ export function useGetQuickAccess() {
 }
 
 export async function fetchActionView(actionName: string): Promise<ActionViewSummary | null> {
-  const response = await axelorJson<ActionResponse>(`ws/action/${actionName}`, {
-    method: 'POST',
+  const response = await axelorJson<ActionResponse>(`misc/action-view/${actionName}`, {
+    method: 'GET',
     jsonBody: {
       model: 'com.axelor.meta.db.MetaAction',
       data: {
@@ -84,22 +84,58 @@ export function useGetActionView(actionName?: string | null) {
   })
 }
 
-export async function fetchMetaView(model: string, limit = 8, signal?: AbortSignal): Promise<Array<Record<string, unknown>>> {
-  const response = await axelorJson<MetaViewResponse>(`ws/meta/view`, {
-    method: 'POST',
+export async function fetchMetaView<
+  T = Record<string, unknown>
+>(options: {
+  name?: string;
+  model?: string;
+  type?: string;
+  context?: Record<string, any>;
+  signal?: AbortSignal;
+}): Promise<T> {
+  const { name, model, type, context, signal } = options;
+
+  const response = await axelorJson<MetaViewResponse>("misc/view", {
+    method: "POST",
     signal,
     jsonBody: {
-      limit,
-      offset: 0,
-      data: {},
+      model,
+      data: {
+        name,
+        type,
+        context,
+      },
     },
-  })
+  });
 
-  if (response.status !== 0) {
-    throw new Error(`Data model ${model} gagal dimuat`)
+  const { status, data } = response;
+
+  if (status === 0) {
+    return {
+      model,
+      ...data,
+    } as T;
   }
 
-  return response.data ?? []
+  return Promise.reject(data);
+}
+
+export function useGetMetaView<T = Record<string, unknown>>(
+  actionName?: string | null,
+) {
+  return useQuery<T>({
+    queryKey: ["meta-view", actionName],
+    queryFn: () =>
+      fetchMetaView<T>({
+        name: actionName ?? undefined,
+      }),
+    enabled: !!actionName,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  });
 }
 
 export async function fetchModelRecords(model: string, limit = 8): Promise<Array<Record<string, unknown>>> {

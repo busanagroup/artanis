@@ -13,7 +13,6 @@ import {
 } from '@ant-design/icons'
 import {
   Avatar,
-  Badge,
   Button,
   Card,
   Drawer,
@@ -111,7 +110,7 @@ export function WorkspaceLayout() {
           size="large"
           value={controller.menuSearch}
           onChange={(event) => controller.setMenuSearch(event.target.value)}
-          placeholder="Cari menu, model, atau fitur..."
+          placeholder="menu search..."
           prefix={<SearchOutlined className="text-[#8e9cc0]" />}
           className="!rounded-2xl !border-[#d7e0ef] !bg-white"
         />
@@ -120,20 +119,19 @@ export function WorkspaceLayout() {
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
         <div className="mb-3 flex items-center justify-between px-1">
           <Text className="!text-xs !font-semibold !uppercase !tracking-[0.18em] !text-[#8693b2]">Navigation</Text>
-          <Badge count={controller.filteredMenuTree.length} color="#6a5cff" />
         </div>
 
         {controller.menuQuery.isLoading ? (
           <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-4 text-sm text-[#6f7f9f] shadow-sm">
             <Spin size="small" />
-            <span>Memuat menu workspace...</span>
+            <span>Loading menu workspace...</span>
           </div>
         ) : null}
 
         {!controller.menuQuery.isLoading && controller.filteredMenuTree.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="Menu tidak ditemukan."
+            description="Menu not found."
             className="rounded-2xl bg-white py-8"
           />
         ) : null}
@@ -194,7 +192,7 @@ export function WorkspaceLayout() {
             <div className="border-b border-[#e7edf7] bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(246,249,255,0.96)_100%)] px-4 py-4 sm:px-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-start gap-3">
-                  <Tooltip title={controller.state.sidebarOpen ? 'Sembunyikan menu' : 'Buka menu'}>
+                  <Tooltip title={controller.state.sidebarOpen ? 'Hide menu' : 'Open menu'}>
                     <Button
                       type="text"
                       shape="circle"
@@ -211,8 +209,8 @@ export function WorkspaceLayout() {
                     </Title>
                     <Paragraph className="!mb-0 !text-sm !text-[#7181a3]">
                       {controller.activeTab
-                        ? `Kelola data untuk ${controller.activeTab.title} dengan tampilan ${controller.isFormOpen ? 'form' : controller.activeTab.viewMode}.`
-                        : 'Pilih menu di sidebar untuk membuka modul dan mulai bekerja.'}
+                        ? `Manage data for ${controller.activeTab.title} with view ${controller.isFormOpen ? 'form' : controller.activeTab.viewMode}.`
+                        : 'Select a menu from the sidebar to open a module and start working.'}
                     </Paragraph>
                   </div>
                 </div>
@@ -249,7 +247,7 @@ export function WorkspaceLayout() {
                 />
 
                 <Space wrap size={10}>
-                  <Tooltip title="Buat data baru">
+                  <Tooltip title="Create new record">
                     <Button
                       type="primary"
                       icon={<PlusOutlined />}
@@ -305,7 +303,7 @@ export function WorkspaceLayout() {
                     <div className="flex min-h-[280px] items-center justify-center">
                       <Space align="center" size={12}>
                         <Spin />
-                        <Text className="!text-[#7383a4]">Memuat action view...</Text>
+                        <Text className="!text-[#7383a4]">Loading action view...</Text>
                       </Space>
                     </div>
                   ) : null}
@@ -313,7 +311,7 @@ export function WorkspaceLayout() {
                   {controller.activeActionQuery.isError ? (
                     <Empty
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="Action gagal dimuat dari server."
+                      description="Action failed to load from server."
                       className="py-16"
                     />
                   ) : null}
@@ -321,7 +319,7 @@ export function WorkspaceLayout() {
                   {!controller.activeTab ? (
                     <Empty
                       image={Empty.PRESENTED_IMAGE_DEFAULT}
-                      description="Pilih menu di sidebar untuk membuka dynamic tab view."
+                      description="Select a menu from the sidebar to open a module and start working."
                       className="py-16"
                     />
                   ) : null}
@@ -329,22 +327,22 @@ export function WorkspaceLayout() {
                   {controller.activeRecordsQuery.isLoading ? (
                     <div className="flex items-center gap-3 px-5 py-4 text-sm text-[#7383a4]">
                       <Spin size="small" />
-                      <span>Memuat data model dari backend...</span>
+                      <span>Loading data model from backend...</span>
                     </div>
                   ) : null}
 
                   {controller.activeRecordsQuery.isError ? (
-                    <div className="px-5 py-4 text-sm text-[#d14343]">Data model gagal dimuat dari endpoint ws/rest.</div>
+                    <div className="px-5 py-4 text-sm text-[#d14343]">Data model failed to load from endpoint ws/rest.</div>
                   ) : null}
 
                   {controller.activeRecordFetchQuery.isLoading && controller.isFormOpen ? (
-                    <div className="px-5 py-3 text-xs text-[#7383a4]">Memuat detail record...</div>
+                    <div className="px-5 py-3 text-xs text-[#7383a4]">Loading record details...</div>
                   ) : null}
 
                   {!controller.showFormPage && !controller.filteredRecords.length && controller.activeTab ? (
                     <Empty
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="Belum ada data yang tampil untuk modul ini."
+                      description="No data is available for this module yet."
                       className="py-16"
                     />
                   ) : null}

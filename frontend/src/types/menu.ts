@@ -8,6 +8,7 @@ export type MenuItem = {
   hidden?: boolean
   hasTag?: boolean
   tag?: string
+  key?: string
 }
 
 export type QuickAccessSection = {
