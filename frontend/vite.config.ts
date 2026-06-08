@@ -48,6 +48,11 @@ const config = defineConfig(({ mode }) => {
         target: targetBase,
         changeOrigin: true,
         rewrite: rewriteToTargetContext,
+      },
+      '/misc': {
+        target: targetBase,
+        changeOrigin: true,
+        rewrite: rewriteToTargetContext,
       }
     }
     : undefined

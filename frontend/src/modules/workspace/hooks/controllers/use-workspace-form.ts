@@ -51,12 +51,12 @@ export function useWorkspaceFormController({
   const saveRecordMutation = useMutation({
     mutationFn: async () => {
       if (!activeTab || !activeActionModel) {
-        throw new Error('Tab/model belum siap untuk save')
+        throw new Error('The tab/module is not ready to be saved.')
       }
 
       const draft = formDraftByTab[activeTab.id]
       if (!draft) {
-        throw new Error('Tidak ada perubahan untuk disimpan')
+        throw new Error('There are no changes to save.')
       }
 
       await executeModelAction({
@@ -83,7 +83,7 @@ export function useWorkspaceFormController({
   const deleteRecordMutation = useMutation({
     mutationFn: async () => {
       if (!activeActionModel || !selectedRecordId) {
-        throw new Error('Record belum dipilih')
+        throw new Error('Record is not selected')
       }
 
       const versionValue = selectedRecord?.version
@@ -210,7 +210,7 @@ export function useWorkspaceFormController({
   }
 
   const saveErrorMessage = useMemo(
-    () => (saveRecordMutation.isError ? ((saveRecordMutation.error as Error)?.message ?? 'Gagal menyimpan data') : null),
+    () => (saveRecordMutation.isError ? ((saveRecordMutation.error as Error)?.message ?? 'Failed to save data') : null),
     [saveRecordMutation.error, saveRecordMutation.isError],
   )
 

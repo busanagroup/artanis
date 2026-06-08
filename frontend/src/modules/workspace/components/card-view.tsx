@@ -24,7 +24,7 @@ export function CardView({
   onSelectRecord,
 }: CardViewProps) {
   if (!records.length) {
-    return <Empty description="Belum ada data untuk ditampilkan." className="py-16" />
+    return <Empty description="No data available to display." className="py-16" />
   }
 
   return (
