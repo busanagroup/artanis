@@ -21,8 +21,6 @@ from typing import Any, Optional, Type
 from sqlmodel._compat import Undefined
 
 from artanis.asgi.asgiendpoint import Descriptor
-from artanis.asgi.schemas.datastructures import Field
-from artanis.asgi.types.fields import FieldType
 from artanis.config import Configuration
 from artanis.sqlentity import Entity
 from ecf.core import fakeapi
@@ -120,8 +118,32 @@ class MVCFieldInfo:  # type: ignore[misc]
         self.field_no = counter
 
 
-def MVCField(type: Any = Undefined, **kwargs):
-    return MVCFieldInfo(type, **kwargs)
+def MVCField(
+        type: Any = Undefined,
+        required: bool = False,
+        enabled: bool = True,
+        visible: bool = True,
+        readonly: bool = False,
+        synchronized: bool = False,
+        browseable: bool = False,
+        charcase: int = ecNormal,
+        updatable: bool = True,
+        savestate: bool = True,
+        autosync: bool = False) -> MVCFieldInfo:
+    return MVCFieldInfo(
+        type,
+        required=required,
+        enabled=enabled,
+        visible=visible,
+        readonly=readonly,
+        synchronized=synchronized,
+        browseable=browseable,
+        charcase=charcase,
+        updatable=updatable,
+        savestate=savestate,
+        autosync=autosync
+    )
+
 
 class MVCModelBinder(SupportClass):
     def __init__(self, model: Optional[Type[Entity]], updatable: bool = True):

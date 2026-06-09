@@ -159,7 +159,7 @@ class MiscEndPoint(ASGIEndPoint):
         )
 
     @published(path="/action-view/{action_name:str}")
-    async def get_action(self, action_name: str) -> DefaultResponse:
+    async def get_action_view(self, action_name: str) -> DefaultResponse:
         """
         tags:
             - Miscelaneous
