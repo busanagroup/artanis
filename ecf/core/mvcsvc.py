@@ -48,6 +48,9 @@ class MVCDescriptor(Descriptor):
     def get_field_dict(self):
         return dict([(name, prop()) for name, prop in self.fields])
 
+    def get_fields(self):
+        return [prop() for _, prop in self.fields]
+
 
 def duck_type_collection(specimen, default=None):
     """Given an instance or class, guess if it is or is acting as one of
@@ -117,9 +120,16 @@ class MVCFieldInfo:  # type: ignore[misc]
         self.name = name
         self.field_no = counter
 
+    def field_info(self):
+        return dict(name=self.name, type=self.type.get_dbapi_type(fakeapi), label=self.label, required=self.required, enabled=self.enabled,
+                    visible=self.visible, readonly=self.readonly, synchronized=self.synchronized,
+                    browseable=self.browseable, charcase=self.charcase, updatable=self.updatable, savestate=self.savestate,
+                    autosync=self.autosync, choices=self.choices, **self.kwargs)
+
 
 def MVCField(
-        type: Any = Undefined,
+        type: Any,
+        label: str = None,
         required: bool = False,
         enabled: bool = True,
         visible: bool = True,
@@ -132,6 +142,7 @@ def MVCField(
         autosync: bool = False) -> MVCFieldInfo:
     return MVCFieldInfo(
         type,
+        label=label,
         required=required,
         enabled=enabled,
         visible=visible,
@@ -165,7 +176,6 @@ class MVCBaseService(BaseController):
         for name, prop in cls.descriptor.fields:
             field = prop()
             field.attach(name, field_counter)
-            print(field.type.get_dbapi_type(fakeapi))
             field_counter += 1
 
 
