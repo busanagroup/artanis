@@ -494,7 +494,7 @@ class ASGIEndPoint(ControllerABC):
         if self.descriptor.handle_request:
             if self.all_classes:
                 for method in self.published_methods:
-                    path = f"{self.base_path}/{{service_name}}{method.path.path}"
+                    path = f"{self.base_path}/{{service_name:str}}{method.path.path}"
                     route = Route(
                         path,
                         method.endpoint,

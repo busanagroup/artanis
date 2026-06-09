@@ -21,10 +21,11 @@ from artanis.asgi import schemas
 from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
 from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.asgi.auth.validator import MiscAccessValidator
-from artanis.asgi.services.mvcendpoint import MVCDescriptor
-from artanis.asgi.types import UserInfo, RequestData
+from artanis.asgi.services.mvcendpoint import MVCEndpointDescriptor
+from artanis.asgi.types import UserInfo
 from artanis.config import Configuration
 from artanis.exceptions import HTTPException
+from artanis.asgi.schemas.response import DefaultResponse
 from ecf.res import MenuDefinition, ViewDefinition
 
 
@@ -32,24 +33,19 @@ class ActionDef(pydantic.BaseModel):
     service: str | None
     name: str | None
 
+
 class ViewDef(ActionDef):
     type: str | None
 
 
-class DefaultResp(pydantic.BaseModel):
-    status: int
-    data: dict | None
-
-
 DefinitionRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(ActionDef)]
 ViewDefinitionRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(ViewDef)]
-DefaultResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(DefaultResp)]
 
 
 class MiscEndPoint(ASGIEndPoint):
     menu_def: MenuDefinition | None = None
 
-    descriptor: Descriptor = MVCDescriptor
+    descriptor: Descriptor = MVCEndpointDescriptor
     base_path = "/misc"
     openapi_support = True
     access_validator = MiscAccessValidator()

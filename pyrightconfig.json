@@ -1,0 +1,20 @@
+{
+  "include": [
+    "src",
+    "ecf"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "venv"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "."
+    }
+  ],
+  "extraPaths": [
+    ".",
+    "src"
+  ]
+}

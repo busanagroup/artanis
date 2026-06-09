@@ -22,6 +22,7 @@ from artanis.asgi import types, http
 from artanis.asgi.asgiendpoint import Descriptor, ASGIEndPoint, published
 from artanis.asgi.auth.validator import MVCAccessValidator
 from artanis.asgi.routing.routes.http import BaseHTTPEndpointWrapper, SafeExecution
+from artanis.asgi.schemas.response import DefaultResponse
 
 
 class MVCEndpointWrapper(BaseHTTPEndpointWrapper):
@@ -36,16 +37,32 @@ class MVCEndpointWrapper(BaseHTTPEndpointWrapper):
         await response(scope, receive, send)
 
 
-class MVCDescriptor(Descriptor):
+class MVCEndpointDescriptor(Descriptor):
     handle_request = True
 
 
 class MVCEndPoint(ASGIEndPoint):
-    descriptor: Descriptor = MVCDescriptor()
+    descriptor: Descriptor = MVCEndpointDescriptor()
     base_path = "/mvc"
     base_modules = "ecf.mvc"
     openapi_support = True
     access_validator = MVCAccessValidator()
+
+    @published(path="/definition", endpoint_wrapper=MVCEndpointWrapper)
+    async def definitions(self, request: Request) -> DefaultResponse:
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Service Name
+        """
+        scope = request.scope
+        instance = scope.get("module_instance")
+        descriptor = instance.descriptor
+        return DefaultResponse(status=0, data=[field.field_info() for field in descriptor.get_fields()])
 
     @published(path="/pgmredir")
     async def pgmredir(self, request: Request):
@@ -53,10 +70,6 @@ class MVCEndPoint(ASGIEndPoint):
 
     @published(path="/verify")
     async def verify(self, request: Request):
-        return {'hello': "world"}
-
-    @published(path="/definition", endpoint_wrapper=MVCEndpointWrapper)
-    async def definitions(self, request: Request):
         return {'hello': "world"}
 
     @published(path="/initialize")
