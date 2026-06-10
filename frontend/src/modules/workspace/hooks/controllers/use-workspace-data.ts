@@ -1,9 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { useAppActions, useAppState } from '@/store/app-store'
-import { useGetActionView, useGetModelPerms, useGetModelRecords } from '@/services/api/workspace/menu-api'
+import { executeModelAction, useGetActionView, useGetMetaView, useGetModelPerms, useGetModelRecords } from '@/services/api/workspace/menu-api'
 import type { ColumnFilter, FilterClause } from './workspace-utils'
-import { extractVisibleColumns, getModesFromAction } from './workspace-utils'
+import {
+  extractViewColumns,
+  extractViewButtons,
+  extractViewToolbarButtons,
+  getModesFromAction,
+  normalizeWorkspaceViewKind,
+} from './workspace-utils'
 
 type AppState = ReturnType<typeof useAppState>
 
@@ -11,7 +17,6 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
   const queryClient = useQueryClient()
   const [selectedRecordByTab, setSelectedRecordByTab] = useState<Record<string, string>>({})
   const [columnFiltersByTab, setColumnFiltersByTab] = useState<Record<string, Record<string, ColumnFilter>>>({})
-
   const activeTab = useMemo(() => {
     if (!state.activeTabId) return null
     return state.openTabs.find((tab) => tab.id === state.activeTabId) ?? null
@@ -25,11 +30,48 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
 
   const activeActionQuery = useGetActionView(activeTab?.actionKey)
 
+  const activeView = useMemo(() => {
+    const action = activeActionQuery.data
+
+    if (!action?.views?.length) return null
+
+    const view =
+      action.views.find((v) => v.type === action.type) ??
+      action.views[0]
+
+    return {
+      service: action.service,
+      name: view.name ?? undefined,
+      type: view.type ?? undefined,
+    }
+  }, [activeActionQuery.data])
+
+  const activeMetaViewQuery = useGetMetaView({
+    service: activeView?.service,
+    name: activeView?.name,
+    type: activeView?.type,
+  })
+
+  const activeMetaView = activeMetaViewQuery.data ?? null
+
   const activeModes = useMemo(() => getModesFromAction(activeActionQuery.data), [activeActionQuery.data])
 
-  const activeRecordsQuery = useGetModelRecords(activeActionQuery.data?.model, 40)
+  const activeRecordsQuery = useGetModelRecords(activeActionQuery.data?.service, 40)
 
-  const visibleColumns = useMemo(() => extractVisibleColumns(activeRecordsQuery.data ?? []), [activeRecordsQuery.data])
+  const viewColumns = useMemo(() => extractViewColumns(activeMetaView), [activeMetaView])
+
+  const viewButtons = useMemo(() => extractViewButtons(activeMetaView), [activeMetaView])
+
+  const viewToolbarButtons = useMemo(() => extractViewToolbarButtons(activeMetaView), [activeMetaView])
+
+  const activeMetaViewKind = typeof activeMetaView?.defkind === 'string' ? activeMetaView.defkind : undefined
+
+  const activeViewKind = useMemo(
+    () => normalizeWorkspaceViewKind(activeMetaViewKind ?? activeTab?.viewMode ?? activeActionQuery.data?.viewType),
+    [activeActionQuery.data?.viewType, activeMetaViewKind, activeTab?.viewMode],
+  )
+
+  const visibleColumns = useMemo(() => viewColumns.map((column) => column.name), [viewColumns])
 
   const activeColumnFilters = useMemo(() => {
     if (!activeTab) return {}
@@ -98,7 +140,7 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
     return Number.isFinite(asNumber) ? asNumber : null
   }, [selectedRecord])
 
-  const activePermsQuery = useGetModelPerms(activeActionQuery.data?.model, selectedRecordId)
+  const activePermsQuery = useGetModelPerms(activeActionQuery.data?.service, selectedRecordId)
 
   const activePerms = activePermsQuery.data
   const canCreate = activePermsQuery.isError ? true : (activePerms?.create ?? true)
@@ -125,13 +167,24 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
   }
 
   async function refreshCurrentData() {
-    if (!activeActionQuery.data?.model) return
+    if (!activeActionQuery.data?.service) return
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['records', activeActionQuery.data.model] }),
       queryClient.invalidateQueries({ queryKey: ['fetch-record', activeActionQuery.data.model] }),
       queryClient.invalidateQueries({ queryKey: ['perms', activeActionQuery.data.model] }),
       queryClient.invalidateQueries({ queryKey: ['action-view', activeTab?.actionKey] }),
+      queryClient.invalidateQueries({ queryKey: ['meta-view'] }),
     ])
+  }
+
+  async function runViewAction(actionName: string, context: Record<string, unknown> = {}) {
+    if (!activeActionQuery.data?.model || !actionName) return
+
+    await executeModelAction({
+      action: actionName,
+      model: activeActionQuery.data.model,
+      context,
+    })
   }
 
   return {
@@ -153,6 +206,13 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
     activeColumnFilters,
     setColumnFilter,
     refreshCurrentData,
-    // metaView
+    activeMetaViewQuery,
+    activeMetaView,
+    activeViewKind,
+    viewFields,
+    viewColumns,
+    viewButtons,
+    viewToolbarButtons,
+    runViewAction,
   }
 }

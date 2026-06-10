@@ -27,9 +27,9 @@ import {
 import { NavTabs } from './components/nav-tabs'
 import { CardView } from './components/card-view'
 import { FormView } from './components/form-view'
-import { ListView } from './components/list-view'
+import { EmptyListView, ListView } from './components/list-view'
 import { useWorkspaceController } from './hooks/use-workspace-controller'
-import { toHashRoute, type MenuNode } from './hooks/controllers/workspace-utils'
+import { getViewItemLabel, toHashRoute, type MenuNode } from './hooks/controllers/workspace-utils'
 import Icon from "../../../public/icon/artanis.svg"
 
 const { Title, Paragraph, Text } = Typography
@@ -288,7 +288,7 @@ export function WorkspaceLayout() {
                         ? controller.activeFormIntent === 'create'
                           ? 'Create Record'
                           : 'Edit Record'
-                        : controller.activeTab?.viewMode === 'cards'
+                        : controller.activeViewKind === 'cards'
                           ? 'Card Explorer'
                           : 'Data Grid'}
                     </Title>
@@ -297,6 +297,23 @@ export function WorkspaceLayout() {
                   {controller.activePermsQuery.isLoading ? <Tag color="processing">Checking permissions</Tag> : null}
                   {controller.activePermsQuery.isError ? <Tag color="error">Permissions unavailable</Tag> : null}
                 </div>
+
+                {!controller.showFormPage && controller.viewToolbarButtons.length ? (
+                  <div className="flex flex-wrap gap-2 border-b border-[#eef3fb] bg-[#fcfdff] px-5 py-3">
+                    {controller.viewToolbarButtons.map((action) => (
+                      <Button
+                        key={action.name ?? action.onClick}
+                        size="small"
+                        onClick={() => {
+                          if (!action.onClick) return
+                          void controller.runViewAction(action.onClick, controller.selectedRecord ?? controller.activeFormRecord ?? {})
+                        }}
+                      >
+                        {getViewItemLabel(action)}
+                      </Button>
+                    ))}
+                  </div>
+                ) : null}
 
                 <div className="min-h-[520px] bg-white">
                   {controller.activeActionQuery.isLoading ? (
@@ -331,27 +348,51 @@ export function WorkspaceLayout() {
                     </div>
                   ) : null}
 
-                  {controller.activeRecordsQuery.isError ? (
-                    <div className="px-5 py-4 text-sm text-[#d14343]">Data model failed to load from endpoint ws/rest.</div>
-                  ) : null}
-
                   {controller.activeRecordFetchQuery.isLoading && controller.isFormOpen ? (
                     <div className="px-5 py-3 text-xs text-[#7383a4]">Loading record details...</div>
                   ) : null}
 
-                  {!controller.showFormPage && !controller.filteredRecords.length && controller.activeTab ? (
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="No data is available for this module yet."
-                      className="py-16"
+                  {!controller.showFormPage &&
+                  controller.activeTab &&
+                  !controller.activeActionQuery.isError &&
+                  controller.activeViewKind !== 'cards' &&
+                  !controller.activeRecordsQuery.isLoading &&
+                  controller.filteredRecords.length > 0 ? (
+                    <ListView
+                      records={controller.filteredRecords}
+                      columns={controller.viewColumns.length ? controller.viewColumns : controller.visibleColumns.map((column) => ({
+                        name: column,
+                        title: column,
+                      }))}
+                      height={500}
+                      selectedRecordId={String(controller.selectedRecord?.id ?? '')}
+                      canEdit={controller.canEdit}
+                      canRemove={controller.canRemove}
+                      rowActions={controller.viewButtons}
+                      renderCell={controller.renderCell}
+                      onEditRecord={controller.startEditForRecord}
+                      onDeleteRecord={(record) => {
+                        controller.selectRecord(record)
+                        controller.deleteRecordMutation.mutate()
+                      }}
+                      onSelectRecord={controller.selectRecord}
+                      onRunAction={(actionName, record) => controller.runViewAction(actionName, record)}
                     />
                   ) : null}
 
-                  {!controller.showFormPage && controller.activeTab?.viewMode !== 'cards' && controller.filteredRecords.length ? (
-                    <ListView
-                      records={controller.filteredRecords}
-                      visibleColumns={controller.visibleColumns}
-                      selectedRecordId={String(controller.selectedRecord?.id ?? '')}
+                  {!controller.showFormPage &&
+                  controller.activeTab &&
+                  !controller.activeActionQuery.isError &&
+                  controller.activeViewKind !== 'cards' &&
+                  !controller.activeRecordsQuery.isLoading &&
+                  controller.filteredRecords.length === 0 ? (
+                    <EmptyListView
+                      columns={controller.viewColumns.length ? controller.viewColumns : controller.visibleColumns.map((column) => ({
+                        name: column,
+                        title: column,
+                      }))}
+                      height={500}
+                      rowActions={controller.viewButtons}
                       canEdit={controller.canEdit}
                       canRemove={controller.canRemove}
                       renderCell={controller.renderCell}
@@ -361,10 +402,16 @@ export function WorkspaceLayout() {
                         controller.deleteRecordMutation.mutate()
                       }}
                       onSelectRecord={controller.selectRecord}
+                      onRunAction={(actionName, record) => controller.runViewAction(actionName, record)}
+                      emptyDescription="There is no data available"
                     />
                   ) : null}
 
-                  {!controller.showFormPage && controller.activeTab?.viewMode === 'cards' && controller.filteredRecords.length ? (
+                  {!controller.showFormPage &&
+                  controller.activeTab &&
+                  !controller.activeActionQuery.isError &&
+                  controller.activeViewKind === 'cards' &&
+                  !controller.activeRecordsQuery.isLoading ? (
                     <CardView
                       records={controller.filteredRecords}
                       visibleColumns={controller.visibleColumns}

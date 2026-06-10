@@ -30,6 +30,8 @@ export type QuickAccessSection = {
 // }
 
 export type ActionViewSummary = {
+  type: string
+  service: any
   actionId: number
   title: string
   model: string
@@ -41,6 +43,26 @@ export type ActionViewSummary = {
     name: string | null
     type: string
   }>
+}
+
+export type WorkspaceViewItem = {
+  defkind?: string
+  name?: string
+  title?: string
+  icon?: string
+  onClick?: string
+  hidden?: boolean
+  [key: string]: unknown
+}
+
+export type WorkspaceViewDefinition = {
+  defkind?: string
+  name?: string
+  service?: string
+  title?: string
+  items?: WorkspaceViewItem[]
+  toolbar?: WorkspaceViewItem[]
+  [key: string]: unknown
 }
 export type ApiListResponse<T> = {
   status: number
@@ -74,7 +96,7 @@ export type SearchResponse = {
 
 export type MetaViewResponse = {
   status?: number
-  data?: Array<Record<string, unknown>>
+  data?: WorkspaceViewDefinition
 }
 
 

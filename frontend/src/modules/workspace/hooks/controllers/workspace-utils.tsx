@@ -1,5 +1,5 @@
 import type { AppTab } from '@/store/app-store'
-import type { MenuItem } from '@/types/menu'
+import type { MenuItem, WorkspaceViewDefinition, WorkspaceViewItem } from '@/types/menu'
 
 export type FilterOperator = 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'isEmpty' | 'isNotEmpty'
 
@@ -24,6 +24,15 @@ export function normalizeViewMode(viewType?: string | null) {
   if (value === 'grid') return 'list'
   if (value === 'card') return 'cards'
   return value
+}
+
+export function normalizeWorkspaceViewKind(viewKind?: string | null) {
+  if (!viewKind) return 'list'
+  const value = viewKind.toLowerCase()
+  if (value === 'grid') return 'list'
+  if (value === 'card' || value === 'cards') return 'cards'
+  if (value === 'form') return 'form'
+  return 'list'
 }
 
 export function getModesFromAction(actionView: { viewType?: string; views?: Array<{ type: string }> } | null | undefined) {
@@ -112,16 +121,43 @@ export function collectAncestorNames(name: string, parentMap: Record<string, str
   return names
 }
 
-export function extractVisibleColumns(records: Array<Record<string, unknown>>) {
-  const [first] = records
-  if (!first) {
-    return []
-  }
+export function humanizeFieldName(value: string) {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[._-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^./, (char) => char.toUpperCase())
+}
 
-  return Object.keys(first)
-    .filter((key) => !key.startsWith('$'))
-    .filter((key) => !['id', 'version', 'selected', 'archived'].includes(key))
-    .slice(0, 8)
+export function extractViewColumns(view?: WorkspaceViewDefinition | null) {
+  return (view?.items ?? [])
+    .filter((item): item is WorkspaceViewItem => item.defkind === 'field' && !item.hidden && Boolean(item.name))
+    .map((item) => {
+      const name = String(item.name)
+      const rawWidth = typeof item.width === 'string' ? Number.parseInt(item.width, 10) : undefined
+      return {
+        name,
+        title: item.title || humanizeFieldName(name),
+        width: Number.isFinite(rawWidth) ? rawWidth : undefined,
+      }
+    })
+}
+
+export function extractViewButtons(view?: WorkspaceViewDefinition | null) {
+  return (view?.items ?? []).filter(
+    (item): item is WorkspaceViewItem => item.defkind === 'button' && !item.hidden && Boolean(item.onClick),
+  )
+}
+
+export function extractViewToolbarButtons(view?: WorkspaceViewDefinition | null) {
+  return (view?.toolbar ?? []).filter(
+    (item): item is WorkspaceViewItem => item.defkind === 'button' && !item.hidden && Boolean(item.onClick),
+  )
+}
+
+export function getViewItemLabel(item: WorkspaceViewItem) {
+  return item.title || item.name || item.onClick || 'Action'
 }
 
 export function parseHashRoute(hash: string) {

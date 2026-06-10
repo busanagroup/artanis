@@ -56,19 +56,13 @@ export function useGetQuickAccess() {
 export async function fetchActionView(actionName: string): Promise<ActionViewSummary | null> {
   const response = await axelorJson<ActionResponse>(`misc/action-view/${actionName}`, {
     method: 'GET',
-    jsonBody: {
-      model: 'com.axelor.meta.db.MetaAction',
-      data: {
-        context: {},
-      },
-    },
   })
 
   if (response.status !== 0) {
     throw new Error(`Action ${actionName} gagal dimuat`)
   }
 
-  return response.data[0]?.view ?? null
+  return response.data
 }
 
 export function useGetActionView(actionName?: string | null) {
@@ -87,55 +81,58 @@ export function useGetActionView(actionName?: string | null) {
 export async function fetchMetaView<
   T = Record<string, unknown>
 >(options: {
-  name?: string;
-  model?: string;
-  type?: string;
-  context?: Record<string, any>;
-  signal?: AbortSignal;
+  service?: string
+  name?: string
+  type?: string
+  signal?: AbortSignal
 }): Promise<T> {
-  const { name, model, type, context, signal } = options;
+  const { service, name, type, signal } = options
 
-  const response = await axelorJson<MetaViewResponse>("misc/view", {
-    method: "POST",
+  const response = await axelorJson<MetaViewResponse>('misc/view', {
+    method: 'POST',
     signal,
     jsonBody: {
-      model,
-      data: {
-        name,
-        type,
-        context,
-      },
+      service,
+      name,
+      type,
     },
-  });
+  })
 
-  const { status, data } = response;
-
-  if (status === 0) {
-    return {
-      model,
-      ...data,
-    } as T;
+  if (response.status !== 0) {
+    throw new Error('Failed to fetch meta view')
   }
 
-  return Promise.reject(data);
+  return response.data as T
 }
 
-export function useGetMetaView<T = Record<string, unknown>>(
-  actionName?: string | null,
-) {
+export function useGetMetaView<T = Record<string, unknown>>(options?: {
+  service?: string
+  name?: string
+  type?: string
+}) {
   return useQuery<T>({
-    queryKey: ["meta-view", actionName],
+    queryKey: [
+      'meta-view',
+      options?.service,
+      options?.name,
+      options?.type,
+    ],
     queryFn: () =>
       fetchMetaView<T>({
-        name: actionName ?? undefined,
+        service: options?.service,
+        name: options?.name,
+        type: options?.type,
       }),
-    enabled: !!actionName,
+    enabled:
+      !!options?.service &&
+      !!options?.name &&
+      !!options?.type,
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: 1,
-  });
+  })
 }
 
 export async function fetchModelRecords(model: string, limit = 8): Promise<Array<Record<string, unknown>>> {
@@ -252,7 +249,7 @@ export async function executeModelAction(input: {
   model: string
   context?: Record<string, unknown>
 }) {
-  const response = await axelorJson<ActionExecResponse>('ws/action', {
+  const response = await axelorJson<ActionExecResponse>('misc/action', {
     method: 'POST',
     jsonBody: {
       action: input.action,
@@ -264,7 +261,7 @@ export async function executeModelAction(input: {
   })
 
   if (response.status !== 0) {
-    throw new Error(response.errors ? Object.values(response.errors).join(', ') : `Action ${input.action} gagal`)
+    throw new Error(response.errors ? Object.values(response.errors).join(', ') : `Action ${input.action} failed`)
   }
 
   return response.data ?? []
