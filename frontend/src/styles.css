@@ -39,8 +39,3 @@ body {
 .workspace-nav-tabs .ant-tabs-content-holder {
   display: none;
 }
-
-.workspace-content-shell .k-grid {
-  border: 0;
-  background: transparent;
-}

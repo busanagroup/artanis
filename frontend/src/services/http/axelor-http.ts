@@ -73,7 +73,7 @@ export async function axelorRequest(path: string, init: AxelorRequestInit = {}) 
       validateStatus: () => true,
     })
 
-    if (response.status === 401) {
+    if (response.status === 403) {
       const canRefresh =
         !init._retry &&
         path !== '/auth/login' &&
@@ -91,7 +91,7 @@ export async function axelorRequest(path: string, init: AxelorRequestInit = {}) 
 
     return response
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 401) {
+    if (isAxiosError(error) && error.response?.status === 403) {
       handleUnauthorized()
     }
     throw error

@@ -98,5 +98,11 @@ export function useWorkspaceController() {
     saveRecordMutation: form.saveRecordMutation,
     saveErrorMessage: form.saveErrorMessage,
     updateDraftField: form.updateDraftField,
+    activeMetaView: data.activeMetaView,
+    activeViewKind: data.activeViewKind,
+    viewColumns: data.viewColumns,
+    viewButtons: data.viewButtons,
+    viewToolbarButtons: data.viewToolbarButtons,
+    runViewAction: data.runViewAction,
   }
 }
