@@ -26,22 +26,30 @@ export function FormView({
   onCancel,
   onUpdateField,
 }: FormViewProps) {
+  const isViewMode = formIntent === 'view'
+
   return (
     <div className="min-h-[520px] bg-[linear-gradient(180deg,#fbfcff_0%,#f7f9fd_100%)] p-5">
       <div className="mb-5 flex flex-col gap-4 rounded-[24px] border border-[#e5ebf6] bg-white px-5 py-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div>
           <Text className="!text-xs !font-semibold !uppercase !tracking-[0.16em] !text-[#8896b3]">
-            {formIntent === 'create' ? 'Create Page' : 'Edit Page'}
+            {formIntent === 'create' ? 'Create Page' : isViewMode ? 'Detail Page' : 'Edit Page'}
           </Text>
           <Title level={4} className="!mb-0 !mt-2 !text-[#223d73]">
-            {formIntent === 'create' ? 'Create Record' : `Edit ${getRecordTitle(formRecord)}`}
+            {formIntent === 'create'
+              ? 'Create Record'
+              : isViewMode
+                ? `Detail ${getRecordTitle(formRecord)}`
+                : `Edit ${getRecordTitle(formRecord)}`}
           </Title>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button type="primary" loading={isSaving} onClick={onSave}>
-            {isSaving ? 'Saving...' : 'Save'}
-          </Button>
+          {!isViewMode ? (
+            <Button type="primary" loading={isSaving} onClick={onSave}>
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+          ) : null}
           <Button onClick={onCancel}>Cancel</Button>
         </div>
       </div>
@@ -82,6 +90,8 @@ export function FormView({
                       value={String(value ?? '')}
                       onChange={(event) => onUpdateField(key, event.target.value)}
                       size="large"
+                      readOnly={isViewMode}
+                      disabled={isViewMode}
                       className="!rounded-xl"
                     />
                   ) : null}

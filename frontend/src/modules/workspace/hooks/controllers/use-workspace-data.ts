@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { useAppActions, useAppState } from '@/store/app-store'
-import { executeModelAction, useGetActionView, useGetMetaView, useGetModelPerms, useGetModelRecords } from '@/services/api/workspace/menu-api'
+import { executeModelAction, useGetActionView, useGetMetaView, useGetModelRecords } from '@/services/api/workspace/menu-api'
+import { message } from 'antd'
 import type { ColumnFilter, FilterClause } from './workspace-utils'
 import {
   extractViewColumns,
@@ -140,14 +141,22 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
     return Number.isFinite(asNumber) ? asNumber : null
   }, [selectedRecord])
 
-  const activePermsQuery = useGetModelPerms(activeActionQuery.data?.service, selectedRecordId)
+  const selectedRecordKey = useMemo(() => {
+    if (!activeTab) return null
+    return selectedRecordByTab[activeTab.id] ?? null
+  }, [activeTab, selectedRecordByTab])
 
-  const activePerms = activePermsQuery.data
-  const canCreate = activePermsQuery.isError ? true : (activePerms?.create ?? true)
-  const canEdit = activePermsQuery.isError ? true : (activePerms?.write ?? true)
-  const canRemove = activePermsQuery.isError ? true : (activePerms?.remove ?? true)
+  // Debug: log filtered record ids and selected key for active tab to diagnose selection mismatch
+  // eslint-disable-next-line no-console
+  console.debug('useWorkspaceDataController.debug', {
+    activeTabId: activeTab?.id,
+    filteredRecordIds: filteredRecords.map((r) => r.id),
+    selectedKeyForTab: activeTab ? selectedRecordByTab[activeTab.id] : null,
+    selectedRecordResolved: selectedRecord,
+  })
 
   function selectRecord(record: Record<string, unknown>) {
+    console.log('useWorkspaceDataController.selectRecord', { activeTabId: activeTab?.id, recordId: record?.id })
     if (!activeTab) return
     setSelectedRecordByTab((prev) => ({ ...prev, [activeTab.id]: String(record.id ?? '') }))
   }
@@ -178,13 +187,32 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
   }
 
   async function runViewAction(actionName: string, context: Record<string, unknown> = {}) {
-    if (!activeActionQuery.data?.model || !actionName) return
+    const service = activeActionQuery.data?.service
+    // Debug: log runViewAction calls so we can see service/action/context
+    // eslint-disable-next-line no-console
+    console.debug('useWorkspaceDataController.runViewAction', { service, actionName, context })
 
-    await executeModelAction({
-      action: actionName,
-      model: activeActionQuery.data.model,
-      context,
-    })
+    if (!service || !actionName) return
+    const hide = message.loading({ content: 'Executing action...', key: 'runViewAction' })
+    try {
+      const res = await executeModelAction({
+        service,
+        name: actionName,
+        context,
+      })
+      hide()
+      message.success({ content: 'Action executed', key: 'runViewAction', duration: 2 })
+      // Debug: log response
+      // eslint-disable-next-line no-console
+      console.debug('useWorkspaceDataController.runViewAction.response', res)
+      return res
+    } catch (err) {
+      hide()
+      // eslint-disable-next-line no-console
+      console.error('runViewAction failed', err)
+      message.error({ content: (err as Error)?.message ?? 'Action failed', key: 'runViewAction', duration: 4 })
+      throw err
+    }
   }
 
   return {
@@ -198,21 +226,21 @@ export function useWorkspaceDataController({ state }: { state: AppState; actions
     visibleColumns,
     selectedRecord,
     selectedRecordId,
-    activePermsQuery,
-    canCreate,
-    canEdit,
-    canRemove,
     selectRecord,
+    selectedRecordKey,
     activeColumnFilters,
     setColumnFilter,
     refreshCurrentData,
     activeMetaViewQuery,
     activeMetaView,
     activeViewKind,
-    viewFields,
+    // viewFields,
     viewColumns,
     viewButtons,
     viewToolbarButtons,
     runViewAction,
+    canCreate: true,
+    canEdit: true,
+    canRemove: true,
   }
 }
