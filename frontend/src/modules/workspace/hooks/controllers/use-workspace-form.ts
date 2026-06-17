@@ -41,11 +41,11 @@ export function useWorkspaceFormController({
   const activeRecordFetchQuery = useGetModelRecord(
     activeActionModel,
     selectedRecordId,
-    activeFormIntent === 'edit',
+    activeFormIntent !== 'create',
   )
 
   const activeFormDraft = activeTab ? formDraftByTab[activeTab.id] ?? null : null
-  const activeFormRecord = activeFormIntent === 'edit' ? activeFormDraft ?? activeRecordFetchQuery.data : activeFormDraft
+  const activeFormRecord = activeFormDraft ?? activeRecordFetchQuery.data
   const showFormPage = Boolean(isFormOpen && activeFormRecord)
 
   const saveRecordMutation = useMutation({
@@ -60,9 +60,8 @@ export function useWorkspaceFormController({
       }
 
       await executeModelAction({
-        action: activeTab.actionKey,
-        model: activeActionModel,
-        context: { ...draft, _signal: 'onSave' },
+        service: activeTab.actionKey,
+        name: activeActionModel
       })
 
       return saveModelRecord(activeActionModel, draft)
@@ -90,8 +89,8 @@ export function useWorkspaceFormController({
       const version = typeof versionValue === 'number' ? versionValue : Number(versionValue)
 
       await executeModelAction({
-        action: activeTab?.actionKey ?? '',
-        model: activeActionModel,
+        service: activeTab?.actionKey ?? '',
+        name: activeActionModel,
         context: { ...(selectedRecord ?? {}), _signal: 'onDelete' },
       }).catch(() => undefined)
 
@@ -133,8 +132,8 @@ export function useWorkspaceFormController({
     setFormIntentByTab((prev) => ({ ...prev, [activeTab.id]: 'create' }))
 
     executeModelAction({
-      action: activeTab.actionKey,
-      model: activeActionModel,
+      service: activeTab.actionKey,
+      name: activeActionModel,
       context: { _signal: 'onNew' },
     }).catch(() => undefined)
   }
@@ -151,8 +150,8 @@ export function useWorkspaceFormController({
     setFormIntentByTab((prev) => ({ ...prev, [activeTab.id]: 'edit' }))
 
     executeModelAction({
-      action: activeTab.actionKey,
-      model: activeActionModel,
+      service: activeTab.actionKey,
+      name: activeActionModel,
       context: { ...source, _signal: 'onLoad' },
     }).catch(() => undefined)
   }
@@ -171,8 +170,29 @@ export function useWorkspaceFormController({
     setFormIntentByTab((prev) => ({ ...prev, [activeTab.id]: 'edit' }))
 
     executeModelAction({
-      action: activeTab.actionKey,
-      model: activeActionModel,
+      service: activeTab.actionKey,
+      name: activeActionModel,
+      context: { ...source, _signal: 'onLoad' },
+    }).catch(() => undefined)
+  }
+
+  function startViewForRecord(record: Record<string, unknown>) {
+    if (!activeTab) return
+    if (activeTab.viewMode !== 'form') {
+      setViewModeBeforeFormByTab((prev) => ({ ...prev, [activeTab.id]: activeTab.viewMode || 'list' }))
+      actions.setTabViewMode(activeTab.id, 'form')
+    }
+
+    selectRecord(record)
+    const source = { ...record }
+    setFormDraftByTab((prev) => ({ ...prev, [activeTab.id]: source }))
+    setFormIntentByTab((prev) => ({ ...prev, [activeTab.id]: 'view' }))
+
+    if (!activeActionModel) return
+
+    executeModelAction({
+      service: activeTab.actionKey,
+      name: activeActionModel,
       context: { ...source, _signal: 'onLoad' },
     }).catch(() => undefined)
   }
@@ -225,6 +245,7 @@ export function useWorkspaceFormController({
     saveErrorMessage,
     startCreateRecord,
     startEditRecord,
+    startViewForRecord,
     startEditForRecord,
     cancelFormEdit,
     updateDraftField,

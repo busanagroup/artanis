@@ -206,62 +206,24 @@ export function useGetModelRecord(model?: string | null, id?: number | null, ena
   })
 }
 
-export async function fetchModelPerms(model: string, id?: number): Promise<Record<'read' | 'write' | 'create' | 'remove' | 'export', boolean>> {
-  const params = new URLSearchParams()
-  if (typeof id === 'number' && Number.isFinite(id)) {
-    params.set('id', String(id))
-  }
 
-  const suffix = params.size ? `?${params}` : ''
-  const response = await axelorJson<PermsResponse>(`ws/rest/${model}/perms${suffix}`, {
-    method: 'GET',
-  })
-
-  if (response.status !== 0) {
-    throw new Error(`Gagal mengambil perms ${model}`)
-  }
-
-  const values = (response.data ?? []).map((value) => value.toLowerCase())
-  return {
-    read: values.includes('read'),
-    write: values.includes('write'),
-    create: values.includes('create'),
-    remove: values.includes('remove'),
-    export: values.includes('export'),
-  }
-}
-
-export function useGetModelPerms(model?: string | null, id?: number | null) {
-  return useQuery({
-    queryKey: ['perms', model, id],
-    queryFn: () => fetchModelPerms(model!, id ?? undefined),
-    enabled: Boolean(model),
-    staleTime: 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    retry: 1,
-  })
-}
 
 export async function executeModelAction(input: {
-  action: string
-  model: string
+  service: string
+  name: string
   context?: Record<string, unknown>
 }) {
   const response = await axelorJson<ActionExecResponse>('misc/action', {
     method: 'POST',
     jsonBody: {
-      action: input.action,
-      model: input.model,
-      data: {
-        context: input.context ?? {},
-      },
+      service: input.service,
+      name: input.name,
+      context: input.context ?? {},
     },
   })
 
   if (response.status !== 0) {
-    throw new Error(response.errors ? Object.values(response.errors).join(', ') : `Action ${input.action} failed`)
+    throw new Error(response.errors ? Object.values(response.errors).join(', ') : `Action ${input.name} failed`)
   }
 
   return response.data ?? []

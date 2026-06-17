@@ -82,9 +82,7 @@ export type SessionInfoResponse = {
 
 export type ActionResponse = {
   status: number
-  data: Array<{
-    view: ActionViewSummary
-  }>
+  data: ActionViewSummary
 }
 
 export type SearchResponse = {
