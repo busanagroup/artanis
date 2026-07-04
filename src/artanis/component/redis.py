@@ -26,8 +26,8 @@ from artanis.config import Configuration
 class Redis(SyncRedisPy, Singleton, SyncLock):
     def __init__(
             self,
-            config: Configuration = None,
-            connection_pool: AsyncConnectionPool = None,
+            config: Configuration | None = None,
+            connection_pool: AsyncConnectionPool | None = None,
             single_connection_client: bool = False,
     ):
         config = config or Configuration().get_default_instance(create_instance=False)
@@ -75,8 +75,8 @@ class Redis(SyncRedisPy, Singleton, SyncLock):
 class AsyncRedis(AsyncRedisPy, AsyncSingleton, AsyncLock):
     def __init__(
             self,
-            config: Configuration = None,
-            connection_pool: AsyncConnectionPool = None,
+            config: Configuration | None = None,
+            connection_pool: AsyncConnectionPool | None = None,
             single_connection_client: bool = False,
     ):
         config = config or Configuration().get_default_instance(create_instance=False)

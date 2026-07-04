@@ -18,7 +18,7 @@ from __future__ import annotations
 import weakref
 from typing import Any, Optional, Type
 
-from sqlmodel._compat import Undefined
+from sqlalchemy.sql import select
 
 from artanis.asgi.asgiendpoint import Descriptor
 from artanis.config import Configuration
@@ -104,6 +104,7 @@ class MVCFieldInfo:  # type: ignore[misc]
         self.updatable = kwargs.pop('updatable', True)
         self.savestate = kwargs.pop('savestate', True)
         self.autosync = kwargs.pop('autosync', False)
+        self.default = kwargs.pop('default', None)
         self.choices = {}
         choice = kwargs.pop('choices', {})
         choice_type = duck_type_collection(choice)
@@ -121,15 +122,17 @@ class MVCFieldInfo:  # type: ignore[misc]
         self.field_no = counter
 
     def field_info(self):
-        return dict(name=self.name, type=self.type.get_dbapi_type(fakeapi), label=self.label, required=self.required, enabled=self.enabled,
+        return dict(name=self.name, type=self.type.get_dbapi_type(fakeapi), label=self.label, required=self.required,
+                    enabled=self.enabled,
                     visible=self.visible, readonly=self.readonly, synchronized=self.synchronized,
-                    browseable=self.browseable, charcase=self.charcase, updatable=self.updatable, savestate=self.savestate,
+                    browseable=self.browseable, charcase=self.charcase, updatable=self.updatable,
+                    savestate=self.savestate,
                     autosync=self.autosync, choices=self.choices, **self.kwargs)
 
 
 def MVCField(
         type: Any,
-        label: str = None,
+        label: str | None = None,
         required: bool = False,
         enabled: bool = True,
         visible: bool = True,
@@ -139,7 +142,8 @@ def MVCField(
         charcase: int = ecNormal,
         updatable: bool = True,
         savestate: bool = True,
-        autosync: bool = False) -> MVCFieldInfo:
+        autosync: bool = False,
+        default: Any = None) -> MVCFieldInfo:
     return MVCFieldInfo(
         type,
         label=label,
@@ -152,15 +156,48 @@ def MVCField(
         charcase=charcase,
         updatable=updatable,
         savestate=savestate,
-        autosync=autosync
+        autosync=autosync,
+        default=default
     )
 
 
 class MVCModelBinder(SupportClass):
-    def __init__(self, model: Optional[Type[Entity]], updatable: bool = True):
-        self.model = self.get_entity(model) if isinstance(model, str) else model
-        self.tablename = model.__tablename__
+    def __init__(self, model: Optional[Type[Entity] | str], updatable: bool = True):
+        self.model: Type[Entity] | None = self.get_entity(model) if isinstance(model, str) else model
+        self.tablename = self.model.__tablename__
         self.updatable = updatable
+        self.parent: weakref.ReferenceType[MVCBaseService] | None = None
+
+    def set_parent(self, parent: MVCBaseService):
+        self.parent = weakref.ref(parent)
+
+    async def get_data_list(self, fields: list[str], offset: int, limit: int) -> list[dict]:
+        if self.model is None:
+            return []
+
+        parent = self.parent() if self.parent else None
+        descriptor_fields = parent.descriptor.get_field_list() if parent else []
+
+        model_fields = set(self.model.get_field_names())
+        allowed = set(descriptor_fields) & model_fields
+        if fields:
+            allowed &= set(fields)
+
+        if not allowed:
+            return []
+
+        ordered_fields = [f for f in descriptor_fields if f in allowed]
+        columns = [self.model.__table__.columns[f] for f in ordered_fields]
+
+        session = self.get_session()
+        stmt = select(*columns).offset(offset).limit(limit)
+        result = await session.execute(stmt)
+        rows = result.fetchall()
+        return [dict(zip(ordered_fields, row)) for row in rows]
+
+
+
+
 
 
 class MVCBaseService(BaseController):
@@ -177,6 +214,15 @@ class MVCBaseService(BaseController):
             field = prop()
             field.attach(name, field_counter)
             field_counter += 1
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.has_model_binder():
+            self.model_binder.set_parent(self)
+
+    @classmethod
+    def has_model_binder(cls) -> bool:
+        return hasattr(cls, 'model_binder') and cls.model_binder is not None
 
 
 class MVCService(MVCBaseService):

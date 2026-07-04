@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
-from typing import Mapping, Any, TYPE_CHECKING
+from typing import Mapping, Any, TYPE_CHECKING, Type
 
 from lru import LRU as LRUDict
 
@@ -26,7 +26,7 @@ from artanis.abc.repository import ClassRepository
 from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
 from artanis.config import Configuration
-from artanis.sqlentity import entity
+from artanis.sqlentity import entity, Entity
 from artanis.taskiq.proxy import TaskObjectProxy
 from artanis.utils import import_function
 
@@ -75,7 +75,7 @@ class SupportClass:
         validators.Assertion(messages={'assert': msg}).to_python(not record_status)
 
     @staticmethod
-    def get_entity(table_name: str):
+    def get_entity(table_name: str) -> Type[Entity]:
         return entity.get_entity(table_name)
 
     @staticmethod
@@ -117,6 +117,10 @@ class SupportClass:
     @classproperty
     def bo_proxy(cls):
         return BusinessObjectProxy
+
+    @staticmethod
+    def get_session():
+        return entity.get_session()
 
     @staticmethod
     def get_task_service(username: str, service_name: str):

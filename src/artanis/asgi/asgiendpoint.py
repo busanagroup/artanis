@@ -132,12 +132,12 @@ class ControllerABC(Configurable):
                 cls.published_methods.append(descriptor)
                 del func.published
 
-    async def prepare_session(self, scopes: types.Scope) -> None:
+    async def prepare_usersession(self, scopes: types.Scope) -> None:
         _session = await UserSession.from_scope(scopes)
         if _session:
             setattr(self, '__session', _session)
 
-    def get_session(self) -> UserSession | None:
+    def get_usersession(self) -> UserSession | None:
         return getattr(self, '__session', None)
 
     @property

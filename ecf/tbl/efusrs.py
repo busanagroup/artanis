@@ -64,9 +64,9 @@ class efusrs(Entity, table=True):
     @classmethod
     async def get_user_api_key(cls, api_key: str):
         hash_value = get_hash_key(api_key)
-        objs = await cls.get_by(efusapky=hash_value, efusstat=1, efusapst=1, efusustp='USR')
-        return [[ob.efususid, ob.efusfsnm, ob.efuslsnm, ob.efusemad, ob.efuscono, ob.efusconm,
-                 ob.efusdvno, ob.efusdvnm] for ob in objs][0] if objs else None
+        obj = await cls.get_by(efusapky=hash_value, efusstat=1, efusapst=1, efusustp='USR')
+        return [obj.efususid, obj.efusfsnm, obj.efuslsnm, obj.efusemad, obj.efuscono, obj.efusconm,
+                obj.efusdvno, obj.efusdvnm] if obj else None
 
     @classmethod
     async def save_api_key(

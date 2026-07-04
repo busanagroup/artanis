@@ -35,20 +35,20 @@ class RedisCache:
             cache_enforce: bool=True,
     ):
         self.config = Configuration.get_default_instance(create_instance=False)
-        self.__async_redis: AsyncRedis = None
-        self.__sync_redis: SyncRedis = None
+        self.__async_redis: AsyncRedis | None = None
+        self.__sync_redis: SyncRedis | None = None
         self.__namespace = namespace
         self.__ttl = ttl
         self.__cache_enforce = cache_enforce
 
     @property
-    def async_redis(self) -> AsyncRedis:
+    def async_redis(self) -> AsyncRedis | None:
         if not self.__async_redis:
             self.__async_redis = self.config.container.async_redis
         return self.__async_redis
 
     @property
-    def sync_redis(self) -> SyncRedis:
+    def sync_redis(self) -> SyncRedis | None:
         if not self.__sync_redis:
             self.__sync_redis = self.config.container.sync_redis
         return self.__sync_redis

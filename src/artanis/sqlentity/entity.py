@@ -32,12 +32,16 @@ def get_table_repository():
     return __ecf_tbl
 
 
-def get_entity(table_name: str) -> Entity:
+def get_entity(table_name: str) -> Type[Entity]:
     repo = get_table_repository()
     result = getattr(repo, table_name, None)
     if not result:
         raise Exception(f'model "{table_name}" has not been implemented')
     return result
+
+
+def get_session() -> ASyncSession:
+    return Session()
 
 
 def get_user_name(user_session):

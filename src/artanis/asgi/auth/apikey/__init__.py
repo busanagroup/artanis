@@ -27,7 +27,7 @@ from artanis.caching import RedisCache
 
 logger = logging.getLogger(__name__)
 
-redis_cache = RedisCache("apikey", ttl=3600)  # Cache API keys for 1 hour
+redis_cache = RedisCache("ARTSYS:APIKEY", ttl=3600)  # Cache API keys for 1 hour
 
 
 @dataclasses.dataclass(frozen=True)

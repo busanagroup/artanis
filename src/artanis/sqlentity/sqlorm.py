@@ -71,6 +71,7 @@ class Entity(SQLModel):
     """Base class for SQLModel entities."""
     __app_config__: Configuration = Configuration.get_default_instance(create_instance=False)
     __abstract__ = True
+    __session__: AsyncSession | None = None
 
     def __init_subclass__(cls, **kwargs):
         if not cls.__app_config__:
@@ -112,13 +113,20 @@ class Entity(SQLModel):
         return select(cls)
 
     @classmethod
+    def get_session(cls):
+        if not cls.__session__:
+            cls.__session__ = Session()
+        return cls.__session__
+
+    @classmethod
     async def get_by(cls, **kwargs):
         """
         Returns the first instance of this class matching the given criteria.
         This is equivalent to:
         session.query(MyClass).filter_by(...).first()
         """
-        result = await Session().execute(select(cls).filter_by(**kwargs))
+        session = cls.get_session()
+        result = await session.exec(select(cls).filter_by(**kwargs))
         return result.first()
 
     @classmethod
@@ -128,11 +136,13 @@ class Entity(SQLModel):
         or None if not found. This is equivalent to:
         session.query(MyClass).get(...)
         """
-        return await Session().get(cls, args)
+        session = cls.get_session()
+        return await session.get(cls, args)
 
     @classmethod
     async def get_all(cls, **kwargs):
-        result = await Session().exec(select(cls).filter_by(**kwargs))
+        session = cls.get_session()
+        result = await session.exec(select(cls).filter_by(**kwargs))
         return result
 
     # -- added by Jaimy Azle for ECF purpose ---
