@@ -1,0 +1,237 @@
+<artanis>
+    <grid name="sale-order-quotation-grid" title="Sale quotations"
+          service="com.axelor.apps.sale.db.SaleOrder" orderBy="-creationDate">
+        <toolbar>
+            <button name="printBtn" title="Print"
+                    onClick="action-sale-order-method-show-sale-order" icon="printer"/>
+        </toolbar>
+        <menubar>
+            <menu name="saleOrderToolsMenu" title="Tools" icon="wrench" showTitle="true">
+                <item name="mergeQuotationsItem" title="Merge quotations"
+                      action="action-sale-order-method-convert-selected-lines-to-merge-lines"/>
+                <item name="seeQuotationLinesItem" title="See quotation lines"
+                      action="action-view-open-quotation-lines"/>
+            </menu>
+        </menubar>
+        <hilite background="warning"
+                if="(endOfValidityDate != null) &amp;&amp; ($moment(endOfValidityDate) &lt; $moment(todayDate)) &amp;&amp; (statusSelect == 3)"/>
+        <hilite background="danger"
+                if="(endOfValidityDate != null) &amp;&amp; ($moment(endOfValidityDate) &lt; $moment(todayDate)) &amp;&amp; (statusSelect == 2)"/>
+        <field name="endOfValidityDate" hidden="true"/>
+        <field name="saleOrderSeq" width="120"/>
+        <field name="company" form-view="company-form" grid-view="company-grid" />
+        <field name="stockLocation" />
+        <field name="tradingName" form-view="trading-name-form" grid-view="trading-name-grid" />
+        <field name="clientPartner" form-view="partner-form" grid-view="partner-grid"
+               x-image-field="picture"/>
+        <field name="externalReference"/>
+        <field name="creationDate"/>
+        <field name="exTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="inTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="currency" form-view="currency-form" grid-view="currency-grid"/>
+        <field name="currency.numberOfDecimals" hidden="true"/>
+        <field name="statusSelect" widget="single-select"/>
+        <field name="lastReminderDate"/>
+        <field name="lastReminderComments"/>
+        <button name="printBtn" title="Print" icon="printer"
+                onClick="action-sale-order-method-show-sale-order"/>
+        <button name="sendByEmailBtn" title="Send email" icon="envelope-fill"
+                onClick="action-send-by-email-with-template"/>
+    </grid>
+
+    <grid name="sale-order-grid" title="Sale orders" service="com.axelor.apps.sale.db.SaleOrder"
+          orderBy="-creationDate">
+        <toolbar>
+            <button name="printBtn" title="Print"
+                    onClick="action-sale-order-method-show-sale-order" icon="printer"/>
+        </toolbar>
+        <menubar>
+            <menu name="saleOrderToolsMenu" title="Tools" icon="wrench" showTitle="true">
+                <item name="seeSaleOrderLinesItem" title="See sale orders lines"
+                      action="action-view-open-sale-order-lines"/>
+            </menu>
+        </menubar>
+        <hilite background="warning"
+                if="(endOfValidityDate != null) &amp;&amp; ($moment(endOfValidityDate) &lt; $moment(todayDate)) &amp;&amp; (statusSelect == 3)"/>
+        <hilite background="danger"
+                if="(endOfValidityDate != null) &amp;&amp; ($moment(endOfValidityDate) &lt; $moment(todayDate)) &amp;&amp; (statusSelect == 2)"/>
+        <field name="endOfValidityDate" hidden="true"/>
+        <field name="saleOrderSeq" width="120"/>
+        <field name="company" form-view="company-form" grid-view="company-grid" />
+        <field name="stockLocation"/>
+        <field name="tradingName" form-view="trading-name-form" grid-view="trading-name-grid"/>
+        <field name="clientPartner" form-view="partner-form" grid-view="partner-grid"
+               x-image-field="picture"/>
+        <field name="externalReference"/>
+        <field name="confirmationDateTime"/>
+        <field name="exTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="inTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="amountInvoiced" hidden="true" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="currency" form-view="currency-form" grid-view="currency-grid"/>
+        <field name="currency.numberOfDecimals" hidden="true"/>
+        <field name="deliveryState" />
+        <field name="statusSelect" widget="single-select"/>
+        <field name="salespersonUser"/>
+        <button name="printBtn" title="Print" icon="printer"
+                onClick="action-sale-order-method-show-sale-order"/>
+        <button name="sendByEmailBtn" title="Send email" icon="envelope-fill"
+                onClick="action-send-by-email-with-template"/>
+    </grid>
+
+    <grid name="sale-order-partner-grid" title="Sale orders"
+          service="com.axelor.apps.sale.db.SaleOrder" orderBy="-creationDate">
+        <toolbar>
+            <button name="printBtn" title="Print"
+                    onClick="action-sale-order-method-show-sale-order" icon="printer"/>
+        </toolbar>
+        <menubar>
+            <menu name="saleOrderToolsMenu" title="Tools" icon="wrench" showTitle="true">
+                <item name="seeSaleOrderLinesItem" title="See sale orders lines"
+                      action="action-view-open-sale-order-lines"/>
+            </menu>
+        </menubar>
+        <field name="saleOrderSeq" width="120"/>
+        <field name="company" form-view="company-form" grid-view="company-grid"/>
+        <field name="tradingName" form-view="trading-name-form" grid-view="trading-name-grid"/>
+        <field name="externalReference"/>
+        <field name="creationDate"/>
+        <field name="currency" hidden="true"/>
+        <field name="currency.numberOfDecimals" hidden="true"/>
+        <field name="exTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="inTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="statusSelect" widget="single-select"/>
+        <button name="printBtn" title="Print" icon="printer"
+                onClick="action-sale-order-method-show-sale-order"/>
+        <button name="sendByEmailBtn" title="Send email" icon="envelope-fill"
+                onClick="action-send-by-email-with-template"/>
+    </grid>
+
+    <grid name="sale-order-partner-quotation-grid" title="Sale orders"
+          service="com.axelor.apps.sale.db.SaleOrder" orderBy="-creationDate">
+        <field name="saleOrderSeq" width="120"/>
+        <field name="company" form-view="company-form" grid-view="company-grid"/>
+        <field name="tradingName" form-view="trading-name-form" grid-view="trading-name-grid"/>
+        <field name="externalReference"/>
+        <field name="creationDate"/>
+        <field name="currency" hidden="true"/>
+        <field name="currency.numberOfDecimals" hidden="true"/>
+        <field name="exTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="inTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="inTaxTotalRemainingToOrder" aggregate="sum"
+               x-scale="currency.numberOfDecimals"/>
+        <field name="statusSelect" widget="single-select"/>
+        <button name="printBtn" title="Print" icon="printer"
+                onClick="action-sale-order-method-show-sale-order"/>
+        <button name="sendByEmailBtn" title="Send email" icon="envelope-fill"
+                onClick="action-send-by-email-with-template"/>
+    </grid>
+
+    <grid name="sale-order-opportunity-grid" title="Sale quotations"
+          service="com.axelor.apps.sale.db.SaleOrder" orderBy="-creationDate">
+        <hilite background="warning"
+                if="(endOfValidityDate != null) &amp;&amp; ($moment(endOfValidityDate) &lt; $moment(todayDate)) &amp;&amp; (statusSelect == 3)"/>
+        <hilite background="danger"
+                if="(endOfValidityDate != null) &amp;&amp; ($moment(endOfValidityDate) &lt; $moment(todayDate)) &amp;&amp; (statusSelect == 2)"/>
+        <field name="endOfValidityDate" hidden="true"/>
+        <field name="saleOrderSeq" width="120"/>
+        <field name="creationDate"/>
+        <field name="exTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="inTaxTotal" aggregate="sum" x-scale="currency.numberOfDecimals"/>
+        <field name="currency" form-view="currency-form" grid-view="currency-grid"/>
+        <field name="currency.numberOfDecimals" hidden="true"/>
+        <field name="statusSelect" widget="single-select"/>
+        <button name="printBtn" title="Print" icon="printer"
+                onClick="action-sale-order-method-show-sale-order"/>
+        <button name="sendByEmailBtn" title="Send email" icon="envelope-fill"
+                onClick="action-send-by-email-with-template"/>
+    </grid>
+
+    <calendar name="sale-order-calendar" service="com.axelor.apps.sale.db.SaleOrder"
+              eventStart="creationDate" eventLength="24" mode="month" title="Sale quotations/orders"
+              colorBy="statusSelect" editable="false">
+        <field name="fullName"/>
+    </calendar>
+
+    <form name="sale-order-merge-form" service="com.axelor.utils.db.Wizard"
+          title="Merge sale orders" width="large">
+        <panel-related name="saleOrderToMergePanel" field="$saleOrderToMerge"
+                       form-view="sale-order-form" title="Sale orders to merge" colSpan="12"
+                       target="com.axelor.apps.sale.db.SaleOrder" domain="self.statusSelect = 1" canNew="false"
+                       canEdit="false" grid-view="sale-order-grid"/>
+        <panel name="actionsPanel" sidebar="true" title="Actions">
+            <button name="generateMergedSaleOrderBtn" title="Merge into single sale order"
+                    onClick="action-validate-sale-order-check-selection,action-group-sale-order-merge-action"/>
+        </panel>
+    </form>
+
+    <form name="sale-quotation-merge-form" service="com.axelor.utils.db.Wizard"
+          title="Merge quotations" width="large">
+        <panel-related name="saleQuotationToMergePanel" field="$saleQuotationToMerge"
+                       form-view="sale-order-form" title="Quotations to merge" colSpan="12"
+                       target="com.axelor.apps.sale.db.SaleOrder" domain="self.statusSelect = 1" canNew="false"
+                       canEdit="false" grid-view="sale-order-quotation-grid"/>
+        <panel name="actionsPanel" sidebar="true" title="Actions">
+            <button name="generateMergedSaleOrderBtn" title="Merge into single quotation"
+                    onClick="action-validate-sale-quotation-check-selection,action-group-sale-order-merge-action"/>
+        </panel>
+    </form>
+
+    <form name="sale-order-merge-confirm-form" service="com.axelor.utils.db.Wizard"
+          title="Confirmation" onNew="action-record-load-dummy-field-confirm-merge-saleorder">
+        <panel name="mainPanel" colSpan="6" colOffset="3">
+            <field name="priceListToCheck" hidden="true" colSpan="12"/>
+            <field name="locationToCheck" hidden="true" colSpan="12"/>
+            <field name="contactPartnerToCheck" hidden="true" colSpan="12"/>
+            <field name="fromStockMove" hidden="true" colSpan="12"/>
+            <field name="tradingNameToCheck" hidden="true" colSpan="12"/>
+            <button name="confirmBtn" title="Confirmer"
+                    onClick="action-sale-order-method-merge-from-pop-up" colSpan="12" width="200px"/>
+            <button name="confirmBtn" title="Confirmer"
+                    onClick="action-supplychain-stock-move-method-generate-invoice-from-pop-up" colSpan="12"
+                    width="200px"/>
+        </panel>
+    </form>
+
+    <form name="sale-order-template-wizard-form" service="com.axelor.utils.db.Wizard"
+          title="Create the quotation"
+          onNew="action-sale-order-attrs-template-deafult-currency,action-sale-order-method-fill-price-list">
+        <panel name="mainPanel">
+            <field name="currency" type="many-to-one" target="com.axelor.apps.base.db.Currency"
+                   title="Currency" required="true" form-view="currency-form" grid-view="currency-grid"/>
+            <field name="priceList" type="many-to-one" target="com.axelor.apps.base.db.PriceList"
+                   title="Price list" onSelect="action-sale-order-method-price-list-domain"
+                   form-view="price-list-form" grid-view="price-list-grid"/>
+            <button name="createOrderFromTemplateBtn" title="Create Order from this Template"
+                    onClick="action-sale-order-method-generate-order" colSpan="4"/>
+        </panel>
+    </form>
+
+    <form name="sale-order-cancel-wizard-form" service="com.axelor.apps.sale.db.SaleOrder"
+          title="Cancellation confirmation">
+        <panel name="mainPanel">
+            <field name="cancelReason" colOffset="4" colSpan="4" widget="SuggestBox" canNew="false" canEdit="false"
+                   onChange="action-attrs-sale-other-reason"/>
+            <field name="cancelReasonStr" colOffset="4" colSpan="4" hidden="true"/>
+            <button name="cancelConfirmBtn" title="Confirm cancellation"
+                    onClick="action-sale-order-cancel-reason-check,action-sale-order-method-confirm-cancel"
+                    colOffset="4" colSpan="4"/>
+        </panel>
+    </form>
+
+    <form name="sale-order-form-wizard" title="Sale order"
+          service="com.axelor.apps.sale.db.SaleOrder"
+          onNew="action-sale-order-method-onnew,action-sale-order-method-create-order,action-sale-order-record-hide-discount"
+          onLoad="action-group-sale-saleorder-onload">
+
+        <panel-include view="sale-order-form"/>
+    </form>
+
+    <form name="sale-order-form-partner" title="Sale order"
+          service="com.axelor.apps.sale.db.SaleOrder"
+          onNew="action-sale-order-method-onnew,action-group-partner-saleorder-onnew"
+          onLoad="action-group-sale-saleorder-onload">
+
+        <panel-include view="sale-order-form"/>
+    </form>
+
+</artanis>
