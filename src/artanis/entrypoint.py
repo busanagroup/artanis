@@ -24,9 +24,6 @@ from artanis.config import Configuration
 from artanis.sqlentity.entrypoint import configure_database, unconfigure_database
 from artanis.utils import import_function
 
-do_monitor_queue: Callable | None = None
-
-
 async def artanis_startup(config: Configuration):
     config.server_is_ready = False
     try:
@@ -53,10 +50,4 @@ async def artanis_shutdown(config: Configuration):
 
 
 async def artanis_monitor(config: Configuration):
-    global do_monitor_queue
-    if not do_monitor_queue:
-        do_monitor_queue = import_function("artanis.sqlentity.sqlapool:do_monitor_queue")
-    try:
-        await do_monitor_queue()
-    except:
-        pass
+    pass

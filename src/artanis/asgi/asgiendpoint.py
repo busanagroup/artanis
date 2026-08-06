@@ -16,9 +16,9 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import inspect
 import typing as t
+from functools import lru_cache
 from pathlib import PurePosixPath
 
-from lru import LRU as LRUDict
 from starlette.authentication import UnauthenticatedUser
 
 from artanis import exceptions, concurrency
@@ -196,7 +196,7 @@ class Published(BaseRoute):
         wrapped_endpoint = None
         if value:
             wrapped_endpoint = self.endpoint_wrapper(value, signature=inspect.signature(value),
-                                                   pagination=self.pagination)
+                                                     pagination=self.pagination)
             self.endpoint = wrapped_endpoint.handler
         self._app = wrapped_endpoint
 
@@ -302,7 +302,6 @@ class ASGIEndPoint(ControllerABC):
         self.apply_lock = False
         self.__class_dir = None
         self.__all_classes = None
-        self.__instances = LRUDict(size=8)
         schema = "/openapi.json"
         default_modules = [
             SchemaModule(self.parent.openapi, schema=schema, schema_url=f"{self.base_path}{schema}", docs="/docs"),
@@ -426,12 +425,7 @@ class ASGIEndPoint(ControllerABC):
             partial = None
             partial_allowed_methods: set[str] = set()
             func_name = klass_scope.get("path")
-            if klass.__name__ in self.__instances:
-                instance = self.__instances[klass.__name__]
-            else:
-                instance = klass(config=config, func_path=func_name)
-                self.__instances[klass.__name__] = instance
-
+            instance = self._instantiate(klass, config, func_path=func_name)
             if not instance.has_published_methods:
                 raise exceptions.NotFoundException(
                     path=klass_scope.get("root_path", "") + klass_scope["path"], params=klass_scope.get("path_params")
@@ -613,3 +607,8 @@ class ASGIEndPoint(ControllerABC):
     def __get_package_class(self, class_name: str, base_path: str | None = None, module_name: str | None = None):
         package = f"{self.base_modules if not base_path else base_path}.{class_name if not module_name else module_name}:{class_name}"
         return import_function(package)
+
+    @lru_cache(maxsize=8)
+    def _instantiate(self, klass: type[ControllerABC], config: Configuration,
+                     func_path: str | None = None) -> ControllerABC:
+        return klass(config=config, func_path=func_path)

@@ -258,7 +258,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_LOG_FORMAT: '[%(asctime)s][%(name)s][%(levelname)-7s][%(process)d] %(message)s',
             self.ARTANIS_LOG_PATH: '{}/log'.format(path),
 
-            self.ARTANIS_DB_CONNECTION: "postgresql+asyncpg://postgres:masterkey@10.0.3.102/template1",
+            self.ARTANIS_DB_CONNECTION: "postgres:masterkey@10.0.3.102/template1",
             self.ARTANIS_DB_SCHEMA: '',
             self.ARTANIS_DB_POOL_SIZE: '16',
 

@@ -29,13 +29,10 @@ from artanis.asgi.middlewares import MiddlewareStack
 from artanis.asgi.pagination import paginator
 from artanis.asgi.routing import WebSocketRoute
 from artanis.config import Configuration
-from artanis.ddd import WorkerComponent
 from artanis.injection import injector
 from artanis.models import ModelsModule
 from artanis.modules import Modules, Module
 from artanis.resources import ResourcesModule, ResourceRoute, resource as rsc
-from artanis.resources.workers import ResourceWorker
-from artanis.sqlentity.module import SQLAlchemyModule
 
 if t.TYPE_CHECKING:
     from artanis.asgi.middlewares import Middleware
@@ -44,7 +41,6 @@ if t.TYPE_CHECKING:
 class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
     resources: ResourcesModule
     models: ModelsModule
-    sqlalchemy: SQLAlchemyModule
 
     def __init__(
             self,
@@ -65,9 +61,6 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         self._injector = injector.Injector(Context)
 
         default_components = []
-        if (worker := ResourceWorker() if ResourceWorker else None) and WorkerComponent:
-            default_components.append(WorkerComponent(worker=worker))
-
         app_name = config.get_property_value(Configuration.ARTANIS_APP_NAME, '')
         self.openapi = openapi or {
             "info": {
@@ -79,9 +72,8 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
         }
 
         default_modules = [
-            ResourcesModule(worker=worker),
+            ResourcesModule(worker=None),
             ModelsModule(),
-            SQLAlchemyModule(config, single_connection=True),
         ]
         self.modules = Modules(app=self, modules=default_modules)
         self.app = self.router = routing.Router(components=default_components, app=self)

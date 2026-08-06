@@ -30,7 +30,6 @@ from artanis.injection import injector, Components
 from artanis.models import ModelsModule
 from artanis.modules import Modules
 from artanis.resources import ResourcesModule
-from artanis.resources.workers import ResourceWorker
 
 
 class BaseBrokerService(StartableService, Singleton, SyncLock, ObjectLoader):
@@ -48,13 +47,8 @@ class BaseBrokerService(StartableService, Singleton, SyncLock, ObjectLoader):
         self.debug = debug
         self._injector = injector.Injector(Context)
 
-        default_components = []
-
-        if (worker := ResourceWorker() if ResourceWorker else None) and WorkerComponent:
-            default_components.append(WorkerComponent(worker=worker))
-
         default_modules = [
-            ResourcesModule(worker=worker),
+            ResourcesModule(worker=None),
             SchemaModule(None),
             ModelsModule(),
         ]

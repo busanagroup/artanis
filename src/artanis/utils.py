@@ -25,7 +25,7 @@ from importlib import import_module
 from inspect import iscoroutinefunction
 from multiprocessing.synchronize import Event as EventType
 from pathlib import Path
-from typing import Any, overload, TypeVar
+from typing import Any, overload, TypeVar, ParamSpec, TypeIs
 
 import anyio.to_thread
 from starlette.types import Scope
@@ -33,6 +33,7 @@ from starlette.types import Scope
 from artanis.exceptions import ShutdownError, NoAppError
 
 T = TypeVar("T")
+P = ParamSpec("P")
 AwaitableCallable = Callable[..., Awaitable[T]]
 
 

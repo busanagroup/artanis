@@ -18,9 +18,9 @@ from __future__ import annotations
 import enum
 import json
 import logging
+from functools import lru_cache
 from typing import Any, Callable
 
-from lru import LRU as LRUDict
 from taskiq.kicker import AsyncKicker
 
 from artanis.abc.classprops import classproperty
@@ -38,10 +38,12 @@ class TaskType(enum.Enum):
     TK_TASK = 2
     TK_EVENT = 3
 
+
 @enum.unique
 class JOBType(enum.Enum):
     REGULAR_JOB = 1
     LIGHT_JOB = 2
+
 
 logger = logging.getLogger("artanis.task")
 
@@ -77,6 +79,7 @@ async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs
 @event_broker.task(task_name="artanis_event_execute")
 async def artanis_event_execute(klass: str, func: str, event: bytes):
     await EventDispatcher.dispatch(klass, func, event)
+
 
 @task_broker.task(task_name="artanis_schedule")
 async def artanis_schedule(*args, **kwargs):
@@ -165,7 +168,6 @@ class JobTaskHandler(IntServiceTaskHandler):
 
 
 class LightTaskHandler(BaseTaskHandler):
-    __service_instance_cache: dict = LRUDict(size=8)
 
     def __init__(self, request: TaskRequest):
         super().__init__(request)
@@ -179,10 +181,11 @@ class LightTaskHandler(BaseTaskHandler):
 
     @property
     def service_instance(self):
-        if self.class_name not in self.__service_instance_cache:
-            service_class = self.get_service_class(self.service_namespace)
-            instance = service_class(self.request)
-            self.__service_instance_cache[self.class_name] = instance
-        else:
-            instance = self.__service_instance_cache[self.class_name]
+        instance = self._instantiate(self.service_namespace, self.request)
+        instance.set_request(self.request)
         return instance
+
+    @lru_cache(maxsize=16)
+    def _instantiate(self, service_namespace: str, request: TaskRequest):
+        service_class = self.get_service_class(service_namespace)
+        return service_class()

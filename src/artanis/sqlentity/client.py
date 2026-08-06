@@ -13,6 +13,18 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from .client import PostgreSQLClient
+from __future__ import annotations
 
-client_class = PostgreSQLClient
+from typing import TYPE_CHECKING
+
+from tortoise.backends.asyncpg import AsyncpgDBClient
+
+from artanis.sqlentity.executor import PostgreSQLExecutor
+from artanis.sqlentity.schema_generator import PostgreSQLSchemaGenerator
+
+if TYPE_CHECKING:
+    ...
+
+class PostgreSQLClient(AsyncpgDBClient):
+    schema_generator = PostgreSQLSchemaGenerator
+    executor_class = PostgreSQLExecutor

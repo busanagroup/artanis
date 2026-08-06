@@ -13,6 +13,9 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from .client import PostgreSQLClient
+from __future__ import annotations
 
-client_class = PostgreSQLClient
+from tortoise.backends.asyncpg.executor import AsyncpgExecutor
+
+
+class PostgreSQLExecutor(AsyncpgExecutor): pass

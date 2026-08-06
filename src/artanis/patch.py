@@ -22,7 +22,7 @@ from artanis.component.forbidden import curse
 
 def patch_datetime():
     curse(dt.date, 'tointeger', date_tointeger)
-    curse(dt.date, 'frominteger', classmethod(date_tointeger))
+    curse(dt.date, 'frominteger', classmethod(date_frominteger))
     curse(dt.time, 'tointeger', time_tointeger)
     curse(dt.time, 'frominteger', classmethod(time_frominteger))
     curse(dt.datetime, 'tointeger', classmethod(datetime_tointeger))
@@ -42,7 +42,7 @@ def date_frominteger(cls, n):
 
 
 def date_tointeger(self):
-    return (self._year * 10000) + (self._month * 100) + self._day
+    return (self.year * 10000) + (self.month * 100) + self.day
 
 
 def time_frominteger(cls, n):

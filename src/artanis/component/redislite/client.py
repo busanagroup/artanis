@@ -51,6 +51,7 @@ class RedisMixin(object):
     embedded redis server based on the passed arguments.
     """
     redis_dir = None
+    tmp_dir = None
     pidfile = None
     socket_file = None
     connection = None
@@ -68,7 +69,7 @@ class RedisMixin(object):
         Stop the redis-server for this instance if it's running
         :return:
         """
-        if sys_modules:     # pragma: no cover
+        if sys_modules:  # pragma: no cover
             import sys
             sys.modules.update(sys_modules)
 
@@ -90,7 +91,7 @@ class RedisMixin(object):
                         process = psutil.Process(self.pid)
                     except psutil.NoSuchProcess:  # pragma: no cover
                         process = None
-                    if process:   # pragma: no cover
+                    if process:  # pragma: no cover
                         for i in range(50):
                             if not process.is_running():
                                 break
@@ -115,7 +116,7 @@ class RedisMixin(object):
 
                 if self.pidfile and os.path.exists(
                         self.pidfile
-                ):   # pragma: no cover
+                ):  # pragma: no cover
                     # noinspection PyTypeChecker
                     pid = int(open(self.pidfile).read())
                     try:
@@ -172,15 +173,16 @@ class RedisMixin(object):
         Create a temp directory for holding our self contained redis instance.
         :return:
         """
+        self.redis_dir = self.tmp_dir
         if not self.redis_dir:
             self.redis_dir = tempfile.mkdtemp()
             logger.debug(
                 'Creating temporary redis directory %s', self.redis_dir
             )
-            self.pidfile = os.path.join(self.redis_dir, 'redis.pid')
-            self.logfile = os.path.join(self.redis_dir, 'redis.log')
-            if not self.socket_file:
-                self.socket_file = os.path.join(self.redis_dir, 'redis.socket')
+        self.pidfile = os.path.join(self.redis_dir, 'redis.pid')
+        self.logfile = os.path.join(self.redis_dir, 'redis.log')
+        if not self.socket_file:
+            self.socket_file = os.path.join(self.redis_dir, 'redis.socket')
 
     def _start_redis(self):
         """
@@ -279,7 +281,7 @@ class RedisMixin(object):
                 return False
 
             with open(settings['pidfile']) as file_handle:
-                pid = file_handle.read().strip()   # NOQA
+                pid = file_handle.read().strip()  # NOQA
                 pid = int(pid)
                 if pid:  # pragma: no cover
                     try:
@@ -381,6 +383,10 @@ class RedisMixin(object):
 
             # Remove our keyword argument
             del kwargs['dbfilename']
+
+        if 'tmp_dir' in kwargs.keys():
+            self.tmp_dir = kwargs['tmp_dir']
+            del kwargs['tmp_dir']
 
         self.server_config = kwargs.pop('serverconfig', {})
 
@@ -517,6 +523,7 @@ class RedisMixin(object):
 
 class BaseRedis(redis.Redis):
     pass
+
 
 # noinspection PyUnresolvedReferences
 class Redis(RedisMixin, BaseRedis):

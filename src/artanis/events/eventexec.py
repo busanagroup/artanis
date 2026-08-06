@@ -14,9 +14,8 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import inspect
-from typing import Callable, Any
-
-from lru import LRU as LRUDict
+from functools import lru_cache
+from typing import Any
 
 from artanis import concurrency
 from artanis.abc.repository import ClassRepository
@@ -32,7 +31,6 @@ class EventDispatcher:
     __dynamic_load: bool = True
     __class_dir = None
     __all_classes = None
-    __instances = LRUDict(size=8)
     __config: Configuration = None
 
     @classmethod
@@ -60,15 +58,13 @@ class EventDispatcher:
 
     @classmethod
     def get_class_instance(cls, klass_name: str) -> Any:
+        return None if klass_name not in cls.__all_classes else cls._instantiate(klass_name)
+
+    @classmethod
+    @lru_cache(maxsize=8)
+    def _instantiate(cls, klass_name: str) -> Any:
         klass = cls.__all_classes[klass_name]
-        if not klass:
-            return None
-        if klass.__name__ in cls.__instances:
-            instance = cls.__instances[klass.__name__]
-        else:
-            instance = klass(config=cls.__config)
-            cls.__instances[klass.__name__] = instance
-        return instance
+        return klass(config=cls.__config)
 
     @classmethod
     def configure(cls):
@@ -92,5 +88,3 @@ class EventDispatcher:
                 klass = parameter.annotation
                 params.append(klass.model_validate_json(event))
         await concurrency.run(func, *params)
-
-
