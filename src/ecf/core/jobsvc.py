@@ -15,13 +15,12 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import datetime as dt
 import enum
+import uuid
 
 from taskiq.kicker import AsyncKicker
 
 from artanis.component.validators import validators
 from artanis.sqlentity import entity
-from artanis.sqlentity.baseid import MSSortableUID
-from artanis.sqlentity.sqlorm import Session
 from artanis.taskiq.broker import broker, task_broker
 from artanis.taskiq.tasks import TaskType, JOBType
 from ecf.core.ecfcmn import BaseController, JobObjectHandler
@@ -64,7 +63,7 @@ class JobAssignment(object):
         self.immediate = immediate
         self.description: str | None = description
         self.timestamp = dt.datetime.now()
-        self.job_id = MSSortableUID(self.timestamp)
+        self.job_id = str(uuid.uuid7())
 
     async def execute_job(self):
         await JobRunner(self.user_name, self.job_service_name, str(self.job_id))
@@ -77,10 +76,9 @@ class JobAssignment(object):
         efjbls = entity.get_entity('efjbls')
         efjbif = entity.get_entity('efjbif')
 
-        session = Session()
         try:
-            obj = efjbls.query.filter_by(jblsidnm=self.job_id).first()
-            lob = efjbif.query.filter_by(jblxidnm=self.job_id).first()
+            obj = await efjbls.get_or_none(jblsidnm=self.job_id)
+            lob = await efjbif.get_or_none(jblxidnm=self.job_id)
             validators.Assertion(messages={'assert': 'existing jobID has been existed'}).to_python(not (obj or lob))
             now = dt.datetime.now()
             rec = efjbls(
@@ -97,28 +95,20 @@ class JobAssignment(object):
                 jblsaudt=now.date().tointeger(),
                 jblsautm=now.time().tointeger(),
                 jblsauus=self.user_name)
+
             lrec = efjbif(
                 jblxidnm=self.job_id,
                 jblxaudt=now.date().tointeger(),
                 jblxautm=now.time().tointeger(),
                 jblxauus=self.user_name)
 
-            if auto_commit:
-                if not session.is_active:
-                    session.begin()
-            try:
-                if attachment and isinstance(attachment, dict):
-                    attachment['csyxfoid'] = str(self.job_id)
-                    attachment_obj = csyxif(**attachment)
-                    session.add(attachment_obj)
-                session.add(rec)
-                session.add(lrec)
-                if auto_commit:
-                    await session.commit()
-            except:
-                if auto_commit:
-                    await session.rollback()
-                raise
+            if attachment and isinstance(attachment, dict):
+                attachment['csyxfoid'] = str(self.job_id)
+                attachment_obj = csyxif(**attachment)
+                await attachment_obj.save()
+
+            await rec.save()
+            await lrec.save()
         finally:
             if immediate:
                 await self.execute_job()

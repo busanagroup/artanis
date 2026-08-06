@@ -14,27 +14,31 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efsyvr(Entity, table=True):
+class efsyvr(Entity):
     """
     System Parameter Param
     """
-    efsycono : str = Field(String(3), label='Comp ID', primary_key=True)
-    efsyusid : str = Field(String(24), label='User ID', primary_key=True)
-    efsypgid : str = Field(String(24), label='Program', primary_key=True)
-    efsyvrid : str = Field(String(24), label='Var', primary_key=True)
-    efsyvrv0 : str = Field(String(48), label='Value 1')
-    efsyvrv1 : str = Field(String(48), label='Value 2')
-    efsyvrv2 : str = Field(String(48), label='Value 3')
-    efsyvrv3 : str = Field(String(48), label='Value 4')
-    efsyvrv4 : str = Field(String(48), label='Value 5')
-    efsyvrv5 : str = Field(String(48), label='Value 6')
-    efsyvrv6 : str = Field(String(48), label='Value 7')
-    efsyvrv7 : str = Field(String(48), label='Value 8')
-    efsyvrv8 : str = Field(String(48), label='Value 9')
-    efsyvrv9 : str = Field(String(48), label='Value 10')
-    efusaudt : int = Field(Numeric(8, 0))
-    efusautm : int = Field(Numeric(6, 0))
-    efusauus : str = Field(String(24))
+    efsycono = fields.CharField(max_length=3, label='Comp ID')
+    efsyusid = fields.CharField(max_length=24, label='User ID')
+    efsypgid = fields.CharField(max_length=24, label='Program')
+    efsyvrid = fields.CharField(max_length=24, label='Var')
+    efsyvrv0 = fields.CharField(max_length=48, label='Value 1')
+    efsyvrv1 = fields.CharField(max_length=48, label='Value 2')
+    efsyvrv2 = fields.CharField(max_length=48, label='Value 3')
+    efsyvrv3 = fields.CharField(max_length=48, label='Value 4')
+    efsyvrv4 = fields.CharField(max_length=48, label='Value 5')
+    efsyvrv5 = fields.CharField(max_length=48, label='Value 6')
+    efsyvrv6 = fields.CharField(max_length=48, label='Value 7')
+    efsyvrv7 = fields.CharField(max_length=48, label='Value 8')
+    efsyvrv8 = fields.CharField(max_length=48, label='Value 9')
+    efsyvrv9 = fields.CharField(max_length=48, label='Value 10')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['efsycono', 'efsyusid', 'efsypgid', 'efsyvrid'])
+        ]

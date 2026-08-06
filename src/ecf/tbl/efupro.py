@@ -14,20 +14,16 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.sqlorm import Entity
 
-from ecf.core.ecfutils import get_hash_key
 
-
-class efupro(Entity, table=True):
+class efupro(Entity):
     """
     User properties
     """
-    efususid: str = Field(String(24), label='User ID', primary_key=True)
-    efusmunm: str = Field(String(48), label='User Default Menu Definition')
-    efusaudt: int = Field(Numeric(8, 0), label='Audit date')
-    efusautm: int = Field(Numeric(6, 0), label='Audit time')
-    efusauus: str = Field(String(24), label='Audit user')
+    efususid: str = fields.CharField(max_length=24, label='User ID', unique=True)
+    efusmunm: str = fields.CharField(max_length=48, label='User Default Menu Definition')
 
     @classmethod
     async def get_default_menu(cls, user_name: str) -> str:
@@ -37,6 +33,5 @@ class efupro(Entity, table=True):
         :return: default menu name
         """
         default_menu: str = "__default_menu__"
-        ob = await cls.get(user_name)
+        ob = await cls.get(efususid=user_name)
         return default_menu if not ob else default_menu if not ob.efusmunm else ob.efusmunm
-

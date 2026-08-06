@@ -20,7 +20,6 @@ import sys
 import traceback
 
 from artanis.component.validators import validators
-from artanis.sqlentity.sqlorm import Session
 from artanis.taskiq.tasks import TaskRequest
 from ecf.core.croniter import Croniter
 from ecf.core.ecfcmn import BaseController, JobObjectHandler
@@ -33,7 +32,6 @@ class IntService(BaseController):
     async def proceed_cron_job(cls, request: TaskRequest):
         efcron = cls.get_entity('efcron')
         cronobjs = await efcron.get_all_tasks(1)
-        session = Session()
         for crobj in cronobjs:
             crstr = " ".join([crobj.crjbsch1, crobj.crjbsch2, crobj.crjbsch3, crobj.crjbsch4, crobj.crjbsch5])
             lastexec = None
@@ -44,31 +42,26 @@ class IntService(BaseController):
 
             today = dt.datetime.now()
             if (lastexec is not None) and (lastexec <= today):
-                # --- create job assignmnet ----
-                job = JobAssignment()
-                job.description = f"executing job {crobj.crjbjbcd}"
-                job.service_name = crobj.crjbjprg
-                job.job_service_name = crobj.crjbjbcd
-                job.user_name = crobj.crjbrsus
+                # --- create job assignment ----
+                job = JobAssignment(
+                    crobj.crjbrsus,
+                    crobj.crjbjbcd,
+                    crobj.crjbjprg,
+                f"executing job {crobj.crjbjbcd}"
+                )
                 # ----
                 tb_str = crobj.crjbjtbl.strip() if crobj.crjbjtbl else None
                 if tb_str not in [None, '']:
                     tb_klass = cls.get_entity(tb_str)
                     if tb_klass:
                         filter_str = {crobj.crjbjfld: crobj.crjbjfva}
-                        obj = tb_klass.query.filter_by(**filter_str).first()
+                        obj = await tb_klass.get_or_none(**filter_str)
                         if obj:
                             # --- register job ---
                             await job.assign_job()
                             # -----
-                            if not session.is_active:
-                                session.begin()
-                            try:
-                                setattr(obj, crobj.crjbjbld, job.job_id)
-                                session.add(obj)
-                                await session.commit()
-                            except:
-                                session.rollback()
+                            setattr(obj, crobj.crjbjbld, job.job_id)
+                            await obj.save()
                 else:
                     # --- we don't use table, so just register the job ---
                     await job.assign_job()
@@ -79,15 +72,9 @@ class IntService(BaseController):
                 nextexec = cronproc.get_next(dt.datetime)
 
             if lastexec != nextexec:
-                if not session.is_active:
-                    session.begin()
-                try:
-                    crobj.crjbexdt = nextexec.date().tointeger()
-                    crobj.crjbextm = nextexec.time().tointeger()
-                    session.add(crobj)
-                    await session.commit()
-                except:
-                    await session.rollback()
+                crobj.crjbexdt = nextexec.date().tointeger()
+                crobj.crjbextm = nextexec.time().tointeger()
+                await crobj.save()
 
     @classmethod
     async def check_unproceeded_job(cls, request: TaskRequest):
@@ -113,9 +100,8 @@ class IntService(BaseController):
     async def update_job_status(cls, user_session: JOBSession, status, msg, info=None):
         efjbls = cls.get_entity('efjbls')
         efjbif = cls.get_entity('efjbif')
-        obj = efjbls.query.filter_by(jblsidnm=user_session.job_id).first()
+        obj = await efjbls.get(jblsidnm=user_session.job_id)
         program_name = None
-        session = Session()
         if obj:
             if obj.jblsauus:
                 user_session.user_name = obj.jblsauus
@@ -127,26 +113,16 @@ class IntService(BaseController):
             obj.jblsuptm = now.time().tointeger()
             obj.jblsprst = status
             obj.jblsprms = msg[:128] if msg and isinstance(msg, str) else msg
-            session.add(obj)
+            await obj.save()
 
-        lob = None
         message = msg
         if info:
             message = '\n'.join(traceback.format_exception(*info))
         update_lob = (message is not None) and (message.strip != '')
-        if update_lob:
-            lob = efjbif.query.filter_by(jblxidnm=user_session.job_id).first()
+        lob = await efjbif.get(jblxidnm=user_session.job_id) if update_lob else None
         if lob:
             lob.jblxplms = message
-            session.add(lob)
-
-        if not session.is_active:
-            session.begin()
-        try:
-            session.commit()
-        except:
-            session.rollback()
-            raise
+            await lob.save()
         return program_name
 
     @classmethod
@@ -327,7 +303,6 @@ class IntService(BaseController):
 
     async def change_user_cmp(self, user_name: str, user_cono: str, user_divi: str):
         proxy = self.get_bo_proxy()
-        usrobj = proxy.get_object('usrobj')
         cmpobj = proxy.get_object('cmpobj')
         efuacd = self.get_entity('efuacd')
         efusrs = self.get_entity('efusrs')
@@ -342,13 +317,4 @@ class IntService(BaseController):
         usr.efusdvno = divi[2]
         usr.efusdvnm = divi[3]
         self.set_audit_fields(usr, user_name)
-        session = Session()
-        if not session.is_active:
-            session.begin()
-        try:
-            session.add(usr)
-            session.commit()
-            usrobj.update_user_cache(usr)
-        except:
-            session.rollback()
-            raise
+        await usr.save()

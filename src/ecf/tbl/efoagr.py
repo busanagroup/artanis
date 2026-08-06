@@ -14,16 +14,14 @@ __author__ = 'Jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efoagr(Entity, table=True):
+class efoagr(Entity):
     """
     Object Access Group
     """
-    efoagrcd : str = Field(String(8), label='Obj. Code', primary_key=True)
-    efoagrnm : str = Field(String(48), label='Name')
-    efoagrds : str = Field(String(64), label='Description')
-    efoaaudt : int = Field(Numeric(8, 0), label='Audit date')
-    efoaautm : int = Field(Numeric(6, 0), label='Audit time')
-    efoaauus : str = Field(String(24), label='Audit user')
+    efoagrcd = fields.CharField(max_length=8, label='Obj. Code', unique=True)
+    efoagrnm = fields.CharField(max_length=48, label='Name')
+    efoagrds = fields.CharField(max_length=64, label='Description')

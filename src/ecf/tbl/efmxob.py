@@ -14,23 +14,27 @@ __author__ = 'widodo'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2017 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efmxob(Entity, table=True):
+class efmxob(Entity):
     """
     User Exception MVC Object 
     """
-    umoxsrnm : str = Field(String(24), label='User name', primary_key=True)
-    umoxbjnm : str = Field(String(32), label='Object Name', primary_key=True)
-    umoxbjsl : int = Field(Integer, label='Access for select')
-    umoxbjin : int = Field(Integer, label='Access for insert')
-    umoxbjup : int = Field(Integer, label='Access for update')
-    umoxbjdl : int = Field(Integer, label='Access for delete')
-    umoxbjex : int = Field(Integer, label='Access for extended functionality')
-    umoxaudt : int = Field(Numeric(8, 0), label='Audit date')
-    umoxautm : int = Field(Numeric(6, 0), label='Audit time')
-    umoxauus : str = Field(String(24), label='Audit user')
+    umoxsrnm = fields.CharField(max_length=24, label='User name')
+    umoxbjnm = fields.CharField(max_length=32, label='Object Name')
+    umoxbjsl = fields.IntField(label='Access for select')
+    umoxbjin = fields.IntField(label='Access for insert')
+    umoxbjup = fields.IntField(label='Access for update')
+    umoxbjdl = fields.IntField(label='Access for delete')
+    umoxbjex = fields.IntField(label='Access for extended functionality')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['umoxsrnm', 'umoxbjnm'])
+        ]
 
     @classmethod
     def check_access(cls, obj, acctp):

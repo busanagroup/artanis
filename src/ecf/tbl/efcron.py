@@ -14,32 +14,30 @@ __author__ = 'Jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efcron(Entity, table=True):
+class efcron(Entity):
     """
     Cron JOB Services
     """
-    crjbidcd : str = Field(String(3), label="Cron ID", primary_key=True)
-    crjbjbst : int = Field(Integer, label="Active Status", index=True)
-    crjbsch1 : str = Field(String(64), label="Minute")
-    crjbsch2 : str = Field(String(64), label="Hour")
-    crjbsch3 : str = Field(String(64), label="Day")
-    crjbsch4 : str = Field(String(64), label="Month")
-    crjbsch5 : str = Field(String(64), label="DOW")
-    crjbjprg : str = Field(String(6), label="Program")
-    crjbjtbl : str = Field(String(6), label="Table")
-    crjbjbcd : str = Field(String(12), label="JOB Service")
-    crjbjfld : str = Field(String(8), label="Field Name")
-    crjbjfva : str = Field(String(8), label="Unique Value")
-    crjbjbld : str = Field(String(8), label='Job Identifier Field')
-    crjbrsus : str = Field(String(24), label='Responsible user')
-    crjbexdt : int = Field(Numeric(8, 0), label='Last executed date')
-    crjbextm : int = Field(Numeric(6, 0), label='Last executed time')
-    crjbaudt : int = Field(Numeric(8, 0), label='Audit date')
-    crjbautm : int = Field(Numeric(6, 0), label='Audit time')
-    crjbauus : str = Field(String(24), label='Audit user')
+    crjbidcd = fields.CharField(max_length=3, label="Cron ID", unique=True)
+    crjbjbst = fields.IntField(label="Active Status", index=True)
+    crjbsch1 = fields.CharField(max_length=64, label="Minute")
+    crjbsch2 = fields.CharField(max_length=64, label="Hour")
+    crjbsch3 = fields.CharField(max_length=64, label="Day")
+    crjbsch4 = fields.CharField(max_length=64, label="Month")
+    crjbsch5 = fields.CharField(max_length=64, label="DOW")
+    crjbjprg = fields.CharField(max_length=6, label="Program")
+    crjbjtbl = fields.CharField(max_length=6, label="Table")
+    crjbjbcd = fields.CharField(max_length=12, label="JOB Service")
+    crjbjfld = fields.CharField(max_length=8, label="Field Name")
+    crjbjfva = fields.CharField(max_length=8, label="Unique Value")
+    crjbjbld = fields.CharField(max_length=8, label='Job Identifier Field')
+    crjbrsus = fields.CharField(max_length=24, label='Responsible user')
+    crjbexdt = fields.DecimalField(max_digits=8, decimal_places=0, label='Last executed date')
+    crjbextm = fields.DecimalField(max_digits=6, decimal_places=0, label='Last executed time')
 
     @classmethod
     async def get_all_tasks(cls, task_status):

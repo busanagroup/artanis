@@ -9,17 +9,15 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2009 My Company'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efjbif(Entity, table=True):
+class efjbif(Entity):
     """
     Job List Detail Messages
     """
 
-    jblxidnm : str = Field(String(38), label='JOB ID', primary_key=True)
-    jblxplif : str = Field(TEXT, label='Extra Information')
-    jblxplms : str = Field(TEXT, label='Detail message')
-    jblxaudt : int = Field(Numeric(8, 0), label='Audit date')
-    jblxautm : int = Field(Numeric(6, 0), label='Audit time')
-    jblxauus : str = Field(String(24), label='Audit user')
+    jblxidnm = fields.CharField(max_length=38, label='JOB ID', unique=True)
+    jblxplif = fields.TextField(label='Extra Information')
+    jblxplms = fields.TextField(label='Detail message')

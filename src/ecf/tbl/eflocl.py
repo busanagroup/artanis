@@ -14,19 +14,26 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class eflocl(Entity, table=True):
+class eflocl(Entity):
     """
     Locale message
     """
-    eflclccd : str = Field(String(16), primary_key=True, label='Language ID')
-    eflcmdcd : str = Field(String(32), primary_key=True, label='Module')
-    eflcmsid : str = Field(String(32), primary_key=True, label='Hash ID')
-    eflcmdtp : int = Field(Integer, label='Module type')
-    eflcmssr : str = Field(String(250), label='Message')
-    eflcmsls : str = Field(String(250), label='Translation')
-    eflcaudt : int = Field(Numeric(8, 0), label='Audit user')
-    eflcautm : int = Field(Numeric(6, 0), label='Audit time')
-    eflcauus : str = Field(String(24), label='Audit user')
+    eflclccd = fields.CharField(max_length=16, label='Language ID')
+    eflcmdcd = fields.CharField(max_length=32, label='Module')
+    eflcmsid = fields.CharField(max_length=32, label='Hash ID')
+    eflcmdtp = fields.IntField(label='Module type')
+    eflcmssr = fields.CharField(max_length=250, label='Message')
+    eflcmsls = fields.CharField(max_length=250, label='Translation')
+    eflcaudt = fields.DecimalField(max_digits=8, decimal_places=0, label='Audit user')
+    eflcautm = fields.DecimalField(max_digits=6, decimal_places=0, label='Audit time')
+    eflcauus = fields.CharField(max_length=24, label='Audit user')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['eflclccd', 'eflcmdcd', 'eflcmsid']),
+        ]

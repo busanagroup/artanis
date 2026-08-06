@@ -14,16 +14,21 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efuaob(Entity, table=True):
+class efuaob(Entity):
     """User Access API Object"""
-    uaousrnm : str = Field(String(24), label='User name', primary_key=True)
-    uaoobjnm : str = Field(String(32), label='API Object name', primary_key=True)
-    uaooaudt : int = Field(Numeric(8, 0), label='Audit date')
-    uaooautm : int = Field(Numeric(6, 0), label='Audit time')
-    uaooauus : str = Field(String(24), label='Audit user')
+
+    uaousrnm = fields.CharField(max_length=24, label='User name')
+    uaoobjnm = fields.CharField(max_length=32, label='API Object name')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['uaousrnm', 'uaoobjnm'])
+        ]
 
     @classmethod
     async def check_api_obj(cls, user_name: str, obj_name: str) -> bool:

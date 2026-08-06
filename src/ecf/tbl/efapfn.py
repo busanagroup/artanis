@@ -14,21 +14,25 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efapfn(Entity, table=True):
+class efapfn(Entity):
     """API Object Function status"""
-    apifncob : str = Field(String(32), label='API Object', primary_key=True)
-    apifncnm : str = Field(String(32), label='Function', primary_key=True)
-    apifncds : str = Field(String(64), label='Description')
-    apifncst : bool = Field(Boolean, label='Status')
-    apifnctp : str = Field(String(1), label='Function type')
-    apifncsl : bool = Field(Boolean, label='Can Select')
-    apifncin : bool = Field(Boolean, label='Can Insert')
-    apifncup : bool = Field(Boolean, label='Can Update')
-    apifncdl : bool = Field(Boolean, label='Can Delete')
-    apifncex : bool = Field(Boolean, label='Can Ext')
-    apifaudt : int = Field(Numeric(8, 0), label='Audit date')
-    apifautm : int = Field(Numeric(6, 0), label='Audit time')
-    apifauus : str = Field(String(24), label='Audit user')
+    apifncob = fields.CharField(max_length=32, label='API Object')
+    apifncnm = fields.CharField(max_length=32, label='Function')
+    apifncds = fields.CharField(max_length=64, label='Description')
+    apifncst = fields.BooleanField(label='Status')
+    apifnctp = fields.CharField(max_length=1, label='Function type')
+    apifncsl = fields.BooleanField(label='Can Select')
+    apifncin = fields.BooleanField(label='Can Insert')
+    apifncup = fields.BooleanField(label='Can Update')
+    apifncdl = fields.BooleanField(label='Can Delete')
+    apifncex = fields.BooleanField(label='Can Ext')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['apifncob', 'apifncnm'])
+        ]

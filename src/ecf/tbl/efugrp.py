@@ -14,20 +14,24 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efugrp(Entity, table=True):
+class efugrp(Entity):
     """
     User group
     """
-    efuggrid : str = Field(String(24), label='Group ID', primary_key=True)
-    efugusid : str = Field(String(24), label='User ID', primary_key=True)
-    efugfsnm : str = Field(String(48), label='First name')
-    efuglsnm : str = Field(String(48), label='Last name')
-    efugaudt : int = Field(Numeric(8, 0), label='Audit date')
-    efugautm : int = Field(Numeric(6, 0), label='Audit time')
-    efugauus : str = Field(String(24), label='Audit user')
+    efuggrid = fields.CharField(max_length=24, label='Group ID')
+    efugusid = fields.CharField(max_length=24, label='User ID')
+    efugfsnm = fields.CharField(max_length=48, label='First name')
+    efuglsnm = fields.CharField(max_length=48, label='Last name')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['efuggrid', 'efugusid'])
+        ]
 
     @classmethod
     async def get_user_group(cls, user_name):

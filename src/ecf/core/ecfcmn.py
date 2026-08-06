@@ -15,18 +15,17 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
-import asyncio
 import threading
+from functools import lru_cache
 from typing import Mapping, Any, TYPE_CHECKING, Type
-
-from lru import LRU as LRUDict
 
 from artanis.abc.classprops import classproperty
 from artanis.abc.repository import ClassRepository
 from artanis.asgi.asgiendpoint import ControllerABC
 from artanis.component.validators import validators
 from artanis.config import Configuration
-from artanis.sqlentity import entity, Entity
+from artanis.sqlentity import entity
+from artanis.sqlentity.sqlorm import Entity
 from artanis.taskiq.proxy import TaskObjectProxy
 from artanis.utils import import_function
 
@@ -36,7 +35,7 @@ if TYPE_CHECKING:
 
 class CounterMeta(type):
     __counter: int = 0
-    __lock: asyncio.Lock = threading.Lock()
+    __lock: threading.Lock = threading.Lock()
 
     def __call__(cls, *args, **kwargs):
         super().__call__(*args, **kwargs)
@@ -147,7 +146,11 @@ class BusinessObjectProxy:
     __class_dir = None
     __all_classes: Mapping[str, Any] = None
     __dynamic_load: bool = True
-    __instances = LRUDict(size=32)
+
+    @classmethod
+    @lru_cache(maxsize=32)
+    def get_instance(cls, klass: Type[object]) -> object:
+        return klass(config=cls.__config)
 
     @classmethod
     def get_object(cls, service_name: str, instantiate: bool = True) -> Any:
@@ -157,12 +160,7 @@ class BusinessObjectProxy:
         klass = cls.__all_classes[service_name]
         if not instantiate:
             return klass
-        if klass.__name__ in cls.__instances:
-            instance = cls.__instances[klass.__name__]
-        else:
-            instance = klass(config=cls.__config)
-            cls.__instances[klass.__name__] = instance
-        return instance
+        return cls.get_instance(klass)
 
     @classmethod
     def class_exist(cls, klass_name: str) -> bool:
@@ -204,19 +202,12 @@ class BusinessObjectProxy:
 
     @classmethod
     def __get_package_class(cls, class_name: str, base_path: str | None = None, module_name: str | None = None):
-        return import_function(f"{cls.__base_module \
-            if not base_path else base_path}.{class_name \
-            if not module_name else module_name}:{class_name}")
+        return import_function(
+            f"{cls.__base_module if not base_path else base_path}.{class_name if not module_name else module_name}:{class_name}")
 
 
 class JobObjectHandler(BusinessObjectProxy):
     __base_module: str = 'ecf.job'
-    __configured: bool = False
-    __config: Configuration = None
-    __class_dir = None
-    __all_classes: Mapping[str, Any] = None
-    __dynamic_load: bool = True
-    __instances = LRUDict(size=32)
 
     @classmethod
     async def execute_job(cls, service_name: str, session: 'JOBSession'):
@@ -226,63 +217,3 @@ class JobObjectHandler(BusinessObjectProxy):
     @classmethod
     def get_service_class(cls, service_name: str):
         return cls.get_object(service_name, instantiate=False)
-
-    @classmethod
-    def get_object(cls, service_name: str, instantiate: bool = True) -> Any:
-        cls._ensure_configured()
-        if not (service_name in cls.__class_dir):
-            raise NameError(f"Object [{service_name}] is not available")
-        klass = cls.__all_classes[service_name]
-        if not instantiate:
-            return klass
-        if klass.__name__ in cls.__instances:
-            instance = cls.__instances[klass.__name__]
-        else:
-            instance = klass(config=cls.__config)
-            cls.__instances[klass.__name__] = instance
-        return instance
-
-    @classmethod
-    def class_exist(cls, klass_name: str) -> bool:
-        return klass_name in cls.__class_dir
-
-    @classmethod
-    def _ensure_configured(cls):
-        if not cls.__configured:
-            cls.configure()
-
-    @classmethod
-    def configure(cls):
-        if cls.__configured:
-            return
-        try:
-            cls._load_class_dir()
-            cls._load_classes()
-            cls.__config = Configuration.get_default_instance(create_instance=False)
-        finally:
-            cls.__configured = True
-
-    @classmethod
-    def _load_class_dir(cls):
-        if (not cls.__base_module) or cls.__class_dir:
-            return
-        cls.__class_dir = import_function(f"{cls.__base_module}:__all__")
-
-    @classmethod
-    def _load_classes(cls):
-        if (not cls.__base_module) or cls.__all_classes:
-            return
-        cls.__all_classes = dict([(klass_name, cls.__get_package_class(klass_name, cls.__base_module)) \
-                                  for klass_name in cls.__class_dir]) \
-            if not cls.__dynamic_load else ClassRepository(
-            [(klass_name, klass_name) for klass_name in cls.__class_dir],
-            base_modules=cls.__base_module,
-            package_func=cls.__get_package_class
-        )
-
-    @classmethod
-    def __get_package_class(cls, class_name: str, base_path: str | None = None, module_name: str | None = None):
-        return import_function(f"{cls.__base_module \
-            if not base_path else base_path}.{class_name \
-            if not module_name else module_name}:{class_name}")
-

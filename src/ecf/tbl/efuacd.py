@@ -14,20 +14,24 @@ __author__ = 'Jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efuacd(Entity, table=True):
+class efuacd(Entity):
     """
     Alternate User Division
     """
-    efususid : str = Field(String(24), label='User ID', primary_key=True)
-    efuscono : str = Field(String(3), label='Comp. ID', primary_key=True)
-    efusdvno : str = Field(String(3), label='Division', primary_key=True)
-    efusfsnm : str = Field(String(48), label='First Name')
-    efuslsnm : str = Field(String(48), label='Last Name')
-    efusconm : str = Field(String(48), label='Comp. ID')
-    efusdvnm : str = Field(String(48), label='Division')
-    efusaudt : int = Field(Numeric(8, 0), label='Audit date')
-    efusautm : int = Field(Numeric(6, 0), label='Audit time')
-    efusauus : str = Field(String(24), label='Audit user')
+    efususid = fields.CharField(max_length=24, label='User ID')
+    efuscono = fields.CharField(max_length=3, label='Comp. ID')
+    efusdvno = fields.CharField(max_length=3, label='Division')
+    efusfsnm = fields.CharField(max_length=48, label='First Name')
+    efuslsnm = fields.CharField(max_length=48, label='Last Name')
+    efusconm = fields.CharField(max_length=48, label='Comp. ID')
+    efusdvnm = fields.CharField(max_length=48, label='Division')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['efususid', 'efuscono', 'efusdvno'])
+        ]

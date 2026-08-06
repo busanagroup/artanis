@@ -18,8 +18,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import pathlib
-
-from lru import LRU as LRUDict
+from functools import lru_cache
 
 from artanis import exceptions
 
@@ -71,17 +70,14 @@ class MenuDefinition(BaseDefinition):
 
 
 class ViewDefinition(BaseDefinition):
-    __instances = LRUDict(size=16)
 
+    @lru_cache(maxsize=16)
     def get_definition(self, service_name: str) -> dict:
-        definition: dict = ViewDefinition.__instances.get(service_name)
-        if not definition:
-            path = self.__base_path__.joinpath(f"{service_name}.py")
-            if not path.is_file():
-                raise exceptions.DefinitionNotFoundError(f"View definition file not found: {str(path)}")
-            with open(path, "r+") as file:
-                definition = ast.literal_eval(file.read())
-                ViewDefinition.__instances[service_name] = definition
+        path = self.__base_path__.joinpath(f"{service_name}.py")
+        if not path.is_file():
+            raise exceptions.DefinitionNotFoundError(f"View definition file not found: {str(path)}")
+        with open(path, "r+") as file:
+            definition = ast.literal_eval(file.read())
         return definition
 
     def get_viewdef(self, service_name: str, view: str):

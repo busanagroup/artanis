@@ -14,23 +14,27 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2015 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efudob(Entity, table=True):
+class efudob(Entity):
     """
     User Access DataModule Object
     """
 
-    udmusrnm : str = Field(String(24), label='User name', primary_key=True)
-    udmobjnm : str = Field(String(32), label='Object Name', primary_key=True)
-    udmobjsl : int = Field(Integer, label='Access for select')
-    udmobjin : int = Field(Integer, label='Access for insert')
-    udmobjup : int = Field(Integer, label='Access for update')
-    udmobjdl : int = Field(Integer, label='Access for delete')
-    udmoaudt : int = Field(Numeric(8, 0), label='Audit date')
-    udmoautm : int = Field(Numeric(6, 0), label='Audit time')
-    udmoauus : str = Field(String(24), label='Audit user')
+    udmusrnm = fields.CharField(max_length=24, label='User name')
+    udmobjnm = fields.CharField(max_length=32, label='Object Name')
+    udmobjsl = fields.IntField(label='Access for select')
+    udmobjin = fields.IntField(label='Access for insert')
+    udmobjup = fields.IntField(label='Access for update')
+    udmobjdl = fields.IntField(label='Access for delete')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['udmusrnm', 'udmobjnm'])
+        ]
 
     @classmethod
     def check_access(cls, obj: typing.Any, access_type: str):

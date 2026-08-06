@@ -14,16 +14,20 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2014 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efuxob(Entity, table=True):
+class efuxob(Entity):
     """
     RPC XML User Access Object
     """
-    uxousrnm : str = Field(String(24), label='User name', primary_key=True)
-    uxoobjnm : str = Field(String(24), label='Business Object name', primary_key=True)
-    uxoofnnm : str = Field(String(32), label='Function Name', primary_key=True)
-    uxooaudt : int = Field(Numeric(8, 0), label='Audit date')
-    uxooautm : int = Field(Numeric(6, 0), label='Audit time')
-    uxooauus : str = Field(String(24), label='Audit user')
+    uxousrnm = fields.CharField(max_length=24, label='User name')
+    uxoobjnm = fields.CharField(max_length=24, label='Business Object name')
+    uxoofnnm = fields.CharField(max_length=32, label='Function Name')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=('uxousrnm', 'uxoobjnm', 'uxoofnnm')),
+        ]

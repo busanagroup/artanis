@@ -14,21 +14,25 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efapfd(Entity, table=True):
+class efapfd(Entity):
     """API Field status"""
-    apifldob : str = Field(String(32), label='API Object', primary_key=True)
-    apifldfn : str = Field(String(32), label='Function', primary_key=True)
-    apifldnm : str = Field(String(32), label='Field', primary_key=True)
-    apifldds : str = Field(String(64), label='Description')
-    apifldio : int = Field(Integer, label='Input/Output')
-    apifldtp : str = Field(String(16), label='Type')
-    apifldln : int = Field(Integer, label='Length')
-    apifldpr : int = Field(Integer, label='Precision')
-    apiflddc : int = Field(Integer, label='Decimal')
-    apifldrq : bool = Field(Boolean, label='Required')
-    apifaudt : int = Field(Numeric(8, 0), label='Audit date')
-    apifautm : int = Field(Numeric(6, 0), label='Audit time')
-    apifauus : str = Field(String(24), label='Audit user')
+    apifldob = fields.CharField(max_length=32, label='API Object')
+    apifldfn = fields.CharField(max_length=32, label='Function')
+    apifldnm = fields.CharField(max_length=32, label='Field')
+    apifldds = fields.CharField(max_length=64, label='Description')
+    apifldio = fields.IntField(label='Input/Output')
+    apifldtp = fields.CharField(max_length=16, label='Type')
+    apifldln = fields.IntField(label='Length')
+    apifldpr = fields.IntField(label='Precision')
+    apiflddc = fields.IntField(label='Decimal')
+    apifldrq = fields.BooleanField(label='Required')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['apifldob', 'apifldfn', 'apifldnm'])
+        ]

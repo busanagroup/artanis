@@ -14,20 +14,24 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efurob(Entity, table=True):
+class efurob(Entity):
     """
     User Access RPC Module Object
     """
 
-    urmusrnm : str = Field(String(24), label='User name', primary_key=True)
-    urmobjnm : str = Field(String(32), label='Object Name', primary_key=True)
-    urmfncnm : str = Field(String(48), label='Function Name', primary_key=True)
-    urmoaudt : int = Field(Numeric(8, 0), label='Audit date')
-    urmoautm : int = Field(Numeric(6, 0), label='Audit time')
-    urmoauus : str = Field(String(24), label='Audit user')
+    urmusrnm = fields.CharField(max_length=24, label='User name')
+    urmobjnm = fields.CharField(max_length=32, label='Object Name')
+    urmfncnm = fields.CharField(max_length=48, label='Function Name')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['urmusrnm', 'urmobjnm', 'urmfncnm'])
+        ]
 
     @classmethod
     async def check_public_access(cls, service_name: str, func_name: str):

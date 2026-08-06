@@ -14,119 +14,82 @@ __author__ = 'Jaimy Azle'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+import typing as t
+
+from artanis.sqlentity import fields
+from artanis.sqlentity.sqlorm import Entity
+
+if t.TYPE_CHECKING:
+    from ecf.core.jobsvc import JOBSession
 
 
-class efjbls(Entity, table=True):
+class efjbls(Entity):
     """
     Job list management
     """
-    jblsidnm : str = Field(String(38), label='JOB ID', primary_key=True)
-    jblsindt : int = Field(Numeric(8, 0), label='Input Date', index=True)
-    jblsintm : int = Field(Numeric(6, 0), label='Input Time', index=True)
-    jblsjbtp : int = Field(Integer, label='Job Type', index=True)
-    jblsinid : str = Field(String(64), label='Input user')
-    jblsrqpg : str = Field(String(24), label='Request PGM')
-    jblsrpdt : int = Field(Numeric(8, 0), label='Request date')
-    jblsrptm : int = Field(Numeric(6, 0), label='Request time')
-    jblsprpg : str = Field(String(24), label='Job Service Name')
-    jblsprdt : int = Field(Numeric(8, 0), label='Job Process Date')
-    jblsprtm : int = Field(Numeric(6, 0), label='Job Process Time')
-    jblscpdt : int = Field(Numeric(8, 0), label='Job Completion Date')
-    jblscptm : int = Field(Numeric(6, 0), label='Job Completion Time')
-    jblsprst : int = Field(Integer, label='Job Status', index=True)
-    jblsmdnm : str = Field(String(24))
-    jblsmdid : str = Field(String(32))
-    jblsupdt : int = Field(Numeric(8, 0), label='Last Update Date')
-    jblsuptm : int = Field(Numeric(6, 0), label='last Update Time')
-    jblssprq : int = Field(Integer)
-    jblsspid : str = Field(String(24))
-    jblsspdt : int = Field(Numeric(8, 0))
-    jblssptm : int = Field(Numeric(6, 0))
-    jblsprms : str = Field(String(128), label='Result Message')
-    jblsaudt : int = Field(Numeric(8, 0), label='Audit date')
-    jblsautm : int = Field(Numeric(6, 0), label='Audit time')
-    jblsauus : str = Field(String(24), label='Audit user')
+    jblsidnm = fields.CharField(max_length=38, label='JOB ID', unique=True)
+    jblsindt = fields.DecimalField(max_digits=8, decimal_places=0, label='Input Date', index=True)
+    jblsintm = fields.DecimalField(max_digits=6, decimal_places=0, label='Input Time', index=True)
+    jblsjbtp = fields.IntField(label='Job Type', index=True)
+    jblsinid = fields.CharField(max_length=64, label='Input user')
+    jblsrqpg = fields.CharField(max_length=24, label='Request PGM')
+    jblsrpdt = fields.DecimalField(max_digits=8, decimal_places=0, label='Request date')
+    jblsrptm = fields.DecimalField(max_digits=6, decimal_places=0, label='Request time')
+    jblsprpg = fields.CharField(max_length=24, label='Job Service Name')
+    jblsprdt = fields.DecimalField(max_digits=8, decimal_places=0, label='Job Process Date')
+    jblsprtm = fields.DecimalField(max_digits=6, decimal_places=0, label='Job Process Time')
+    jblscpdt = fields.DecimalField(max_digits=8, decimal_places=0, label='Job Completion Date')
+    jblscptm = fields.DecimalField(max_digits=6, decimal_places=0, label='Job Completion Time')
+    jblsprst = fields.IntField(label='Job Status', index=True)
+    jblsmdnm = fields.CharField(max_length=24)
+    jblsmdid = fields.CharField(max_length=32)
+    jblsupdt = fields.DecimalField(max_digits=8, decimal_places=0, label='Last Update Date')
+    jblsuptm = fields.DecimalField(max_digits=6, decimal_places=0, label='last Update Time')
+    jblssprq = fields.IntField()
+    jblsspid = fields.CharField(max_length=24)
+    jblsspdt = fields.DecimalField(max_digits=8, decimal_places=0)
+    jblssptm = fields.DecimalField(max_digits=6, decimal_places=0)
+    jblsprms = fields.CharField(max_length=128, label='Result Message')
 
     @classmethod
-    async def send_job_message(cls, jobsession, message, auto_commit=True):
-        job_obj = await cls.query.filter_by(jblsidnm=jobsession.job_id).first()
+    async def send_job_message(cls, jobsession: 'JOBSession', message: str):
+        job_obj = await cls.get(jblsidnm=jobsession.job_id)
         if job_obj:
-            jobsession.update_job_status(job_obj.jblsprst)
-            session = Session()
             job_obj.jblsprms = message[:128] if message else message
-            if auto_commit and (not session.is_active):
-                session.begin()
-            try:
-                session.add(job_obj)
-                if auto_commit:
-                    session.commit()
-            except:
-                if auto_commit:
-                    session.rollback()
-                    raise
+            await job_obj.save()
+            jobsession.update_job_status(job_obj.jblsprst)
 
     @classmethod
-    async def prepare_rerun(cls, jobid, jobtype, auto_commit=True):
+    async def prepare_rerun(cls, jobid: str, jobtype: int):
         retval = False
-        job_obj = await cls.get([jobid])
+        job_obj = await cls.get(jblsidnm=jobid)
         if job_obj and (job_obj.jblsprst == 99):
             job_obj.jblsjbtp = jobtype
             job_obj.jblsprst = 0
-            session = Session()
-            if auto_commit and (not session.is_active):
-                session.begin()
-            try:
-                session.add(job_obj)
-                retval = True
-                if auto_commit:
-                    session.commit()
-            except:
-                if auto_commit:
-                    session.rollback()
-                    raise
+            await job_obj.save()
+            retval = True
         return retval
 
     @classmethod
-    async def change_job_type(cls, jobid, jobtype, auto_commit=True):
+    async def change_job_type(cls, jobid: str, jobtype: int):
         retval = False
-        job_obj = await cls.query.filter_by(jblsidnm=jobid).first()
+        job_obj = await cls.get(jblsidnm=jobid)
         if job_obj and (job_obj.jblsprst == 0):
+            retval = True
             job_obj.jblsjbtp = jobtype
-            session = Session()
-            if auto_commit and (not session.is_active):
-                session.begin()
-            try:
-                session.add(job_obj)
-                retval = True
-                if auto_commit:
-                    session.commit()
-            except:
-                if auto_commit:
-                    session.rollback()
-                    raise
+            await job_obj.save()
         return retval
 
     @classmethod
-    async def update_job_status(cls, jobid, job_status, auto_commit=True):
-        jobobj = await cls.get([jobid])
-        session = Session()
+    async def update_job_status(cls, jobid: str, job_status: int):
         retval = False
+        jobobj = await cls.get(jblsidnm=jobid)
         if jobobj and (jobobj.jblsprst == 10):
-            if auto_commit and (not session.is_active):
-                session.begin()
-            try:
-                jobobj.jblsprst = job_status
-                session.add(jobobj)
-                if auto_commit:
-                    session.commit()
-                retval = True
-            except:
-                if auto_commit:
-                    session.rollback()
-                    raise
+            jobobj.jblsprst = job_status
+            await jobobj.save()
+            retval = True
         return retval
 
     @classmethod
-    async def get_all_jobs(cls, job_status, jobtype: int = 0):
+    async def get_all_jobs(cls, job_status: int, jobtype: int = 0):
         return await cls.get_all(jblsjbtp=jobtype, jblsprst=job_status)

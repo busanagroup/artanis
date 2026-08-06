@@ -14,19 +14,23 @@ __author__ = 'Jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2025 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.indexes import UniqueIndex
+from artanis.sqlentity.sqlorm import Entity
 
 
-class efoaus(Entity, table=True):
+class efoaus(Entity):
     """
     Object Access Group Users
     """
 
-    efougrcd : str = Field(String(8), label='Obj. Code', primary_key=True, )
-    efouusid : str = Field(String(24), label='User ID', primary_key=True)
-    efougrnm : str = Field(String(24), label='Obj. Name')
-    efoufsnm : str = Field(String(48), label='First Name')
-    efoulsnm : str = Field(String(48), label='Last Name')
-    efouaudt : int = Field(Numeric(8, 0), label='Audit date')
-    efouautm : int = Field(Numeric(6, 0), label='Audit time')
-    efouauus : str = Field(String(24), label='Audit user')
+    efougrcd = fields.CharField(max_length=8, label='Obj. Code')
+    efouusid = fields.CharField(max_length=24, label='User ID')
+    efougrnm = fields.CharField(max_length=24, label='Obj. Name')
+    efoufsnm = fields.CharField(max_length=48, label='First Name')
+    efoulsnm = fields.CharField(max_length=48, label='Last Name')
+
+    class Meta:
+        indexes = [
+            UniqueIndex(fields=['efougrcd', 'efouusid'])
+        ]

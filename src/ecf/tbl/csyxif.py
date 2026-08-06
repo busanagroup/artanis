@@ -14,28 +14,26 @@ __author__ = 'jaimy'
 __version__ = '2.0'
 __copyright__ = 'Copyright (c) 2014 Busana Apparel Group'
 
-from artanis.sqlentity import *
+from artanis.sqlentity import fields
+from artanis.sqlentity.sqlorm import Entity
 
 
-class csyxif(Entity, table=True):
+class csyxif(Entity):
     """
     Internal System Xtended info
     """
-    csyxfoid : str = Field(String(38), label='Info ID', primary_key=True)
-    csyxtx08 : str = Field(String(8), label='Value 08')
-    csyxtx16 : str = Field(String(16), label='Value 16')
-    csyxtx24 : str = Field(String(24), label='Value 24')
-    csyxtx32 : str = Field(String(32), label='Value 32')
-    csyxtx48 : str = Field(String(48), label='Value 48')
-    csyxtx64 : str = Field(String(64), label='Value 64')
-    csyxtx128 : str = Field(String(128), label='Value 128')
-    csyxival : int = Field(Integer, label='Int Value')
-    csyxcval : int = Field(Numeric(15, 2), label='Curr Value')
-    csyxdval : int = Field(Numeric(8, 0), label='Date Value')
-    csyxtval : int = Field(Numeric(6, 0), label='Time Value')
-    csyxdtva : int = Field(Numeric(14, 0), label='Date Time Value')
-    csyxblob : bytes = Field(LargeBinary, label='BLOB Data')
-    csyxclob : str = Field(TEXT, label='CLOB Data')
-    csyxaudt : int = Field(Numeric(8, 0), label='Audit date')
-    csyxautm : int = Field(Numeric(6, 0), label='Audit time')
-    csyxauus : str = Field(String(24), label='Audit user')
+    csyxfoid = fields.CharField(max_length=38, label='Info ID', unique=True)
+    csyxtx08 = fields.CharField(max_length=8, label='Value 08')
+    csyxtx16 = fields.CharField(max_length=16, label='Value 16')
+    csyxtx24 = fields.CharField(max_length=24, label='Value 24')
+    csyxtx32 = fields.CharField(max_length=32, label='Value 32')
+    csyxtx48 = fields.CharField(max_length=48, label='Value 48')
+    csyxtx64 = fields.CharField(max_length=64, label='Value 64')
+    csyxtx128 = fields.CharField(max_length=128, label='Value 128')
+    csyxival = fields.IntField(label='Int Value')
+    csyxcval = fields.DecimalField(max_digits=15, decimal_places=2, label='Curr Value')
+    csyxdval = fields.DecimalField(max_digits=8, decimal_places=0, label='Date Value')
+    csyxtval = fields.DecimalField(max_digits=6, decimal_places=0, label='Time Value')
+    csyxdtva = fields.DecimalField(max_digits=14, decimal_places=0, label='Date Time Value')
+    csyxblob = fields.BinaryField(label='BLOB Data')
+    csyxclob = fields.TextField(label='CLOB Data')
