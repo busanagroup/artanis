@@ -20,7 +20,6 @@ from artanis.config import Configuration
 
 
 def load_modules():
-    utils.load_ecf_modules("ecf.tbl", True)
     utils.load_ecf_modules("ecf.bo", True)
 
 

@@ -35,16 +35,16 @@ class efurob(Entity):
 
     @classmethod
     async def check_public_access(cls, service_name: str, func_name: str):
-        return True if (await cls.get_by(urmusrnm='*', urmobjnm='*', urmfncnm='*')) is not None else \
-            True if (await cls.get_by(urmusrnm='*', urmobjnm='*', urmfncnm=func_name)) is not None else \
-                True if (await cls.get_by(urmusrnm='*', urmobjnm=service_name, urmfncnm='*')) is not None else False
+        return True if (await cls.get_or_none(urmusrnm='*', urmobjnm='*', urmfncnm='*')) is not None else \
+            True if (await cls.get_or_none(urmusrnm='*', urmobjnm='*', urmfncnm=func_name)) is not None else \
+                True if (await cls.get_or_none(urmusrnm='*', urmobjnm=service_name, urmfncnm='*')) is not None else False
 
     @classmethod
     async def check_user_access(cls, user_name: str, service_name: str, func_name: str):
         user_name = user_name if not isinstance(user_name, str) else user_name
-        return True if (await cls.get_by(urmusrnm=user_name, urmobjnm='*', urmfncnm='*')) is not None else \
-            True if (await cls.get_by(urmusrnm=user_name, urmobjnm='*', urmfncnm=func_name)) is not None else \
-                True if (await cls.get_by(urmusrnm=user_name, urmobjnm=service_name, urmfncnm='*')) is not None else \
-                    True if (await cls.get_by(urmusrnm=user_name, urmobjnm=service_name,
+        return True if (await cls.get_or_none(urmusrnm=user_name, urmobjnm='*', urmfncnm='*')) is not None else \
+            True if (await cls.get_or_none(urmusrnm=user_name, urmobjnm='*', urmfncnm=func_name)) is not None else \
+                True if (await cls.get_or_none(urmusrnm=user_name, urmobjnm=service_name, urmfncnm='*')) is not None else \
+                    True if (await cls.get_or_none(urmusrnm=user_name, urmobjnm=service_name,
                                               urmfncnm=func_name)) is not None else \
                         False

@@ -50,7 +50,7 @@ class IntService(BaseController):
                 f"executing job {crobj.crjbjbcd}"
                 )
                 # ----
-                tb_str = crobj.crjbjtbl.strip() if crobj.crjbjtbl else None
+                tb_str = crobj.crjbjtbl.strip().lower() if crobj.crjbjtbl else None
                 if tb_str not in [None, '']:
                     tb_klass = cls.get_entity(tb_str)
                     if tb_klass:

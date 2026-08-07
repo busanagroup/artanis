@@ -64,7 +64,7 @@ async def configure_database(config: Configuration):
     Field.__init__ = patched_field_init
     from tortoise import Tortoise
     load_ecf_modules("ecf.tbl", True)
-    await Tortoise.init(config=db_config)
+    await Tortoise.init(config=db_config, _enable_global_fallback=True)
 
 
 async def setup_all(config: Configuration) -> None:
