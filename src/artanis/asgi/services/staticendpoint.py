@@ -36,7 +36,7 @@ class StaticEndPoint(ASGIEndPoint):
         app.mount("/assets", ArtanisStaticFiles("asgi", "templates", "frontend", "assets"), name="assets")
 
     @staticmethod
-    async def frontend_view():
+    def frontend_view():
         return http.ArtanisTemplateResponse("frontend/index.html", context=None)
 
     def resolve_route(self, scope: types.Scope):
