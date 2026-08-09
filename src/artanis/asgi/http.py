@@ -13,6 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import asyncio
 import dataclasses
 import datetime
 import enum
@@ -232,13 +233,32 @@ class APIErrorResponse(APIResponse):
 
 class HTMLFileResponse(HTMLResponse):
     def __init__(self, path: str, *args, **kwargs):
+        self.path = path
+        super().__init__("", *args, **kwargs)
+
+    async def __call__(  # type: ignore[override]
+            self, scope: types.Scope, receive: types.Receive, send: types.Send
+    ) -> None:
         try:
-            with open(path) as f:
-                content = f.read()
+            content = await asyncio.to_thread(self._read_content)
         except Exception as e:
             raise exceptions.HTTPException(status_code=500, detail=str(e))
 
-        super().__init__(content, *args, **kwargs)
+        self.body = self.render(content)
+
+        body_length = str(len(self.body)).encode("latin-1")
+        for index, (key, _value) in enumerate(self.raw_headers):
+            if key == b"content-length":
+                self.raw_headers[index] = (key, body_length)
+                break
+        else:
+            self.raw_headers.append((b"content-length", body_length))
+
+        await super().__call__(scope, receive, send)  # type: ignore[arg-type]
+
+    def _read_content(self) -> str:
+        with open(self.path) as f:
+            return f.read()
 
 
 class HTMLTemplatesEnvironment(jinja2.Environment):

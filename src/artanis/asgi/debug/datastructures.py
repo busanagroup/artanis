@@ -83,8 +83,9 @@ class Frame:
         except ValueError:
             vendor = None
 
-        with open(filename) as f:
-            code = f.read()
+        code = "".join(frame.code_context or ())
+        if not code:
+            code = ""
 
         return cls(
             filename=str(relative_filename),

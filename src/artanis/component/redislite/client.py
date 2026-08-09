@@ -11,6 +11,7 @@ they are functionally identical to the :class:`redis.Redis()` and
 :class:`redis.StrictRedis()` classes.
 """
 import atexit
+import asyncio
 import json
 import logging
 import os
@@ -19,7 +20,6 @@ import signal
 import subprocess
 import sys
 import tempfile
-import time
 
 import psutil
 import redis
@@ -64,7 +64,18 @@ class RedisMixin(object):
     redis_configuration = None
     redis_configuration_filename = None
 
-    def _cleanup(self, sys_modules=None):
+    @staticmethod
+    def _run_coroutine(coro):
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(coro)
+
+        raise RuntimeError(
+            "RedisMixin sync API cannot be used from a running event loop; use the async helper instead"
+        )
+
+    async def _cleanup_async(self, sys_modules=None):
         """
         Stop the redis-server for this instance if it's running
         :return:
@@ -95,7 +106,7 @@ class RedisMixin(object):
                         for i in range(50):
                             if not process.is_running():
                                 break
-                            time.sleep(.2)
+                            await asyncio.sleep(.2)
                 except redis.RedisError:  # pragma: no cover
                     if self.pid != 0:
                         try:
@@ -106,7 +117,7 @@ class RedisMixin(object):
                                 for i in range(120):  # default shutdown timeout is 10 seconds
                                     if not process.is_running():
                                         break
-                                    time.sleep(.1)
+                                    await asyncio.sleep(.1)
                             if process.is_running() and process.pid != 0:
                                 logger.warning('Redis graceful shutdown failed, forcefully killing pid %r', self.pid)
                                 os.kill(self.pid, signal.SIGKILL)
@@ -148,6 +159,9 @@ class RedisMixin(object):
         self.redis_dir = None
         self.pidfile = None
 
+    def _cleanup(self, sys_modules=None):
+        self._run_coroutine(self._cleanup_async(sys_modules=sys_modules))
+
     def _connection_count(self):
         """
         Return the number of active connections to the redis server.
@@ -184,7 +198,7 @@ class RedisMixin(object):
         if not self.socket_file:
             self.socket_file = os.path.join(self.redis_dir, 'redis.socket')
 
-    def _start_redis(self):
+    async def _start_redis_async(self):
         """
         Start the redis server
         :return:
@@ -226,7 +240,7 @@ class RedisMixin(object):
             if os.path.exists(self.socket_file):
                 timeout = False
                 break
-            time.sleep(.1)
+            await asyncio.sleep(.1)
         if timeout:  # pragma: no cover
             logger.debug('Redis Server log:\n%s', self.redis_log)
             raise RedisLiteServerStartError(
@@ -242,7 +256,10 @@ class RedisMixin(object):
         self._save_setting_registry()
         self.running = True
 
-    def _wait_for_server_start(self):
+    def _start_redis(self):
+        self._run_coroutine(self._start_redis_async())
+
+    async def _wait_for_server_start_async(self):
         """
         Wait until the server is not busy when receiving a request
 
@@ -258,12 +275,15 @@ class RedisMixin(object):
                 break
             except redis.BusyLoadingError:
                 pass
-            time.sleep(.1)
+            await asyncio.sleep(.1)
         if timeout:  # pragma: no cover
             raise RedisLiteServerStartError(
                 'The redis-server process failed to start; unreachable after '
                 '{0} seconds'.format(self.start_timeout)
             )
+
+    def _wait_for_server_start(self):
+        self._run_coroutine(self._wait_for_server_start_async())
 
     def _is_redis_running(self):
         """
