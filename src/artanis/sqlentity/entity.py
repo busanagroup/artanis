@@ -14,10 +14,10 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
-import inspect
 import types
 from typing import Type
 
+from artanis import concurrency
 from artanis.config import Configuration
 from artanis.sqlentity.sqlorm import Entity
 from artanis.utils import import_ecf_module
@@ -45,24 +45,20 @@ def get_entity_list():
     repository = get_table_repository()
     return repository.__all__
 
+
 def get_entities():
     repository = get_table_repository()
     return [getattr(repository, table, None) for table in repository.__all__]
+
 
 def get_entity_field_info(entity: Type[Entity], field_name: str):
     return getattr(entity, field_name, None)
 
 
 async def safe_execute(func, *args, **kwargs):
-    if inspect.iscoroutinefunction(func):
-        result = await func(*args, **kwargs)
-    else:
-        result = func(*args, **kwargs)
-    return result
+    return await concurrency.run(func, *args, **kwargs)
+
 
 async def record_exist(self, table_name: str, *args, **kwargs):
     klass = get_entity(table_name) if isinstance(table_name, str) else table_name
     return await klass.record_exist(*args, **kwargs)
-
-
-
