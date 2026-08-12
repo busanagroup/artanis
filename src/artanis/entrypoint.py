@@ -27,7 +27,7 @@ from artanis.utils import import_function
 async def artanis_startup(config: Configuration):
     config.server_is_ready = False
     try:
-        broker = import_function("artanis.taskiq.broker:broker")
+        broker = import_function("artanis.taskiq.broker:batchjob_broker")
         config.container.redis_pool = broker.get_redis_pool()
         patch.perform_patch()
         await configure_components(config)

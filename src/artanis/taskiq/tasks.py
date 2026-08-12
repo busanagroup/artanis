@@ -27,7 +27,7 @@ from artanis.abc.classprops import classproperty
 from artanis.asgi.auth.authentication import ArtanisUser
 from artanis.config import Configuration
 from artanis.events.eventexec import EventDispatcher
-from artanis.taskiq.broker import broker, task_broker, event_broker
+from artanis.taskiq.broker import batchjob_broker, task_broker, event_broker
 from artanis.utils import import_function
 
 
@@ -35,8 +35,8 @@ from artanis.utils import import_function
 class TaskType(enum.Enum):
     TK_NONE = 0
     TK_JOB = 1
-    TK_TASK = 2
-    TK_EVENT = 3
+    TK_TASK = 3
+    TK_EVENT = 4
 
 
 @enum.unique
@@ -57,22 +57,29 @@ async def artanis_event(event: bytes):
         event_type = "/" + event_type
     handler_list = event_route.get_event_handler(event_type)
     for klass, func in handler_list:
-        await AsyncKicker(broker=event_broker, task_name="artanis_event_execute", labels={}).kiq(klass, func, event)
+        await AsyncKicker(
+            broker=event_broker,
+            task_name="artanis_event_execute",
+            labels={}
+        ).kiq(
+            klass,
+            func,
+            event
+        )
 
 
-@broker.task(task_name="artanis_task")
+@batchjob_broker.task(task_name="artanis_task")
 async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs):
     request = TaskRequest(username, func, *args, **kwargs)
-    return await JobTaskHandler(request)
+    return await JobHandler(request)
 
 
 @task_broker.task(task_name="artanis_task")
 async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs):
-    handler = None if task_type == TaskType.TK_NONE else \
-        JobTaskHandler if task_type == 1 else LightTaskHandler
-    if not handler:
+    if task_type not in [TaskType.TK_JOB.value, TaskType.TK_TASK.value]:
         return None
     request = TaskRequest(username, func, *args, **kwargs)
+    handler: type[BaseTaskHandler] = LightJobHandler if task_type == TaskType.TK_JOB else TaskHandler
     return await handler(request)
 
 
@@ -159,7 +166,7 @@ class CronTaskHandler(IntServiceTaskHandler):
         await self.service_class.check_unproceeded_job(self.request)
 
 
-class JobTaskHandler(IntServiceTaskHandler):
+class JobHandler(IntServiceTaskHandler):
     async def dispatch(self):
         return await self.safe_execute(self.execute_job)
 
@@ -167,7 +174,10 @@ class JobTaskHandler(IntServiceTaskHandler):
         self.service_class.execute_job(self.request, self.request.function)
 
 
-class LightTaskHandler(BaseTaskHandler):
+class LightJobHandler(JobHandler): ...
+
+
+class TaskHandler(BaseTaskHandler):
 
     def __init__(self, request: TaskRequest):
         super().__init__(request)
@@ -175,17 +185,22 @@ class LightTaskHandler(BaseTaskHandler):
         self.service_namespace = f"ecf.task.{self.class_name}:{self.class_name}"
 
     async def dispatch(self):
-        func = getattr(self.service_instance, self.func_name)
+        service_instance = self.service_instance
+        if not service_instance.is_configured():
+            await service_instance.configure()
+        func = getattr(service_instance, self.func_name)
         args, kwargs = self.request.params
-        return await self.safe_execute(func, *args, **kwargs)
+        return await self.safe_execute(func, self.request, *args, **kwargs)
 
     @property
     def service_instance(self):
         instance = self._instantiate(self.service_namespace, self.request)
-        instance.set_request(self.request)
         return instance
 
-    @lru_cache(maxsize=16)
+    @lru_cache(maxsize=8)
     def _instantiate(self, service_namespace: str, request: TaskRequest):
         service_class = self.get_service_class(service_namespace)
-        return service_class()
+        instance = service_class()
+        instance.set_configuration(request.config)
+        return instance
+

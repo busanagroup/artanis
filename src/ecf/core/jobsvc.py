@@ -21,8 +21,8 @@ from taskiq.kicker import AsyncKicker
 
 from artanis.component.validators import validators
 from artanis.sqlentity import entity
-from artanis.taskiq.broker import broker, task_broker
-from artanis.taskiq.tasks import TaskType, JOBType
+from artanis.taskiq.broker import batchjob_broker, task_broker
+from artanis.taskiq.tasks import TaskType, JOBType as ArtanisJobType
 from ecf.core.ecfcmn import BaseController, JobObjectHandler
 
 
@@ -32,6 +32,9 @@ class JOBStatus(enum.Enum):
     JST_BUSY = 20
     JST_COMPLETED = 30
     JST_ERROR = 99
+
+
+JOBType = ArtanisJobType
 
 
 class JOBSession:
@@ -114,8 +117,8 @@ class JobAssignment(object):
                 await self.execute_job()
 
 
-class BaseJobEngine(BaseController):
-    __JOB_TYPE__: int = JOBType.REGULAR_JOB
+class BaseJob(BaseController):
+    __JOB_TYPE__: int = JOBType.REGULAR_JOB.value
 
     async def __getsession__(self, *args, **kwargs):
         session = JOBSession()
@@ -123,9 +126,6 @@ class BaseJobEngine(BaseController):
 
     async def execute(self, session):
         raise NotImplementedError
-
-
-class JobEngine(BaseJobEngine): ...
 
 
 class JobRunner:
@@ -139,11 +139,11 @@ class JobRunner:
         return self.dispatch().__await__()
 
     async def dispatch(self):
-        job_channel = broker if self.get_task_type() == JOBType.REGULAR_JOB else task_broker
+        broker = batchjob_broker if self.get_task_type() == JOBType.BATCH_JOB.value else task_broker
         efjbls = BaseController.get_entity('efjbls')
         await efjbls.change_job_type(self.job_id, 1)
         await AsyncKicker(
-            broker=job_channel,
+            broker=broker,
             task_name="artanis_task",
             labels={}
         ).kiq(
@@ -155,3 +155,6 @@ class JobRunner:
     def get_task_type(self):
         service_class = JobObjectHandler.get_service_class(self.job_service)
         return service_class.__JOB_TYPE__
+
+
+class BatchJob(BaseJob): ...

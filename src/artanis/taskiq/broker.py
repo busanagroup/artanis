@@ -24,7 +24,7 @@ from taskiq.result_backends.dummy import DummyResultBackend
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_startup, artanis_shutdown, artanis_monitor
 from artanis.taskiq.base import BaseBrokerService
-from artanis.taskiq.redis import ListQueueBroker, RedisAsyncResultBackend, PubSubBroker
+from artanis.taskiq.redis import ListQueueBroker, RedisAsyncResultBackend
 
 
 class ArtanisEventBusBroker(ListQueueBroker, BaseBrokerService):
@@ -50,6 +50,7 @@ class ArtanisEventBusBroker(ListQueueBroker, BaseBrokerService):
             socket_keepalive=True,
             socket_keepalive_options=ka_options,
             max_connection_pool_size=32,
+            timeout=0,
             **kwargs)
         for base in ArtanisEventBusBroker.__bases__:
             if base is not ListQueueBroker:
@@ -132,6 +133,7 @@ class ArtanisTaskBroker(ListQueueBroker, BaseBrokerService):
             socket_keepalive=True,
             socket_keepalive_options=ka_options,
             max_connection_pool_size=32,
+            timeout=0,
             **kwargs)
         for base in ArtanisTaskBroker.__bases__:
             if base is not ListQueueBroker:
@@ -228,8 +230,8 @@ class ArtanisJobBroker(ArtanisTaskBroker):
         self.add_event_handler(TaskiqEvents.WORKER_SHUTDOWN, process_shutdown)
 
 
-broker = ArtanisJobBroker.get_default_instance()
+batchjob_broker = ArtanisJobBroker.get_default_instance()
 task_broker = ArtanisTaskBroker.get_default_instance()
 event_broker = ArtanisEventBusBroker.get_default_instance()
 
-__all__ = ["broker", "task_broker", "event_broker"]
+__all__ = ["batchjob_broker", "task_broker", "event_broker"]

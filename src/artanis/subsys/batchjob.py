@@ -67,7 +67,7 @@ class BatchJobSubsystem(Subsystem):
         params.append('--use-process-pool')
         # params.extend(['--log-format', config.log_format[0]])
         params.extend(['--max-async-tasks', config.get_property_value(config.ARTANIS_JOB_MAXJOB, '32')])
-        params.append('artanis.taskiq.broker:broker')
+        params.append('artanis.taskiq.broker:batchjob_broker')
         params.append('artanis.taskiq.tasks')
         params.append('artanis.taskiq.scheduler')
         self.worker_args = WorkerArgs.from_cli(params)

@@ -43,7 +43,7 @@ class TaskObjectProxy:
 
     async def __submit(self, func_name: str, *args, **kwargs):
         service_func = ".".join([self.service_name, func_name])
-        await AsyncKicker(
+        task = await AsyncKicker(
             broker=task_broker,
             task_name="artanis_task",
             labels={}
@@ -54,3 +54,4 @@ class TaskObjectProxy:
             *args,
             **kwargs
         )
+        return task
