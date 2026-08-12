@@ -28,6 +28,7 @@ from abc import ABCMeta
 from binascii import crc32
 from io import BytesIO
 from xml.etree import ElementTree as ET
+
 from .error import MinioException
 from .xml import Element, SubElement, findtext
 

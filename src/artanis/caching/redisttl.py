@@ -14,12 +14,13 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
+
 import functools
 import inspect
 import pickle
 import typing as t
 
-from artanis.caching import hashkey, _KT, _T, NullContext
+from artanis.caching import hashkey, _KT, NullContext
 from artanis.config import Configuration
 
 if t.TYPE_CHECKING:

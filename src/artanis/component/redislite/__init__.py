@@ -48,7 +48,6 @@ Example:
       'value'
       >>>
 """
-import json
 import os
 
 

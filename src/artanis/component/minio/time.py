@@ -21,8 +21,8 @@
 from __future__ import absolute_import
 
 import locale
-from contextlib import contextmanager
 import time as ctime
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from . import __LOCALE_LOCK__

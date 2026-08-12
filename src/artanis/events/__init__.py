@@ -36,8 +36,8 @@ from .handler import (
     EventHandlerResultSchemaError,
     EventHandlerTimeoutError,
 )
-from .history import EventHistory
 from .helpers import monotonic_datetime
+from .history import EventHistory
 from .middlewares import (
     AutoErrorEventMiddleware,
     AutoHandlerChangeEventMiddleware,

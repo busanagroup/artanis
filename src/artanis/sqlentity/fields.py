@@ -13,6 +13,9 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from tortoise.contrib.postgres.fields import (
+    ArrayField,
+    TSVectorField)
 from tortoise.fields import (
     CASCADE,
     NO_ACTION,
@@ -51,9 +54,6 @@ from tortoise.fields import (
     OneToOneNullableRelation,
     OneToOneRelation,
     ReverseRelation)
-from tortoise.contrib.postgres.fields import (
-    ArrayField,
-    TSVectorField)
 
 from .field_data import UUIDField
 

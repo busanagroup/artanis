@@ -18,10 +18,12 @@
 __all__ = ['Singleton', 'AsyncSingleton']
 
 import typing as t
+
 from artanis.abc.objlock import BaseLocker
 
 if t.TYPE_CHECKING:
-    from typing import Self, Any
+    from typing import Self
+
 
 class Singleton(BaseLocker):
     VM_DEFAULT = None

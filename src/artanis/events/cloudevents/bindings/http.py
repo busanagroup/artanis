@@ -12,11 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from typing import TYPE_CHECKING
-
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Final
+from typing import TYPE_CHECKING
 from urllib.parse import quote, unquote
 
 from dateutil.parser import isoparse

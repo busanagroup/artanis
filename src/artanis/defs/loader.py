@@ -21,7 +21,6 @@ import os.path
 import pathlib
 from os.path import basename, isfile, dirname
 from pprint import pprint
-from typing import OrderedDict
 
 from lxml import etree, builder
 

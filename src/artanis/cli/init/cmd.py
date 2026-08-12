@@ -17,7 +17,6 @@ import asyncio
 import logging
 from typing import Optional, Sequence
 
-
 from artanis.abc.command import ArtanisCommand
 from artanis.cli.init.run import run_initdb
 

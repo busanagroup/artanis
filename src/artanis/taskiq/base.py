@@ -25,7 +25,6 @@ from artanis.abc.singleton import Singleton
 from artanis.asgi.components import asgi, validation
 from artanis.asgi.schemas.modules import SchemaModule
 from artanis.config import Configuration
-from artanis.ddd import WorkerComponent
 from artanis.injection import injector, Components
 from artanis.models import ModelsModule
 from artanis.modules import Modules

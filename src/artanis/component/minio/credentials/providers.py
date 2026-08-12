@@ -37,7 +37,6 @@ from xml.etree import ElementTree
 
 import certifi
 import urllib3
-
 from actify.utils.minio.helpers import sha256_hash
 from actify.utils.minio.signer import sign_v4_sts
 from actify.utils.minio.time import from_iso8601utc, to_amz_date, utcnow

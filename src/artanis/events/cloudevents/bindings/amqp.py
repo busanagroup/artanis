@@ -18,8 +18,8 @@ from typing import Any, Final
 
 from dateutil.parser import isoparse
 
-from artanis.events.cloudevents.bindings.common import get_event_factory_for_version
 from artanis.events.cloudevents.base import BaseCloudEvent, EventFactory
+from artanis.events.cloudevents.bindings.common import get_event_factory_for_version
 from artanis.events.cloudevents.event import CloudEvent
 from artanis.events.cloudevents.formats.base import Format
 from artanis.events.cloudevents.formats.json import JSONFormat

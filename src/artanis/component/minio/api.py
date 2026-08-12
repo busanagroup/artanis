@@ -33,13 +33,12 @@ import asyncio
 import itertools
 import os
 import platform
-from random import random
-from io import BytesIO
 import tarfile
-
 # import weakref
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
+from io import BytesIO
+from random import random
 from urllib.parse import urlunsplit
 from xml.etree import ElementTree as ET
 
@@ -47,7 +46,7 @@ import aiofiles
 import aiohttp
 
 from . import __title__, __version__, time
-from .commonconfig import COPY, ComposeSource, CopySource, REPLACE, Tags, SnowballObject
+from .commonconfig import COPY, ComposeSource, CopySource, REPLACE, Tags
 from .credentials import StaticProvider
 from .datatypes import (
     AsyncEventIterable,

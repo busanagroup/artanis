@@ -20,8 +20,8 @@ from typing import Any, Final, Pattern
 
 from dateutil.parser import isoparse
 
-from artanis.events.cloudevents.formats.base import Format
 from artanis.events.cloudevents.base import BaseCloudEvent, EventFactory
+from artanis.events.cloudevents.formats.base import Format
 from artanis.events.cloudevents.spec import SPECVERSION_V1_0
 
 

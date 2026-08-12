@@ -25,8 +25,8 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from enum import StrEnum
 from functools import partial
-from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Generic, Literal, Self, TypeAlias, Final, cast
-from uuid import UUID, uuid7
+from typing import TYPE_CHECKING, Annotated, Any, ClassVar, Generic, Literal, Self, TypeAlias, cast
+from uuid import UUID
 
 from pydantic import (
     AfterValidator,

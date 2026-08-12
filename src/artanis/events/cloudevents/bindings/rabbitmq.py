@@ -31,10 +31,10 @@ from artanis.events.cloudevents.bindings.common import (
     TIME_ATTR,
     get_event_factory_for_version,
 )
+from artanis.events.cloudevents.event import CloudEvent
 from artanis.events.cloudevents.formats.base import Format
 from artanis.events.cloudevents.formats.json import JSONFormat
 from artanis.events.cloudevents.spec import SPECVERSION_V1_0
-from artanis.events.cloudevents.event import CloudEvent
 
 CE_PREFIX: Final[str] = "ce-"
 

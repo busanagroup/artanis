@@ -8,9 +8,10 @@ with redislite classes.
 import collections
 import logging
 import os
-import redis
-from .client import Redis, StrictRedis
 
+import redis
+
+from .client import Redis, StrictRedis
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 

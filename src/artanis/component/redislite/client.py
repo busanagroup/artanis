@@ -10,8 +10,8 @@ access and will shutdown and clean up the redis-server when deleted.  Otherwise
 they are functionally identical to the :class:`redis.Redis()` and
 :class:`redis.StrictRedis()` classes.
 """
-import atexit
 import asyncio
+import atexit
 import json
 import logging
 import os

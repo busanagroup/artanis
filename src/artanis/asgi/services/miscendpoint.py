@@ -21,11 +21,11 @@ from artanis.asgi import schemas
 from artanis.asgi.asgiendpoint import ASGIEndPoint, Descriptor, published
 from artanis.asgi.auth.handler import AuthenticationHandler
 from artanis.asgi.auth.validator import MiscAccessValidator
+from artanis.asgi.schemas.response import DefaultResponse
 from artanis.asgi.services.mvcendpoint import MVCEndpointDescriptor
 from artanis.asgi.types import UserInfo
 from artanis.config import Configuration
 from artanis.exceptions import HTTPException
-from artanis.asgi.schemas.response import DefaultResponse
 from ecf.res import MenuDefinition, ViewDefinition
 
 

@@ -16,13 +16,13 @@
 
 
 import inspect
-from typing import Callable
 
 from artanis import patch
 from artanis.component.entrypoint import configure_components
 from artanis.config import Configuration
 from artanis.sqlentity.entrypoint import configure_database, unconfigure_database
 from artanis.utils import import_function
+
 
 async def artanis_startup(config: Configuration):
     config.server_is_ready = False

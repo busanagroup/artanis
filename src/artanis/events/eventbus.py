@@ -30,7 +30,6 @@ from functools import partial
 from typing import Any, Literal, TypeVar, overload
 from uuid import UUID
 
-
 from .base import (
     BUS_LOGGING_LEVEL,
     BaseEvent,
@@ -52,7 +51,6 @@ from .handler import (
     EventHandlerCallable,
     EventHandlerCancelledError,
 )
-from .history import EventHistory
 from .helpers import (
     CleanShutdownQueue,
     QueueShutDown,
@@ -60,6 +58,7 @@ from .helpers import (
     log_filtered_traceback,
     uuid7str
 )
+from .history import EventHistory
 from .locking import LockManager, LockManagerProtocol, ReentrantLock
 from .middlewares import EventBusMiddleware
 

@@ -17,7 +17,7 @@ import enum
 import inspect
 import typing as t
 
-from artanis import events, exceptions
+from artanis import events
 from artanis.abc.configurable import Configurable
 from artanis.config import Configuration
 from artanis.events import topic, EventBus

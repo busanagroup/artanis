@@ -22,7 +22,6 @@ from typing import List, Optional, Dict
 from artanis import __version__
 from artanis.abc.command import ArtanisCommand
 from artanis.config import Configuration
-from artanis.exceptions import ConfigError
 from artanis.utils import import_function
 
 

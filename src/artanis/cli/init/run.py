@@ -15,10 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import logging
 
-from artanis import utils
 from artanis.config import Configuration
 from artanis.sqlentity.entrypoint import configure_database, setup_all
-
 
 logger = logging.getLogger(__name__)
 

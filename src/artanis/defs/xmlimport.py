@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import pathlib
 from collections.abc import Callable
-from typing import Any, OrderedDict
+from typing import Any
 from xml.etree.ElementTree import ParseError
 
 from lxml import etree
