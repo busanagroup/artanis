@@ -21,7 +21,7 @@ from tortoise import Model
 from tortoise.backends.base_postgres.schema_generator import BasePostgresSchemaGenerator
 
 if TYPE_CHECKING:
-    from artanis.sqlentity.client import PostgreSQLClient
+    pass
 
 
 class PostgreSQLSchemaGenerator(BasePostgresSchemaGenerator):
