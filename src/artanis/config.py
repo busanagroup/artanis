@@ -235,7 +235,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_JOB_PROCESSES: '8',
             self.ARTANIS_JOB_MAXJOB: '32',
 
-            self.ARTANIS_TASK_ENABLED: 'false',
+            self.ARTANIS_TASK_ENABLED: 'true',
             self.ARTANIS_TASK_INSTANCES: '1',
             self.ARTANIS_TASK_PROCESSES: '8',
             self.ARTANIS_TASK_MAXTASK: '32',

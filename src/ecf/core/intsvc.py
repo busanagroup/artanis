@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import logging
 import sys
 import traceback
 
@@ -26,6 +27,9 @@ from ecf.core.ecfcmn import BaseController, JobObjectHandler
 from ecf.core.jobsvc import JobAssignment, JOBSession, JobRunner
 
 
+logger = logging.getLogger(__name__)
+
+
 class IntService(BaseController):
 
     @classmethod
@@ -33,48 +37,53 @@ class IntService(BaseController):
         efcron = cls.get_entity('efcron')
         cronobjs = await efcron.get_all_tasks(1)
         for crobj in cronobjs:
-            crstr = " ".join([crobj.crjbsch1, crobj.crjbsch2, crobj.crjbsch3, crobj.crjbsch4, crobj.crjbsch5])
-            lastexec = None
-            if crobj.crjbexdt not in [None, 0]:
-                lxdt = dt.date.frominteger(crobj.crjbexdt)
-                lxtm = dt.time.frominteger(crobj.crjbextm)
-                lastexec = dt.datetime.combine(lxdt, lxtm)
+            try:
+                job_id = crobj.crjbjbcd
+                crstr = " ".join([crobj.crjbsch1, crobj.crjbsch2, crobj.crjbsch3, crobj.crjbsch4, crobj.crjbsch5])
+                lastexec = None
+                if crobj.crjbexdt not in [None, 0]:
+                    lxdt = dt.date.frominteger(crobj.crjbexdt)
+                    lxtm = dt.time.frominteger(crobj.crjbextm)
+                    lastexec = dt.datetime.combine(lxdt, lxtm)
 
-            today = dt.datetime.now()
-            if (lastexec is not None) and (lastexec <= today):
-                # --- create job assignment ----
-                job = JobAssignment(
-                    crobj.crjbrsus,
-                    crobj.crjbjbcd,
-                    crobj.crjbjprg,
-                f"executing job {crobj.crjbjbcd}"
-                )
-                # ----
-                tb_str = crobj.crjbjtbl.strip().lower() if crobj.crjbjtbl else None
-                if tb_str not in [None, '']:
-                    tb_klass = cls.get_entity(tb_str)
-                    if tb_klass:
-                        filter_str = {crobj.crjbjfld: crobj.crjbjfva}
-                        obj = await tb_klass.get_or_none(**filter_str)
-                        if obj:
-                            # --- register job ---
-                            await job.assign_job()
-                            # -----
-                            setattr(obj, crobj.crjbjbld, job.job_id)
-                            await obj.save()
-                else:
-                    # --- we don't use table, so just register the job ---
-                    await job.assign_job()
+                today = dt.datetime.now()
+                if (lastexec is not None) and (lastexec <= today):
+                    # --- create job assignment ----
+                    job = JobAssignment(
+                        crobj.crjbrsus,
+                        crobj.crjbjbcd,
+                        crobj.crjbjprg,
+                    f"executing job {crobj.crjbjbcd}"
+                    )
+                    # ----
+                    tb_str = crobj.crjbjtbl.strip().lower() if crobj.crjbjtbl else None
+                    if tb_str not in [None, '']:
+                        tb_klass = cls.get_entity(tb_str)
+                        if tb_klass:
+                            filter_str = {crobj.crjbjfld: crobj.crjbjfva}
+                            obj = await tb_klass.get_or_none(**filter_str)
+                            if obj:
+                                # --- register job ---
+                                await job.assign_job()
+                                # -----
+                                setattr(obj, crobj.crjbjbld, job.job_id)
+                                await obj.save()
+                    else:
+                        # --- we don't use table, so just register the job ---
+                        await job.assign_job()
 
-            cronproc = Croniter(crstr)
-            nextexec = cronproc.get_next(dt.datetime)
-            while nextexec < today:
+                cronproc = Croniter(crstr)
                 nextexec = cronproc.get_next(dt.datetime)
+                while nextexec < today:
+                    nextexec = cronproc.get_next(dt.datetime)
 
-            if lastexec != nextexec:
-                crobj.crjbexdt = nextexec.date().tointeger()
-                crobj.crjbextm = nextexec.time().tointeger()
-                await crobj.save()
+                if lastexec != nextexec:
+                    crobj.crjbexdt = nextexec.date().tointeger()
+                    crobj.crjbextm = nextexec.time().tointeger()
+                    await crobj.save()
+            except Exception as exc:
+                logger.error("Error processing job: %s", job_id)
+                logger.exception(exc)
 
     @classmethod
     async def check_unproceeded_job(cls, request: TaskRequest):
@@ -82,19 +91,22 @@ class IntService(BaseController):
         objs = await efjbls.get_all_jobs(0)
         date_now = dt.datetime.now()
         for obj in objs:
-            if (obj.jblsrpdt is not None) and (obj.jblsrpdt != 0):
-                date_request = dt.date.frominteger(obj.jblsrpdt)
-                date_span = date_now.date() - date_request
-                if date_span >= dt.timedelta(0):
-                    if (obj.jblsrptm is not None) and (obj.jblsrptm != 0):
-                        time_request = dt.time.frominteger(obj.jblsrptm)
-                        date_span = date_now.time() - time_request
-                        if date_span >= dt.timedelta(0):
-                            await JobRunner(request, obj.jblsidnm)
-                    else:
-                        await JobRunner(request, obj.jblsidnm)
-            else:
-                await JobRunner(request, obj.jblsidnm)
+            try:
+                if (obj.jblsrpdt is not None) and (obj.jblsrpdt != 0):
+                    date_request = dt.date.frominteger(obj.jblsrpdt)
+                    date_span = date_now.date() - date_request
+                    if date_span >= dt.timedelta(0):
+                        if (obj.jblsrptm is not None) and (obj.jblsrptm != 0):
+                            time_request = dt.time.frominteger(obj.jblsrptm)
+                            date_span = date_now.time() - time_request
+                            if date_span >= dt.timedelta(0):
+                                await JobRunner(request.user, obj.jblsprpg, obj.jblsidnm)
+                        else:
+                            await JobRunner(request.user, obj.jblsprpg, obj.jblsidnm)
+                else:
+                    await JobRunner(request.user, obj.jblsprpg, obj.jblsidnm)
+            except Exception as exc:
+                logger.exception(exc)
 
     @classmethod
     async def update_job_status(cls, user_session: JOBSession, status, msg, info=None):

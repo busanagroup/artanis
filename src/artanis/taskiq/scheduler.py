@@ -16,7 +16,6 @@
 
 
 from taskiq import TaskiqScheduler
-from taskiq.kicker import AsyncKicker
 from taskiq.schedule_sources import LabelScheduleSource
 
 from .broker import task_broker
@@ -26,4 +25,5 @@ scheduler = TaskiqScheduler(broker=task_broker, sources=[LabelScheduleSource(tas
 
 @task_broker.task(schedule=[{"cron": "* * * * *"}])
 async def evaluate_schedule():
-    await AsyncKicker(broker=task_broker, task_name="artanis_schedule", labels={}).kiq()
+    from .tasks import CronTaskHandler, TaskRequest
+    return await CronTaskHandler(TaskRequest("SYSTEM", None))

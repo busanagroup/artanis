@@ -88,11 +88,6 @@ async def artanis_event_execute(klass: str, func: str, event: bytes):
     await EventDispatcher.dispatch(klass, func, event)
 
 
-@task_broker.task(task_name="artanis_schedule")
-async def artanis_schedule(*args, **kwargs):
-    return await CronTaskHandler(TaskRequest("SYSTEM", None))
-
-
 class TaskRequest:
 
     def __init__(self, username: str, func: str, *args, **kwargs):
@@ -203,4 +198,3 @@ class TaskHandler(BaseTaskHandler):
         instance = service_class()
         instance.set_configuration(request.config)
         return instance
-
