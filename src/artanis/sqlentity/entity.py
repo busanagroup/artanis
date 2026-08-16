@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 import types
-from typing import Type
+import typing as t
 
 from artanis import concurrency
 from artanis.config import Configuration
@@ -26,39 +26,41 @@ __ecf_tbl: types.ModuleType | None = None
 __config: Configuration = Configuration.get_default_instance(create_instance=False)
 
 
-def get_table_repository():
+def get_table_repository() -> types.ModuleType:
     global __ecf_tbl
-    if not __ecf_tbl:
-        __ecf_tbl = import_ecf_module("ecf.tbl")
+    if __ecf_tbl is None:
+        __ecf_tbl = t.cast(types.ModuleType, import_ecf_module("ecf.tbl"))
     return __ecf_tbl
 
 
-def get_entity(table_name: str) -> Type[Entity]:
+def get_entity(table_name: str) -> t.Type[Entity]:
     repo = get_table_repository()
-    result = getattr(repo, table_name, None)
+    result: t.Type[Entity] = t.cast(t.Type[Entity], getattr(repo, table_name, None))
     if not result:
         raise Exception(f'model "{table_name}" has not been implemented')
     return result
 
 
-def get_entity_list():
+def get_entity_list() -> list[str]:
     repository = get_table_repository()
-    return repository.__all__
+    return t.cast(list[str], repository.__all__)
 
 
-def get_entities():
+def get_entities() -> list[t.Type[Entity]]:
     repository = get_table_repository()
-    return [getattr(repository, table, None) for table in repository.__all__]
+    return [t.cast(t.Type[Entity], getattr(repository, table, None)) for table in repository.__all__]
 
 
-def get_entity_field_info(entity: Type[Entity], field_name: str):
+def get_entity_field_info(entity: t.Type[Entity], field_name: str):
     return getattr(entity, field_name, None)
 
 
-async def safe_execute(func, *args, **kwargs):
-    return await concurrency.run(func, *args, **kwargs)
+async def safe_execute(func: t.Callable[concurrency.P, concurrency.R] |
+                             t.Callable[concurrency.P, t.Awaitable[concurrency.R]],
+                       *args, **kwargs) -> t.Any:
+    return await concurrency.run(func, *args, **kwargs) # noqa
 
 
-async def record_exist(self, table_name: str, *args, **kwargs):
-    klass = get_entity(table_name) if isinstance(table_name, str) else table_name
+async def record_exist(table_name: t.Type[Entity] | str, *args, **kwargs) -> tuple[bool, t.Any]:
+    klass: t.Type[Entity] = get_entity(table_name) if isinstance(table_name, str) else table_name
     return await klass.record_exist(*args, **kwargs)

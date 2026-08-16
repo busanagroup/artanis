@@ -101,10 +101,10 @@ class Component(metaclass=abc.ABCMeta):
             self._sqlentity = import_module("artanis.sqlentity.entity")
         return self._sqlentity
 
-    def get_entity(self, tbname: str) -> Any:
+    def get_entity(self, tbname: str) -> t.Any:
         return self.sqlentity.get_entity(tbname)
 
-    async def safe_execute(self, func: Callable[..., Any], *args, **kwargs) -> Any:
+    async def safe_execute(self, func: t.Callable[..., t.Any], *args, **kwargs) -> Any:
         return await self.sqlentity.safe_execute(func, *args, **kwargs)
 
 

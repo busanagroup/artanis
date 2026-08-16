@@ -230,7 +230,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_STATIC_BINDTYPE: 'tcp',
             self.ARTANIS_STATIC_BIND: '0.0.0.0:8005',
 
-            self.ARTANIS_JOB_ENABLED: 'false',
+            self.ARTANIS_JOB_ENABLED: 'true',
             self.ARTANIS_JOB_INSTANCES: '1',
             self.ARTANIS_JOB_PROCESSES: '8',
             self.ARTANIS_JOB_MAXJOB: '32',
@@ -255,7 +255,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_DATA_PATH: '{}/data'.format(path),
 
             self.ARTANIS_LOG_LEVEL: 'INFO',
-            self.ARTANIS_LOG_FORMAT: '[%(asctime)s][%(name)s][%(levelname)-7s][%(process)d] %(message)s',
+            self.ARTANIS_LOG_FORMAT: '%(asctime)s [%(process)d] %(levelname)-7s %(message)s',
             self.ARTANIS_LOG_PATH: '{}/log'.format(path),
 
             self.ARTANIS_DB_CONNECTION: "postgres:masterkey@10.0.3.102/template1",

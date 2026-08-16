@@ -13,8 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
-
+import logging
 from multiprocessing.context import BaseContext
 from multiprocessing.synchronize import Event
 from pickle import PicklingError
@@ -33,6 +32,9 @@ def hypercorn_worker(
 ) -> None:
     config = Configuration.get_default_instance(config_path=sysconfig_path)
     config.configure_logging(subsys_name=subsys_name, subsys_index=subsys_index)
+    log_format = logging.Formatter(config.get_property_value(config.ARTANIS_LOG_FORMAT, None))
+    asgi_config.log.error_logger.handlers[0].setFormatter(log_format)
+    # asgi_config.log.access_logger.handlers[0].setFormatter(log_format)
     uvloop_worker(asgi_config, sockets=sockets, shutdown_event=shutdown_event)
 
 

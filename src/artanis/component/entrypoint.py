@@ -40,6 +40,9 @@ async def configure_eventbus(config: Configuration):
     eventbus.on('*', propagate_event)
     config.container.eventbus = eventbus
 
+async def configure_message_queue(config: Configuration):
+    ...
+
 
 async def propagate_event(event: BaseEvent) -> None:
     from artanis.taskiq.broker import event_broker

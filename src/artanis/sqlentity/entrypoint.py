@@ -50,7 +50,6 @@ async def configure_database(config: Configuration):
     db_connection = dict(
         default=db_default
     )
-
     models = dict(
         models=["ecf.tbl"],
         default_connection="default"
@@ -64,14 +63,14 @@ async def configure_database(config: Configuration):
     Field.__init__ = patched_field_init
     from tortoise import Tortoise
     load_ecf_modules("ecf.tbl", True)
-    await Tortoise.init(config=db_config, _enable_global_fallback=True)
+    config.container.dbengine = await Tortoise.init(config=db_config, _enable_global_fallback=True)
 
 
 async def setup_all(config: Configuration) -> None:
-    from tortoise import Tortoise
-    await Tortoise.generate_schemas()
+    await config.container.dbengine.generate_schemas()
 
 
 async def unconfigure_database(config: Configuration):
     from tortoise import Tortoise
+    await config.container.dbengine.close_connections()
     await Tortoise.close_connections()
