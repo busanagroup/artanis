@@ -28,17 +28,18 @@ class QueueSubmitter:
     __get_entity: t.Callable | None = None
     __task_name: str = "artanis_queuesend"
 
-    def __init__(self, exchange: str, message: bytes, execute_immediately: bool = True):
+    def __init__(self, exchange: str, route_key: str, message: bytes, execute_immediately: bool = True):
         self.config = Configuration.get_default_instance(create_instance=False)
         self.entity = None
         self.exchange = exchange
+        self.route_key = route_key
         self.message = message
         self.execute_immediately = execute_immediately
 
     async def submit_queue_item(self):
         if not self.entity:
-            self.entity = await self.get_entity('efmque')
-        queue_id: uuid.UUID = await self.entity.create_queue(self.exchange, self.message)
+            self.entity = self.get_entity('efmque')
+        queue_id: uuid.UUID = await self.entity.create_queue(self.exchange, self.route_key, self.message)
         if not self.execute_immediately:
             return
         await AsyncKicker(
@@ -58,10 +59,10 @@ class QueueSubmitter:
         return await cls.__safe_exec(func, *args, **kwargs)
 
     @classmethod
-    async def get_entity(cls, entity_id: str):
+    def get_entity(cls, entity_id: str):
         if not cls.__get_entity:
             cls.__get_entity = cls.get_service_class("artanis.sqlentity.entity:get_entity")
-        return await cls.__get_entity(entity_id)
+        return cls.__get_entity(entity_id)
 
     def __await__(self):
         return self.submit_queue_item().__await__()

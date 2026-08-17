@@ -29,6 +29,7 @@ class efmque(Entity):
 
     mquepkid = fields.UUIDField(pk=True, label='Queue ID', null=False, generated=False)
     mquexchg = fields.CharField(max_length=48, label='Exchange Name')
+    mquerout = fields.CharField(max_length=64, label='Routing key')
     mquetype = fields.IntField(label='Queue Type', index=True)
     mquedata = fields.BinaryField(label='Queue Data')
     mquestat = fields.IntField(label='Queue Status', index=True)
@@ -40,11 +41,12 @@ class efmque(Entity):
         ]
 
     @classmethod
-    async def create_queue(cls, exchange: str, data: bytes, que_type: int = 0, status: int = 0):
+    async def create_queue(cls, exchange: str, route: str, data: bytes, que_type: int = 0, status: int = 0):
         queue_id = uuid.uuid7()
         await cls.create(
             mquepkid=queue_id,
             mquexchg=exchange,
+            mquerout=route,
             mquetype=que_type,
             mquedata=data,
             mquestat=status,
@@ -61,15 +63,14 @@ class efmque(Entity):
         #     and mquepkid <> :queue_id
         #   order by mquexchg, mquepkid
 
-        queue_list = await cls.filter(
+        return await cls.filter(
             mquetype=que_type,
             mquestat=status,
         ).exclude(
             mquepkid=queue_id
         ).order_by(
-            'mquexchg, mquepkid'
+            "mquexchg", "mquepkid"
         ).all().values_list('mquepkid', flat=True)
-        return [uuid.UUID(q.queue_id) for q in queue_list]
 
     @classmethod
     async def update_status(cls, queue_id: uuid.UUID, status: int):

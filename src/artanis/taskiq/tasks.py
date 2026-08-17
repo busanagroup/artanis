@@ -26,6 +26,7 @@ from taskiq.kicker import AsyncKicker
 
 from artanis.abc.classprops import classproperty
 from artanis.asgi.auth.authentication import ArtanisUser
+from artanis.component.queue.quesend import QueueSubmitter
 from artanis.config import Configuration
 from artanis.events.eventexec import EventDispatcher
 from artanis.taskiq.broker import batchjob_broker, task_broker, event_broker
@@ -52,21 +53,29 @@ logger = logging.getLogger("artanis.task")
 @event_broker.task(task_name="artanis_event")
 async def artanis_event(event: bytes):
     from artanis.events.eventroute import event_route
+    config = Configuration.get_default_instance(create_instance=False)
+    exchange = config.get_property_value(config.ARTANIS_MQ_EXCHANGE)
     json_event = json.loads(event)
-    event_type = str(json_event["event_type"]).replace(".", "/")
-    if not event_type.startswith("/"):
-        event_type = "/" + event_type
-    handler_list = event_route.get_event_handler(event_type)
-    for klass, func in handler_list:
-        await AsyncKicker(
-            broker=event_broker,
-            task_name="artanis_event_execute",
-            labels={}
-        ).kiq(
-            klass,
-            func,
-            event
-        )
+    event_type = str(json_event["event_type"])
+    class_path = event_type.replace(".", "/")
+    if not class_path.startswith("/"):
+        class_path = "/" + class_path
+    handler_list = event_route.get_event_handler(class_path)
+    try:
+        for klass, func in handler_list:
+            await AsyncKicker(
+                broker=event_broker,
+                task_name="artanis_event_execute",
+                labels={}
+            ).kiq(
+                klass,
+                func,
+                event
+            )
+        await QueueSubmitter(exchange, event_type, event)
+    except Exception as e:
+        logger.error(f"Failed to propagate event: {event_type}")
+        logger.exception(e)
 
 
 @batchjob_broker.task(task_name="artanis_task")
@@ -87,12 +96,15 @@ async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs
 @task_broker.task(task_name="artanis_queuesend")
 async def artanis_queuesend(queue_id: str):
     from artanis.component.queue.quexec import QueueDispatcher
-    await QueueDispatcher(uuid.UUID(queue_id))
+    config = Configuration.get_default_instance(create_instance=False)
+    await QueueDispatcher(uuid.UUID(queue_id), broker=config.container.mq_broker)
+
 
 @task_broker.task(task_name="artanis_krbsend")
 async def artanis_krbsend(queue_id: str):
-    from artanis.component.queue.quexec import KRBridgeDispatcher
-    await KRBridgeDispatcher(uuid.UUID(queue_id))
+    from artanis.component.queue.quexec import KRBDispatcher
+    config = Configuration.get_default_instance(create_instance=False)
+    await KRBDispatcher(uuid.UUID(queue_id), broker=config.container.mq_broker)
 
 
 @event_broker.task(task_name="artanis_event_execute")

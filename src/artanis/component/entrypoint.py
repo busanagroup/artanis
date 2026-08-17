@@ -13,6 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+from faststream.rabbit import RabbitBroker
 from taskiq.kicker import AsyncKicker
 
 from artanis.component.redis import AsyncRedis, Redis
@@ -23,6 +24,8 @@ from artanis.events import EventBus, EventConcurrencyMode, EventHandlerCompletio
 async def configure_components(config: Configuration):
     await configure_redis(config)
     await configure_eventbus(config)
+    await configure_message_queue(config)
+
 
 async def configure_redis(config: Configuration):
     config.container.async_redis = await AsyncRedis.get_default_instance(create_instance=True)
@@ -40,8 +43,10 @@ async def configure_eventbus(config: Configuration):
     eventbus.on('*', propagate_event)
     config.container.eventbus = eventbus
 
+
 async def configure_message_queue(config: Configuration):
-    ...
+    mq_uri = config.get_property_value(config.ARTANIS_MQ_CONNECTION, "")
+    config.container.mq_broker = RabbitBroker(mq_uri)
 
 
 async def propagate_event(event: BaseEvent) -> None:
