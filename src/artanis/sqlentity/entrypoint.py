@@ -15,11 +15,16 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+import functools
+import json
 from typing import Callable, Optional
+
+from tortoise.fields import data
 
 from artanis.config import Configuration
 from artanis.utils import load_ecf_modules
 from . import url
+from .encoder import DecimalEncoder
 
 default_field_init: Optional[Callable[..., None]] = None
 
@@ -32,8 +37,15 @@ def patched_field_init(self, *args, null=True, **kwargs
     default_field_init(self, *args, null=null, **kwargs)
 
 
-async def configure_database(config: Configuration):
+def patch_tortoise():
     global default_field_init
+    from tortoise.fields.base import Field
+    default_field_init = Field.__init__
+    Field.__init__ = patched_field_init
+    data.JSON_DUMPS = functools.partial(json.dumps, cls=DecimalEncoder)
+
+
+async def configure_database(config: Configuration):
     db_url: str = config.get_property_value(config.ARTANIS_DB_CONNECTION, '')
     u = url.make_url(db_url)
     db_credentials = dict(
@@ -58,9 +70,7 @@ async def configure_database(config: Configuration):
         models=models
     )
     db_config = dict(connections=db_connection, apps=db_models)
-    from tortoise.fields.base import Field
-    default_field_init = Field.__init__
-    Field.__init__ = patched_field_init
+    patch_tortoise()
     from tortoise import Tortoise
     load_ecf_modules("ecf.tbl", True)
     config.container.dbengine = await Tortoise.init(config=db_config, _enable_global_fallback=True)

@@ -1,0 +1,129 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2026 Busana Apparel Group. All rights reserved.
+#
+# This product and it's source code is protected by patents, copyright laws and
+# international copyright treaties, as well as other intellectual property
+# laws and treaties. The product is licensed, not sold.
+#
+# The source code and sample programs in this package or parts hereof
+# as well as the documentation shall not be copied, modified or redistributed
+# without permission, explicit or implied, of the author.
+#
+# This module is part of Artanis Enterprise Platform and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import asyncio
+import base64
+import json
+import logging
+import typing as t
+import uuid
+
+from faststream.rabbit import RabbitBroker
+
+from artanis.config import Configuration
+from artanis.sqlentity.encoder import JSON_DUMPS
+from artanis.utils import import_function
+
+logger = logging.getLogger(__name__)
+
+
+class QueueDispatcher:
+    __safe_exec: t.Callable | None = None
+    __get_entity: t.Callable | None = None
+
+    def __init__(self, queue_id: uuid.UUID, broker: RabbitBroker, delay_every: int = 100):
+        self.queue = asyncio.Queue()
+        self.queue_id: uuid.UUID = queue_id
+        self.queue.put_nowait(self.queue_id)
+        self.config = Configuration.get_default_instance(create_instance=False)
+        self.entity = None
+        self.delay_every: int = delay_every
+        self.broker: RabbitBroker = broker
+
+    async def dispatch(self):
+        while True:
+            if not await self.dispatch_queue():
+                break
+            await asyncio.sleep(0.1)
+
+    async def dispatch_queue(self) -> bool:
+        queue_list = await self.get_list()
+        for item in queue_list:
+            self.queue.put_nowait(item)
+        if self.queue.empty():
+            return False
+        async with self.broker as broker:
+            dispatched_total: int = 0
+            while not self.queue.empty():
+                queue_id = await self.queue.get()
+                await self.dispatch_item(broker, queue_id)
+                dispatched_total += 1
+                if dispatched_total % self.delay_every == 0:
+                    await asyncio.sleep(0.1)
+            return True
+
+    async def get_list(self) -> list[uuid.UUID]:
+        if not self.entity:
+            self.entity = await self.get_entity('efmque')
+        queue_list = await self.entity.get_queue_except(self.queue_id)
+        return queue_list
+
+    async def dispatch_item(self, broker: RabbitBroker, queue_id: uuid.UUID):
+        if not self.entity:
+            self.entity = await self.get_entity('efmque')
+        queue_item = await self.entity.get_or_none(mquepkid=queue_id)
+        if not queue_item or queue_item.mquestat != 0:
+            return
+        try:
+            await self.entity.update_status(queue_id, status=1)
+            await broker.publish(queue_item.mquedata, exchange=queue_item.mquexchg)
+            await self.entity.delete_queue(queue_id)
+        except Exception as ex:
+            await self.entity.update_status(queue_id, status=0)
+            logger.error("Error dispatching queue item %s", queue_id)
+            logger.exception(ex)
+
+    @classmethod
+    def get_service_class(cls, service_name: str):
+        return import_function(service_name)
+
+    @classmethod
+    async def safe_execute(cls, func, *args, **kwargs):
+        if not cls.__safe_exec:
+            cls.__safe_exec = cls.get_service_class("artanis.sqlentity.entity:safe_execute")
+        return await cls.__safe_exec(func, *args, **kwargs)
+
+    @classmethod
+    async def get_entity(cls, entity_id: str):
+        if not cls.__get_entity:
+            cls.__get_entity = cls.get_service_class("artanis.sqlentity.entity:get_entity")
+        return await cls.__get_entity(entity_id)
+
+    def __await__(self):
+        return self.dispatch().__await__()
+
+class KRBDispatcher(QueueDispatcher):
+
+    async def get_list(self) -> list[uuid.UUID]:
+        if not self.entity:
+            self.entity = await self.get_entity('efmque')
+        queue_list = await self.entity.get_queue_except(self.queue_id, que_type=1)
+        return queue_list
+
+    async def dispatch_item(self, broker: RabbitBroker, queue_id: uuid.UUID):
+        if not self.entity:
+            self.entity = await self.get_entity('efmque')
+        queue_item = await self.entity.get_or_none(mquepkid=queue_id)
+        if not queue_item or queue_item.mquestat != 0:
+            return
+        message = base64.b64encode(queue_item.mquedata)
+        try:
+            await self.entity.update_status(queue_id, status=1)
+            await broker.publish(message, exchange=queue_item.mquexchg)
+            await self.entity.delete_queue(queue_id)
+        except Exception as ex:
+            await self.entity.update_status(queue_id, status=0)
+            logger.error("Error dispatching KRB queue item %s", queue_id)
+            logger.exception(ex)

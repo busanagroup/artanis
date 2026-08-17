@@ -18,6 +18,7 @@ from __future__ import annotations
 import enum
 import json
 import logging
+import uuid
 from functools import lru_cache
 from typing import Any, Callable
 
@@ -81,6 +82,17 @@ async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs
     request = TaskRequest(username, func, *args, **kwargs)
     handler: type[BaseTaskHandler] = LightJobHandler if task_type == TaskType.TK_JOB else TaskHandler
     return await handler(request)
+
+
+@task_broker.task(task_name="artanis_queuesend")
+async def artanis_queuesend(queue_id: str):
+    from artanis.component.queue.quexec import QueueDispatcher
+    await QueueDispatcher(uuid.UUID(queue_id))
+
+@task_broker.task(task_name="artanis_krbsend")
+async def artanis_krbsend(queue_id: str):
+    from artanis.component.queue.quexec import KRBridgeDispatcher
+    await KRBridgeDispatcher(uuid.UUID(queue_id))
 
 
 @event_broker.task(task_name="artanis_event_execute")
