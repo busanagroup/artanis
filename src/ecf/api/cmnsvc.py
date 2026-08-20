@@ -16,6 +16,7 @@
 from starlette.responses import JSONResponse
 
 from artanis.asgi.asgiendpoint import published
+from artanis.component.queue.krbridge import MessageNotifier, MessageCommand
 from artanis.events import BaseEvent
 from ecf.core.apisvc import *
 
@@ -29,10 +30,15 @@ class SalaryRollbackEvent(SalaryCalculationEvent, event_type="com.busanagroup.ar
 class cmnsvc(APIService):
     description = 'Common Service API'
 
-    @published(path='/userinfo')
+    @published(path='/userinfo', methods=['GET'])
     async def get_user_info(self):
         message = {'hello': 'world'}
-        await self.eventbus.emit(SalaryCalculationEvent(message=message))
-        await self.eventbus.emit(SalaryRollbackEvent(message=message))
+        # await self.eventbus.emit(SalaryCalculationEvent(message=message))
+        # await self.eventbus.emit(SalaryRollbackEvent(message=message))
+        event = MessageNotifier(module='TASM', submodule='HREMAS')
+        await event.notify('HREMAS_UPDATE', cono=600, emid=200305184)
+
+        command = MessageCommand(module='FASM', submodule='CAPEX')
+        await command.doInsertHSCode(cono=600, dvno="USFG", hscode=0, frdt=None)
         return JSONResponse({'hello': 'world'})
 

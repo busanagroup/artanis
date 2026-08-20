@@ -16,27 +16,23 @@
 
 import asyncio
 import base64
-import enum
 import logging
 import typing as t
 import uuid
 
 from faststream.rabbit import RabbitBroker, RabbitExchange, ExchangeType
 
+from artanis.component.queue.types import QueueType
 from artanis.config import Configuration
 from artanis.utils import import_function
 
 logger = logging.getLogger(__name__)
 
 
-class QueueType(enum.Enum):
-    CLOUD_EVENT = 0
-    KR_BRIDGE = 1
-
-
 class QueueDispatcher:
     __safe_exec: t.Callable | None = None
     __get_entity: t.Callable | None = None
+    __exchange_type: ExchangeType = ExchangeType.TOPIC
 
     def __init__(self, queue_id: uuid.UUID, broker: RabbitBroker, delay_every: int = 100):
         self.queue = asyncio.Queue()
@@ -57,7 +53,7 @@ class QueueDispatcher:
         await self.dispatch_queue(mode=1)
 
     async def dispatch_queue(self, mode: int = 0) -> bool:
-        queue_list = await self.get_list(status= 0 if mode == 0 else 9)
+        queue_list = await self.get_list(status=0 if mode == 0 else 9)
         for item in queue_list:
             self.queue.put_nowait(item)
         if self.queue.empty():
@@ -132,6 +128,7 @@ class QueueDispatcher:
 
 
 class KRBDispatcher(QueueDispatcher):
+    __exchange_type: ExchangeType = ExchangeType.FANOUT
 
     async def get_list(self, status: int = 0) -> list[uuid.UUID]:
         if not self.entity:
@@ -144,14 +141,18 @@ class KRBDispatcher(QueueDispatcher):
         queue_item = await self.entity.get_or_none(mquepkid=queue_id)
         if not queue_item or queue_item.mquestat != 0:
             return
-        message = base64.b64encode(queue_item.mquedata)
         try:
             await self.entity.update_status(queue_id, status=1)
             if self.exchange_name != queue_item.mquexchg:
                 self.exchange_name = queue_item.mquexchg
-                self.queue_exchange = RabbitExchange(name=self.exchange_name, type=ExchangeType.FANOUT)
+                self.queue_exchange = RabbitExchange(
+                    name=self.exchange_name,
+                    type=self.__exchange_type,
+                    durable=True,
+                    auto_delete=True
+                )
                 await broker.declare_exchange(self.queue_exchange)
-            await broker.publish(message, exchange=self.queue_exchange)
+            await broker.publish(queue_item.mquedata, exchange=self.queue_exchange)
             await self.entity.delete_queue(queue_id)
         except Exception as ex:
             await self.entity.update_status(queue_id, status=9)

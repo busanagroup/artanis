@@ -93,15 +93,15 @@ async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs
     return await handler(request)
 
 
-@task_broker.task(task_name="artanis_queuesend")
-async def artanis_queuesend(queue_id: str):
+@task_broker.task(task_name="artanis_amqp")
+async def artanis_amqp(queue_id: str):
     from artanis.component.queue.quexec import QueueDispatcher
     config = Configuration.get_default_instance(create_instance=False)
     await QueueDispatcher(uuid.UUID(queue_id), broker=config.container.mq_broker)
 
 
-@task_broker.task(task_name="artanis_krbsend")
-async def artanis_krbsend(queue_id: str):
+@task_broker.task(task_name="artanis_krbridge")
+async def artanis_krbridge(queue_id: str):
     from artanis.component.queue.quexec import KRBDispatcher
     config = Configuration.get_default_instance(create_instance=False)
     await KRBDispatcher(uuid.UUID(queue_id), broker=config.container.mq_broker)
