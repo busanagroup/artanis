@@ -56,13 +56,11 @@ class efmque(Entity):
 
     @classmethod
     async def get_queue_except(cls, queue_id: uuid.UUID, que_type: int = 0, status: int = 0):
-
         # select mquepkid from efmque
         #   where mquetype = :que_type
         #     and mquestat = :status
         #     and mquepkid <> :queue_id
         #   order by mquexchg, mquepkid
-
         return await cls.filter(
             mquetype=que_type,
             mquestat=status,

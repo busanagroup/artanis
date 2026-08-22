@@ -39,6 +39,7 @@ class cmnsvc(APIService):
         await event.notify('HREMAS_UPDATE', cono=600, emid=200305184)
 
         command = MessageCommand(module='FASM', submodule='CAPEX')
-        await command.doInsertHSCode(cono=600, dvno="USFG", hscode=0, frdt=None)
+        for i in range(100):
+            await command.doInsertHSCode(cono=600, dvno="USFG", hscode=0, frdt=None)
         return JSONResponse({'hello': 'world'})
 
