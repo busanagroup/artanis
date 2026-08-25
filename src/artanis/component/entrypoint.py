@@ -21,15 +21,24 @@ from artanis.config import Configuration
 from artanis.events import EventBus, EventConcurrencyMode, EventHandlerCompletionMode, BaseEvent
 
 
-async def configure_components(config: Configuration):
+async def artanis_startup(config: Configuration):
     await configure_redis(config)
     await configure_eventbus(config)
     await configure_message_queue(config)
 
 
+async def artanis_shutdown(config: Configuration):
+    await unconfigure_redis(config)
+
+
 async def configure_redis(config: Configuration):
     config.container.async_redis = await AsyncRedis.get_default_instance(create_instance=True)
     config.container.sync_redis = Redis.get_default_instance(create_instance=True)
+
+
+async def unconfigure_redis(config: Configuration):
+    await config.container.async_redis.aclose()
+    config.container.sync_redis.close()
 
 
 async def configure_eventbus(config: Configuration):

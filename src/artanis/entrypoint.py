@@ -18,33 +18,52 @@
 import inspect
 
 from artanis import patch
-from artanis.component.entrypoint import configure_components
 from artanis.config import Configuration
-from artanis.sqlentity.entrypoint import configure_database, unconfigure_database
 from artanis.utils import import_function
+
+entry_points = [
+    'artanis.taskiq.entrypoint',
+    'artanis.component.entrypoint',
+    'artanis.sqlentity.entrypoint',
+    'ecf.core.entrypoint',
+]
+
+
+def import_entrypoint_function(module_path: str, function_name: str):
+    try:
+        function = import_function(f"{module_path}:{function_name}")
+        return function
+    except Exception as e:
+        print(f"Error importing {function_name} from {module_path}: {e}")
+        return None
 
 
 async def artanis_startup(config: Configuration):
+    global entry_points
     config.server_is_ready = False
     try:
-        broker = import_function("artanis.taskiq.broker:batchjob_broker")
-        config.container.redis_pool = broker.get_redis_pool()
         patch.perform_patch()
-        await configure_components(config)
-        await configure_database(config)
-        function = import_function("ecf.core.entrypoint:do_startup")
-        if inspect.iscoroutinefunction(function):
-            await function()
+        for entry_point in entry_points:
+            startup_function = import_entrypoint_function(entry_point, "artanis_startup")
+            if startup_function:
+                if inspect.iscoroutinefunction(startup_function):
+                    await startup_function(config)
+                else:
+                    startup_function(config)
     finally:
         config.server_is_ready = True
 
 
 async def artanis_shutdown(config: Configuration):
+    global entry_points
     try:
-        function = import_function("ecf.core.entrypoint:do_shutdown")
-        if inspect.iscoroutinefunction(function):
-            await function()
-        await unconfigure_database(config)
+        for entry_point in reversed(entry_points):
+            shutdown_function = import_entrypoint_function(entry_point, "artanis_shutdown")
+            if shutdown_function:
+                if inspect.iscoroutinefunction(shutdown_function):
+                    await shutdown_function(config)
+                else:
+                    shutdown_function(config)
     finally:
         config.server_is_ready = False
 

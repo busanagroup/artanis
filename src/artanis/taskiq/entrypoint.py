@@ -13,19 +13,13 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from __future__ import annotations
-
-from artanis import utils
 from artanis.config import Configuration
+from artanis.taskiq.broker import batchjob_broker
 
 
 async def artanis_startup(config: Configuration):
-    load_modules()
+    config.container.redis_pool = batchjob_broker.get_redis_pool()
 
 
 async def artanis_shutdown(config: Configuration):
-    ...
-
-
-def load_modules():
-    utils.load_ecf_modules("ecf.bo", True)
+    batchjob_broker.shutdown()

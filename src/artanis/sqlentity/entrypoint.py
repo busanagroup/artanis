@@ -29,6 +29,14 @@ from .encoder import DecimalEncoder
 default_field_init: Optional[Callable[..., None]] = None
 
 
+async def artanis_startup(config: Configuration):
+    await configure_database(config)
+
+
+async def artanis_shutdown(config: Configuration):
+    await unconfigure_database(config)
+
+
 def patched_field_init(self, *args, null=True, **kwargs
                        ) -> None:
     label = kwargs.pop("label", None)

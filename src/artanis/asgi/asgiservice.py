@@ -67,8 +67,8 @@ class ASGIService(BaseASGIService):
                 pass
 
         async def process_startup():
-            loop = asyncio.get_event_loop()
-            loop.create_task(internal_scheduler())
+            # loop = asyncio.get_event_loop()
+            # loop.create_task(internal_scheduler())
             await artanis_startup(config)
             await self.start()
 
