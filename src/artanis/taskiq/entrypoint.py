@@ -22,4 +22,4 @@ async def artanis_startup(config: Configuration):
 
 
 async def artanis_shutdown(config: Configuration):
-    batchjob_broker.shutdown()
+    await batchjob_broker.shutdown()
