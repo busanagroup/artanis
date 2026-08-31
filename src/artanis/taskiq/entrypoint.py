@@ -14,12 +14,22 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from artanis.config import Configuration
-from artanis.taskiq.broker import batchjob_broker
+from artanis.taskiq.broker import batchjob_broker, task_broker, event_broker
 
 
 async def artanis_startup(config: Configuration):
     config.container.redis_pool = batchjob_broker.get_redis_pool()
 
 
+async def exec_no_except(func, *args, **kwargs):
+    try:
+        return await func(*args, **kwargs)
+    except Exception as e:
+        # Handle or log the exception as needed
+        pass
+
+
 async def artanis_shutdown(config: Configuration):
-    await batchjob_broker.shutdown()
+    await exec_no_except(batchjob_broker.shutdown)
+    await exec_no_except(task_broker.shutdown)
+    await exec_no_except(event_broker.shutdown)

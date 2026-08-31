@@ -234,7 +234,7 @@ class Configuration(Singleton, SyncLock, Listenable):
             self.ARTANIS_STATIC_BINDTYPE: 'tcp',
             self.ARTANIS_STATIC_BIND: '0.0.0.0:8005',
 
-            self.ARTANIS_JOB_ENABLED: 'false',
+            self.ARTANIS_JOB_ENABLED: 'true',
             self.ARTANIS_JOB_INSTANCES: '1',
             self.ARTANIS_JOB_PROCESSES: '8',
             self.ARTANIS_JOB_MAXJOB: '32',
