@@ -19,7 +19,7 @@ __all__ = ['Startable', 'AsyncStartable', 'StartableManager',
            'AsyncStartableManager', 'StartableListener', 'AsyncStartableListener',
            'LifeCycleManager', 'AsyncLifeCycleManager']
 
-import asyncio
+import inspect
 import logging
 import typing
 
@@ -107,7 +107,7 @@ class AsyncStartableListener(BaseStartableListener, AsyncFailureListener, AsyncC
     async def on_starting(self, obj):
         """Facilitating to notify observer upon starting event"""
         if self._starting:
-            if asyncio.iscoroutinefunction(self._starting):
+            if inspect.iscoroutinefunction(self._starting):
                 await self._starting(obj)
             else:
                 self._starting(obj)
@@ -115,7 +115,7 @@ class AsyncStartableListener(BaseStartableListener, AsyncFailureListener, AsyncC
     async def on_started(self, obj):
         """Facilitating to notify observer upon started event"""
         if self._started:
-            if asyncio.iscoroutinefunction(self._started):
+            if inspect.iscoroutinefunction(self._started):
                 await self._started(obj)
             else:
                 self._started(obj)
@@ -123,7 +123,7 @@ class AsyncStartableListener(BaseStartableListener, AsyncFailureListener, AsyncC
     async def on_stopping(self, obj):
         """Facilitating to notify observer upon stopping event"""
         if self._stopping:
-            if asyncio.iscoroutinefunction(self._stopping):
+            if inspect.iscoroutinefunction(self._stopping):
                 await self._stopping(obj)
             else:
                 self._stopping(obj)
@@ -131,7 +131,7 @@ class AsyncStartableListener(BaseStartableListener, AsyncFailureListener, AsyncC
     async def on_stopped(self, obj):
         """Facilitating to notify observer upon stopped event"""
         if self._stopped:
-            if asyncio.iscoroutinefunction(self._stopped):
+            if inspect.iscoroutinefunction(self._stopped):
                 await self._stopped(obj)
             else:
                 self._stopped(obj)
@@ -265,7 +265,8 @@ class Startable(BaseStartable, Configurable):
 
     def start(self):
         """Perform Starting this component"""
-        self.configure() if not self.is_configured() else None
+        if not self.is_configured():
+            self.configure()
         self.do_beforestart()
         lock = self.get_lock()
         lock.acquire()
@@ -340,7 +341,8 @@ class AsyncStartable(BaseStartable, AsyncConfigurable):
 
     async def start(self):
         """Perform Starting this component"""
-        self.configure() if not self.is_configured() else None
+        if not self.is_configured():
+            await self.configure()
         await self.do_beforestart()
         lock = self.get_lock()
         await lock.acquire()
@@ -372,14 +374,14 @@ class AsyncStartable(BaseStartable, AsyncConfigurable):
             await self._set_failed(exc)
             raise exc
         finally:
-            self.lock.release()
+            lock.release()
             await self.do_afterstop()
 
     async def _set_starting(self):
         self._state = BaseStartable.STARTING
         for listener in self.get_listeners():
             start_func = listener.on_starting
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self)
             else:
                 start_func(self)
@@ -388,7 +390,7 @@ class AsyncStartable(BaseStartable, AsyncConfigurable):
         self._state = BaseStartable.STARTED
         for listener in self.get_listeners():
             start_func = listener.on_started
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self)
             else:
                 start_func(self)
@@ -397,7 +399,7 @@ class AsyncStartable(BaseStartable, AsyncConfigurable):
         self._state = BaseStartable.STOPPING
         for listener in self.get_listeners():
             start_func = listener.on_stopping
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self)
             else:
                 start_func(self)
@@ -406,7 +408,7 @@ class AsyncStartable(BaseStartable, AsyncConfigurable):
         self._state = BaseStartable.STOPPED
         for listener in self.get_listeners():
             start_func = listener.on_stopped
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self)
             else:
                 start_func(self)
@@ -415,7 +417,7 @@ class AsyncStartable(BaseStartable, AsyncConfigurable):
         self._state = BaseStartable.STOPPED
         for listener in self.get_listeners():
             start_func = listener.on_failure
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self, ex)
             else:
                 start_func(self, ex)

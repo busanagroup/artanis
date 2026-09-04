@@ -18,7 +18,7 @@
 __all__ = ['BaseListenable', 'Listenable', 'Failable', 'BaseListener', 'FailureListener',
            'AsyncFailureListener', 'AsyncFailable']
 
-import asyncio
+import inspect
 
 
 class BaseListener(object):
@@ -53,7 +53,7 @@ class AsyncFailureListener(FailureListener):
     async def on_failure(self, obj, exc):
         """Facilitating to notify observer upon failure event"""
         if self._failure:
-            if asyncio.iscoroutinefunction(self._failure):
+            if inspect.iscoroutinefunction(self._failure):
                 await self._failure(obj, exc)
             else:
                 self._failure(obj, exc)
@@ -77,7 +77,7 @@ class AsyncFailable(Failable):
     async def _set_failed(self, ex: Exception):
         for listener in self.get_listeners():
             failure_func = listener.on_failure
-            if asyncio.iscoroutinefunction(failure_func):
+            if inspect.iscoroutinefunction(failure_func):
                 await failure_func(self, ex)
             else:
                 failure_func(self, ex)

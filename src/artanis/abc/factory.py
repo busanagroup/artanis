@@ -19,7 +19,7 @@ __all__ = ['WorkerFactory', ]
 
 import weakref
 from abc import ABC, abstractmethod
-from multiprocessing.context import BaseContext
+from multiprocessing.context import BaseContext # noqa
 from multiprocessing.synchronize import Event as EventType
 
 from artanis.abc.configurable import Configurable
@@ -42,7 +42,7 @@ class WorkerFactory(Configurable, Singleton, ABC):
 
     def get_process_count(self):
         parent = self.get_parent()
-        return parent.get_process_count()
+        return parent.get_process_count()  # noqa
 
     def get_processes(self, processes: list):
         return len([a for a, b in processes if b == self.worker_name])

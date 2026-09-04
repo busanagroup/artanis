@@ -18,7 +18,7 @@
 __all__ = ['BaseConfigurable', 'Configurable', 'ConfigurableListener',
            'AsyncConfigurable', 'AsyncConfigurableListener']
 
-import asyncio
+import inspect
 
 from artanis.abc.listenable import Listenable, BaseListener
 from artanis.abc.objlock import BaseLocker
@@ -61,7 +61,7 @@ class AsyncConfigurableListener(ConfigurableListener):
     async def on_configuring(self, obj, config):
         """Facilitating to notify observer upon configuring event"""
         if self._configuring:
-            if asyncio.iscoroutinefunction(self._configuring):
+            if inspect.iscoroutinefunction(self._configuring):
                 await self._configuring(obj, config)
             else:
                 self._configuring(obj, config)
@@ -69,7 +69,7 @@ class AsyncConfigurableListener(ConfigurableListener):
     async def on_configured(self, obj, config):
         """Facilitating to notify observer upon configured event"""
         if self._configured:
-            if asyncio.iscoroutinefunction(self._configured):
+            if inspect.iscoroutinefunction(self._configured):
                 await self._configured(obj, config)
             else:
                 self._configured(obj, config)
@@ -101,7 +101,7 @@ class BaseConfigurable(Listenable):
 
     def get_configuration(self) -> 'Configuration':
         """
-        Get the configuration object commonly rfequired upon configuring component
+        Get the configuration object commonly required upon configuring component
         @return:
         """
         return self._configuration
@@ -181,7 +181,7 @@ class AsyncConfigurable(BaseConfigurable, BaseLocker):
         config = self.get_configuration()
         for listener in self.get_listeners():
             config_func = listener.on_configured
-            if asyncio.iscoroutinefunction(config_func):
+            if inspect.iscoroutinefunction(config_func):
                 await config_func(self, config)
             else:
                 config_func(self, config)
@@ -191,7 +191,7 @@ class AsyncConfigurable(BaseConfigurable, BaseLocker):
         config = self.get_configuration()
         for listener in self.get_listeners():
             config_func = listener.on_configuring
-            if asyncio.iscoroutinefunction(config_func):
+            if inspect.iscoroutinefunction(config_func):
                 await config_func(self, config)
             else:
                 config_func(self, config)

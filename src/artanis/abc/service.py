@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 
 
-import asyncio
+import inspect
 import typing
 
 from artanis.abc.configurable import Configurable
@@ -90,7 +90,7 @@ class StartableService(Configurable):
         self._state = self.STARTING
         for listener in self.get_listeners():
             start_func = listener.on_starting
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self)
             else:
                 start_func(self)
@@ -99,7 +99,7 @@ class StartableService(Configurable):
         self._state = self.STARTED
         for listener in self.get_listeners():
             start_func = listener.on_started
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self)
             else:
                 start_func(self)
@@ -108,7 +108,7 @@ class StartableService(Configurable):
         self._state = self.STOPPING
         for listener in self.get_listeners():
             start_func = listener.on_stopping
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self)
             else:
                 start_func(self)
@@ -117,7 +117,7 @@ class StartableService(Configurable):
         self._state = self.STOPPED
         for listener in self.get_listeners():
             start_func = listener.on_stopped
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self)
             else:
                 start_func(self)
@@ -126,7 +126,7 @@ class StartableService(Configurable):
         self._state = self.STOPPED
         for listener in self.get_listeners():
             start_func = listener.on_failure
-            if asyncio.iscoroutinefunction(start_func):
+            if inspect.iscoroutinefunction(start_func):
                 await start_func(self, ex)
             else:
                 start_func(self, ex)
