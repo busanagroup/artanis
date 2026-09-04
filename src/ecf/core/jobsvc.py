@@ -13,6 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import abc
 import datetime as dt
 import enum
 import uuid
@@ -117,14 +118,22 @@ class JobAssignment(object):
                 await self.execute_job()
 
 
-class BaseJob(BaseController):
+class BaseJob(BaseController, abc.ABC):
     __JOB_TYPE__: int = JOBType.REGULAR_JOB.value
 
     async def __getsession__(self, *args, **kwargs):
         session = JOBSession()
         return session
 
+    @abc.abstractmethod
     async def execute(self, session):
+        raise NotImplementedError
+
+
+class BaseTaskOperation(abc.ABC):
+
+    @abc.abstractmethod
+    async def execute(self, session, *args, **kwargs):
         raise NotImplementedError
 
 
