@@ -135,7 +135,7 @@ def import_function(path: str, attach=None):
         traceback.print_exception(error)
         raise error
     try:
-        func = eval(func_name, vars(module))
+        func = getattr(module, func_name)
     except NameError:
         raise NoAppError(f"Cannot load application from '{module_path}', application not found.")
     except Exception as error:

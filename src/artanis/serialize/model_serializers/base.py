@@ -85,7 +85,6 @@ class ModelSerializer:
     _class_name: t.Final[str] = "ModelSerializer"
     _modules: t.Final[dict[types.MLLib, str]] = {
         "keras": "tensorflow",
-        "sklearn": "sklearn",
         "tensorflow": "tensorflow",
         "torch": "pytorch",
     }
