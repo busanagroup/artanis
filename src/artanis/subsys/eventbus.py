@@ -38,6 +38,7 @@ class EventBusSubsystem(Subsystem):
         params.append('--use-process-pool')
         # params.extend(['--log-format', config.log_format[0]])
         params.extend(['--max-async-tasks', config.get_property_value(config.ARTANIS_EVENT_MAXEVENT, '32')])
+        params.extend(['--max-prefetch', '4'])
         params.append('artanis.taskiq.broker:event_broker')
         params.append('artanis.taskiq.tasks')
         params.append('artanis.taskiq.scheduler')
