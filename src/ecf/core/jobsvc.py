@@ -14,12 +14,18 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import abc
+import asyncio
 import datetime as dt
 import enum
 import uuid
+from _asyncio import Task
+from asyncio import _CoroutineLike
+from asyncio.taskgroups import _T
+from typing import Callable, Awaitable
 
 from taskiq.kicker import AsyncKicker
 
+from artanis import utils
 from artanis.component.validators import validators
 from artanis.sqlentity import entity
 from artanis.taskiq.broker import batchjob_broker, task_broker
@@ -164,6 +170,31 @@ class JobRunner:
     def get_task_type(self):
         service_class = JobObjectHandler.get_service_class(self.job_service)
         return service_class.__JOB_TYPE__
+
+
+class TaskGroupExecution(asyncio.TaskGroup):
+
+    def __init__(self, max_concurrency: int = 4):
+        super().__init__()
+        self.semaphore = asyncio.Semaphore(max_concurrency)
+
+    async def execute_task(self, task_func: Callable[..., Awaitable]):
+        async with self.semaphore:
+            if utils.is_async_callable(task_func):
+                await task_func()
+            else:
+                await utils.run_in_threadpool(task_func)
+
+    def create_task(
+            self,
+            coro: _CoroutineLike[_T],
+            **kwargs
+    ) -> Task[_T]:
+        async def wrapped_coro():
+            async with self.semaphore:
+                return await coro
+
+        return super().create_task(wrapped_coro(), **kwargs)
 
 
 class BatchJob(BaseJob): ...
