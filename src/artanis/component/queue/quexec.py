@@ -83,7 +83,7 @@ class BaseQueueDispatcher:
     async def get_list(self, status: int = 0) -> list[uuid.UUID]:
         if not self.entity:
             self.entity = self.get_entity('efmque')
-        return await self.entity.get_queue_except(self.queue_id, que_type=QueueType.CLOUD_EVENT.value, status=status)
+        return await self.entity.queue_get_except(self.queue_id, que_type=QueueType.CLOUD_EVENT.value, status=status)
 
     async def dispatch_item(self, queue_id: uuid.UUID):
         if not self.entity:
@@ -92,7 +92,7 @@ class BaseQueueDispatcher:
         if not queue_item or queue_item.mquestat not in [0, 9]:
             return
         try:
-            await self.entity.update_status(queue_id, status=1)
+            await self.entity.queue_update_status(queue_id, status=1)
             if self.broker._connection is None:
                 await self.broker.connect()
             if self.exchange_name != queue_item.mquexchg:
@@ -113,9 +113,9 @@ class BaseQueueDispatcher:
                     queue_item.mquedata,
                     exchange=self.queue_exchange,
                 )
-            await self.entity.delete_queue(queue_id)
+            await self.entity.queue_delete(queue_id)
         except Exception as ex:
-            await self.entity.update_status(queue_id, status=9)
+            await self.entity.queue_update_status(queue_id, status=9)
             logger.error("Error dispatching queue item %s", queue_id)
             logger.exception(ex)
 
@@ -151,7 +151,7 @@ class KRBDispatcher(BaseQueueDispatcher):
     async def get_list(self, status: int = 0) -> list[uuid.UUID]:
         if not self.entity:
             self.entity = self.get_entity('efmque')
-        return await self.entity.get_queue_except(self.queue_id, que_type=QueueType.KR_BRIDGE.value, status=status)
+        return await self.entity.queue_get_except(self.queue_id, que_type=QueueType.KR_BRIDGE.value, status=status)
 
     async def dispatch_item(self, queue_id: uuid.UUID):
         if not self.entity:
@@ -160,7 +160,7 @@ class KRBDispatcher(BaseQueueDispatcher):
         if not queue_item or queue_item.mquestat != 0:
             return
         try:
-            await self.entity.update_status(queue_id, status=1)
+            await self.entity.queue_update_status(queue_id, status=1)
             if self.broker._connection is None:
                 await self.broker.connect()
             if self.exchange_name != queue_item.mquexchg:
@@ -173,8 +173,8 @@ class KRBDispatcher(BaseQueueDispatcher):
                 )
                 await self.broker.declare_exchange(self.queue_exchange)
             await self.broker.publish(queue_item.mquedata, exchange=self.queue_exchange)
-            await self.entity.delete_queue(queue_id)
+            await self.entity.queue_delete(queue_id)
         except Exception as ex:
-            await self.entity.update_status(queue_id, status=9)
+            await self.entity.queue_update_status(queue_id, status=9)
             logger.error("Error dispatching KRB queue item %s", queue_id)
             logger.exception(ex)

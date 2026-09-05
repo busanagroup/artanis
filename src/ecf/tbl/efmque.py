@@ -41,7 +41,7 @@ class efmque(Entity):
         ]
 
     @classmethod
-    async def create_queue(cls, exchange: str, route: str, data: bytes, que_type: int = 0, status: int = 0):
+    async def queue_add(cls, exchange: str, route: str, data: bytes, que_type: int = 0, status: int = 0):
         queue_id = uuid.uuid7()
         await cls.create(
             mquepkid=queue_id,
@@ -55,7 +55,7 @@ class efmque(Entity):
         return queue_id
 
     @classmethod
-    async def get_queue_except(cls, queue_id: uuid.UUID, que_type: int = 0, status: int = 0):
+    async def queue_get_except(cls, queue_id: uuid.UUID, que_type: int = 0, status: int = 0):
         # select mquepkid from efmque
         #   where mquetype = :que_type
         #     and mquestat = :status
@@ -71,9 +71,9 @@ class efmque(Entity):
         ).all().values_list('mquepkid', flat=True)
 
     @classmethod
-    async def update_status(cls, queue_id: uuid.UUID, status: int):
+    async def queue_update_status(cls, queue_id: uuid.UUID, status: int):
         await cls.filter(mquepkid=queue_id).update(mquestat=status)
 
     @classmethod
-    async def delete_queue(cls, queue_id: uuid.UUID):
+    async def queue_delete(cls, queue_id: uuid.UUID):
         await cls.filter(mquepkid=queue_id).delete()

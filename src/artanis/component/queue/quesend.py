@@ -45,7 +45,7 @@ class QueueSubmitter:
     async def submit_queue_item(self):
         if not self.entity:
             self.entity = self.get_entity('efmque')
-        queue_id: uuid.UUID = await self.entity.create_queue(self.exchange, self.route_key, self.message, que_type=self.get_queue_type())
+        queue_id: uuid.UUID = await self.entity.queue_add(self.exchange, self.route_key, self.message, que_type=self.get_queue_type())
         if not self.execute_immediately:
             return
         await AsyncKicker(
