@@ -17,8 +17,9 @@ from __future__ import annotations
 
 import functools
 import inspect
-import pickle
 import typing as t
+
+from msgpack import pack, unpack
 
 from artanis.caching import hashkey, _KT, NullContext
 from artanis.config import Configuration
@@ -32,8 +33,8 @@ class RedisCache:
     def __init__(
             self,
             namespace: str,
-            ttl: int=1800, # 30 minutes cached
-            cache_enforce: bool=True,
+            ttl: int = 1800,  # 30 minutes cached
+            cache_enforce: bool = True,
     ):
         self.config = Configuration.get_default_instance(create_instance=False)
         self.__async_redis: AsyncRedis | None = None
@@ -60,6 +61,7 @@ class RedisCache:
             key: t.Callable[..., _KT] = hashkey
     ):
         lock = NullContext()
+
         def decorator(func):
             if inspect.iscoroutinefunction(func):
                 async def wrapper(sself, *args, **kwargs):
@@ -112,27 +114,13 @@ class RedisCache:
                             pass
                     return val
             return functools.wraps(func)(wrapper)
+
         return decorator
 
     @staticmethod
     def deserialize(value):
-        return pickle.loads(value)
+        return unpack(value)
 
     @staticmethod
     def serialize(value):
-        return pickle.dumps(value)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return pack(value)
