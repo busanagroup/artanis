@@ -175,6 +175,20 @@ class Configuration(Singleton, SyncLock, Listenable):
         self.container: State | None = State({})
         self._server_up: bool = False
 
+
+    def get_dbengine(self):
+        if self.container is not None and hasattr(self.container, 'dbengine'):
+            return self.container.dbengine
+        return None
+
+    def get_redis(self, async_mode: bool = True):
+        if self.container is not None:
+            if async_mode and hasattr(self.container, 'async_redis'):
+                return self.container.async_redis
+            elif not async_mode and hasattr(self.container, 'sync_redis'):
+                return self.container.sync_redis
+        return None
+
     @property
     def server_is_ready(self):
         return self._server_up

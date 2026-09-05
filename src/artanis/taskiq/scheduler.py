@@ -24,6 +24,6 @@ scheduler = TaskiqScheduler(broker=task_broker, sources=[LabelScheduleSource(tas
 
 
 @task_broker.task(schedule=[{"cron": "* * * * *"}])
-async def evaluate_schedule():
+async def evaluate_cron():
     from .tasks import CronTaskHandler, TaskRequest
     return await CronTaskHandler(TaskRequest("SYSTEM", None))
