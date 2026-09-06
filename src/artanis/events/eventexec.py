@@ -86,5 +86,5 @@ class EventDispatcher:
         ]:
             if issubclass(parameter.annotation, BaseEvent):
                 klass = parameter.annotation
-                params.append(klass.model_validate_json(event))
+                params.append(klass.model_validate(event))
         await concurrency.run(func, *params)

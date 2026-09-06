@@ -82,7 +82,7 @@ class _CommandMethod:
         return await self._send(self._method_name, *args, **kwargs)
 
 
-class MessageCommand(BaseMessage):
+class KRBMessageCommand(BaseMessage):
 
     def __getattr__(self, func_name: str):
         return _CommandMethod(self.execute, func_name)

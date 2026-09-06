@@ -13,8 +13,9 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-
+import abc
 import asyncio
+import json
 import logging
 import typing as t
 import uuid
@@ -23,12 +24,14 @@ from faststream.rabbit import RabbitBroker, RabbitExchange, ExchangeType
 
 from artanis.component.queue.types import QueueType
 from artanis.config import Configuration
+from artanis.events import converter
+from artanis.events.cloudevents.bindings import rabbitmq
 from artanis.utils import import_function
 
 logger = logging.getLogger(__name__)
 
 
-class BaseQueueDispatcher:
+class BaseQueueDispatcher(abc.ABC):
     __safe_exec: t.Callable | None = None
     __get_entity: t.Callable | None = None
     __exchange_type: ExchangeType | None = None
@@ -80,44 +83,13 @@ class BaseQueueDispatcher:
             logger.exception(ex)
         return False
 
+    @abc.abstractmethod
     async def get_list(self, status: int = 0) -> list[uuid.UUID]:
-        if not self.entity:
-            self.entity = self.get_entity('efmque')
-        return await self.entity.queue_get_except(self.queue_id, que_type=QueueType.CLOUD_EVENT.value, status=status)
+        ...
 
+    @abc.abstractmethod
     async def dispatch_item(self, queue_id: uuid.UUID):
-        if not self.entity:
-            self.entity = self.get_entity('efmque')
-        queue_item = await self.entity.get_or_none(mquepkid=queue_id)
-        if not queue_item or queue_item.mquestat not in [0, 9]:
-            return
-        try:
-            await self.entity.queue_update_status(queue_id, status=1)
-            if self.broker._connection is None:
-                await self.broker.connect()
-            if self.exchange_name != queue_item.mquexchg:
-                self.exchange_name = queue_item.mquexchg
-                self.queue_exchange = RabbitExchange(
-                    name=self.exchange_name,
-                    type=self.__exchange_type
-                )
-                await self.broker.declare_exchange(self.queue_exchange)
-            if queue_item.mquerout:
-                await self.broker.publish(
-                    queue_item.mquedata,
-                    exchange=self.queue_exchange,
-                    routing_key=queue_item.mquerout
-                )
-            else:
-                await self.broker.publish(
-                    queue_item.mquedata,
-                    exchange=self.queue_exchange,
-                )
-            await self.entity.queue_delete(queue_id)
-        except Exception as ex:
-            await self.entity.queue_update_status(queue_id, status=9)
-            logger.error("Error dispatching queue item %s", queue_id)
-            logger.exception(ex)
+        ...
 
     @classmethod
     def get_service_class(cls, service_name: str):
@@ -143,6 +115,57 @@ class QueueDispatcher(BaseQueueDispatcher):
     __exchange_type: ExchangeType = ExchangeType.TOPIC
     __dispatched = False
 
+    async def get_list(self, status: int = 0) -> list[uuid.UUID]:
+        if not self.entity:
+            self.entity = self.get_entity('efmque')
+        return await self.entity.queue_get_except(self.queue_id, que_type=QueueType.CLOUD_EVENT.value, status=status)
+
+    def convert(self, message: bytes) -> rabbitmq.RabbitMQMessage:
+        event = json.loads(message)
+        cloudevent = converter.to_cloudevents(event)
+        return rabbitmq.to_binary_event(cloudevent)
+
+    async def dispatch_item(self, queue_id: uuid.UUID):
+        if not self.entity:
+            self.entity = self.get_entity('efmque')
+        queue_item = await self.entity.get_or_none(mquepkid=queue_id)
+        if not queue_item or queue_item.mquestat not in [0, 9]:
+            return
+        try:
+            await self.entity.queue_update_status(queue_id, status=1)
+            if self.broker._connection is None:
+                await self.broker.connect()
+            if self.exchange_name != queue_item.mquexchg:
+                self.exchange_name = queue_item.mquexchg
+                self.queue_exchange = RabbitExchange(
+                    name=self.exchange_name,
+                    type=self.__exchange_type,
+                    durable=True,
+                    auto_delete=True
+                )
+                await self.broker.declare_exchange(self.queue_exchange)
+            message = self.convert(queue_item.mquedata)
+            if queue_item.mquerout:
+                await self.broker.publish(
+                    message.body,
+                    headers=message.headers,
+                    content_type=message.content_type,
+                    exchange=self.queue_exchange,
+                    routing_key=queue_item.mquerout
+                )
+            else:
+                await self.broker.publish(
+                    message.body,
+                    headers=message.headers,
+                    content_type=message.content_type,
+                    exchange=self.queue_exchange,
+                )
+            await self.entity.queue_delete(queue_id)
+        except Exception as ex:
+            await self.entity.queue_update_status(queue_id, status=9)
+            logger.error("Error dispatching queue item %s", queue_id)
+            logger.exception(ex)
+
 
 class KRBDispatcher(BaseQueueDispatcher):
     __exchange_type: ExchangeType = ExchangeType.FANOUT
@@ -157,7 +180,7 @@ class KRBDispatcher(BaseQueueDispatcher):
         if not self.entity:
             self.entity = self.get_entity('efmque')
         queue_item = await self.entity.get_or_none(mquepkid=queue_id)
-        if not queue_item or queue_item.mquestat != 0:
+        if not queue_item or queue_item.mquestat not in [0, 9]:
             return
         try:
             await self.entity.queue_update_status(queue_id, status=1)

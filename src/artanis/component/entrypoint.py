@@ -13,9 +13,12 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import json
+
 from faststream.rabbit import RabbitBroker
 from taskiq.kicker import AsyncKicker
 
+from artanis.component.queue.quesend import QueueSubmitter
 from artanis.component.redis import AsyncRedis, Redis
 from artanis.config import Configuration
 from artanis.events import EventBus, EventConcurrencyMode, EventHandlerCompletionMode, BaseEvent
@@ -60,6 +63,13 @@ async def configure_message_queue(config: Configuration):
 
 async def propagate_event(event: BaseEvent) -> None:
     from artanis.taskiq.broker import event_broker
-    await AsyncKicker(broker=event_broker, task_name="artanis_event", labels={}).kiq(
-        event.__pydantic_serializer__.to_json(event),
-    )
+    event_type = event.event_type
+    message: dict = event.model_dump(mode="json")
+    await AsyncKicker(broker=event_broker, task_name="artanis_event", labels={}).kiq(message)
+    await propagate_event_to_amqp(event_type, message)
+
+async def propagate_event_to_amqp(event_type: str, message: dict) -> None:
+    config = Configuration.get_default_instance(create_instance=False)
+    exchange = config.get_property_value(config.ARTANIS_MQ_EXCHANGE)
+    amqp_message = json.dumps(message).encode("utf-8")
+    await QueueSubmitter(exchange, event_type, amqp_message)
