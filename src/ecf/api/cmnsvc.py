@@ -16,7 +16,6 @@
 from starlette.responses import JSONResponse
 
 from artanis.asgi.asgiendpoint import published
-from artanis.component.queue.krbridge import MessageNotifier, MessageCommand
 from artanis.events import BaseEvent
 from ecf.core.apisvc import *
 
@@ -24,7 +23,9 @@ from ecf.core.apisvc import *
 class SalaryCalculationEvent(BaseEvent, event_type="com.busanagroup.artanis.hrms.payroll.salary.calculated"):
     message: dict
 
-class SalaryRollbackEvent(SalaryCalculationEvent, event_type="com.busanagroup.artanis.hrms.payroll.salary.rollback"):...
+
+class SalaryRollbackEvent(SalaryCalculationEvent,
+                          event_type="com.busanagroup.artanis.hrms.payroll.salary.rollback"): ...
 
 
 class cmnsvc(APIService):
@@ -33,13 +34,14 @@ class cmnsvc(APIService):
     @published(path='/userinfo', methods=['GET'])
     async def get_user_info(self):
         message = {'hello': 'world'}
-        # await self.eventbus.emit(SalaryCalculationEvent(message=message))
+        await self.eventbus.emit(SalaryCalculationEvent(message=message))
         # await self.eventbus.emit(SalaryRollbackEvent(message=message))
-        event = MessageNotifier(module='TASM', submodule='HREMAS')
-        await event.notify('HREMAS_UPDATE', cono=600, emid=200305184)
+        # event = SalaryCalculationEvent(message=message)
+        # pprint.PrettyPrinter(indent=2).pprint(event.model_dump())
+        # event = MessageNotifier(module='TASM', submodule='HREMAS')
+        # await event.notify('HREMAS_UPDATE', cono=600, emid=200305184)
 
-        command = MessageCommand(module='FASM', submodule='CAPEX')
-        for i in range(100):
-            await command.doInsertHSCode(cono=600, dvno="USFG", hscode=0, frdt=None)
+        # command = KRBMessageCommand(module='FASM', submodule='CAPEX')
+        #         for i in range(100):
+        #             await command.doInsertHSCode(cono=600, dvno="USFG", hscode=0, frdt=None)
         return JSONResponse({'hello': 'world'})
-

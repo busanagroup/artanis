@@ -18,10 +18,7 @@ import asyncio
 import datetime as dt
 import enum
 import uuid
-from _asyncio import Task
-from asyncio import _CoroutineLike
-from asyncio.taskgroups import _T
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, Coroutine
 
 from taskiq.kicker import AsyncKicker
 
@@ -187,9 +184,9 @@ class TaskGroupExecution(asyncio.TaskGroup):
 
     def create_task(
             self,
-            coro: _CoroutineLike[_T],
+            coro: Coroutine,
             **kwargs
-    ) -> Task[_T]:
+    ):
         async def wrapped_coro():
             async with self.semaphore:
                 return await coro
