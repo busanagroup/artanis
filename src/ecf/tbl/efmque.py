@@ -31,7 +31,7 @@ class efmque(Entity):
     mquexchg = fields.CharField(max_length=48, label='Exchange Name')
     mquerout = fields.CharField(max_length=64, label='Routing key')
     mquetype = fields.IntField(label='Queue Type', index=True)
-    mquedata = fields.BinaryField(label='Queue Data')
+    mquedata = fields.JSONField(label='Queue Data')
     mquestat = fields.IntField(label='Queue Status', index=True)
     mquetime = fields.DatetimeField(auto_now_add=True, label='Timestamp')
 
@@ -41,7 +41,7 @@ class efmque(Entity):
         ]
 
     @classmethod
-    async def queue_add(cls, exchange: str, route: str, data: bytes, que_type: int = 0, status: int = 0):
+    async def queue_add(cls, exchange: str, route: str, data, que_type: int = 0, status: int = 0):
         queue_id = uuid.uuid7()
         await cls.create(
             mquepkid=queue_id,

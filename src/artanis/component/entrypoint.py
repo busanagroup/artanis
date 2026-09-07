@@ -70,5 +70,5 @@ async def propagate_event(event: BaseEvent) -> None:
 async def propagate_event_amqp(event: BaseEvent) -> None:
     config = Configuration.get_default_instance(create_instance=False)
     exchange = config.get_property_value(config.ARTANIS_MQ_EXCHANGE)
-    amqp_message = event.model_dump_json().encode("utf-8")
+    amqp_message: dict = event.model_dump(mode="json")
     await QueueSubmitter(exchange, event.event_type, amqp_message)

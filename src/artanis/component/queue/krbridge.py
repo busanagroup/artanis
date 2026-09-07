@@ -20,7 +20,28 @@ import typing as t
 from artanis.component.queue.quesend import QueueSubmitter
 from artanis.component.queue.types import QueueType
 from artanis.config import Configuration
-from artanis.sqlentity.encoder import JSON_DUMPS
+from artanis.events import BaseEvent
+
+
+class MessageMode(enum.Enum):
+    COMMAND = 0
+    EVENT = 1
+
+
+class KRBMessageEvent(BaseEvent, event_type="com.busanagroup.bridge.event"):
+    module: str
+    submodule: str
+    event: str
+    param_args: tuple[t.Any, ...] | tuple[()] = ()
+    param_kwargs: dict = {}
+
+
+class KRBMessageCommand(BaseEvent, event_type="com.busanagroup.bridge.command"):
+    module: str
+    submodule: str
+    command: str
+    param_args: tuple[t.Any, ...] | tuple[()] = ()
+    param_kwargs: dict = {}
 
 
 class KRBridgeSubmitter(QueueSubmitter):
@@ -32,44 +53,35 @@ class KRBridgeSubmitter(QueueSubmitter):
         return QueueType.KR_BRIDGE.value
 
 
-class MessageMode(enum.Enum):
-    COMMAND = 0
-    EVENT = 1
-
-
 class BaseMessage:
 
     def __init__(
             self,
-            module: str | None = None,
-            submodule: str | None = None
+            module: str,
+            submodule: str
     ):
-        self.module = module
-        self.submodule = submodule
+        self.module: str = module
+        self.submodule: str = submodule
         config = Configuration.get_default_instance(create_instance=False)
         self.exchange_name = config.get_property_value(config.ARTANIS_MQ_EXCHANGE_KRB, "artanis.krbridge")
 
     def _encode(self, data: bytes) -> str:
-        return base64.b64encode(data)
+        return base64.b64encode(data).decode("utf-8")
 
 
-class MessageNotifier(BaseMessage):
+class KRBEventSender(BaseMessage):
 
     async def notify(self, event: str, *args, **kwargs):
-        parameters = [args, kwargs]
-        message_dict = dict(
-            msgtype=MessageMode.EVENT.value,
+        evt_message = KRBMessageEvent(
             module=self.module,
             submodule=self.submodule,
             event=event,
-            data=parameters
+            param_args=args,
+            param_kwargs=kwargs
         )
-        await KRBridgeSubmitter(
-            self.exchange_name,
-            "",
-            self._encode(JSON_DUMPS(message_dict).encode("utf-8")),
-            execute_immediately=True
-        )
+        route_key = f"{evt_message.event_type}.{self.module}.{self.submodule}"
+        message = evt_message.model_dump(mode="json")
+        await KRBridgeSubmitter(self.exchange_name, route_key, message, execute_immediately=True)
 
 
 class _CommandMethod:
@@ -82,23 +94,19 @@ class _CommandMethod:
         return await self._send(self._method_name, *args, **kwargs)
 
 
-class KRBMessageCommand(BaseMessage):
+class KRBCommandSender(BaseMessage):
 
     def __getattr__(self, func_name: str):
         return _CommandMethod(self.execute, func_name)
 
     async def execute(self, command: str, *args, **kwargs):
-        parameters = [args, kwargs]
-        message_dict = dict(
-            msgtype=MessageMode.COMMAND.value,
+        cmd_message = KRBMessageCommand(
             module=self.module,
             submodule=self.submodule,
             command=command,
-            data=parameters
+            param_args=args,
+            param_kwargs=kwargs
         )
-        await KRBridgeSubmitter(
-            self.exchange_name,
-            "",
-            self._encode(JSON_DUMPS(message_dict).encode("utf-8")),
-            execute_immediately=True
-        )
+        route_key = f"{cmd_message.event_type}.{self.module}.{self.submodule}"
+        message = cmd_message.model_dump(mode="json")
+        await KRBridgeSubmitter(self.exchange_name, route_key, message, execute_immediately=True)

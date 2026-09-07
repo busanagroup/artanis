@@ -59,7 +59,7 @@ async def artanis_event(event: dict):
     try:
         for klass, func in handler_list:
             await AsyncKicker(
-                broker=event_broker,
+                broker=task_broker,
                 task_name="artanis_event_execute",
                 labels={}
             ).kiq(
@@ -87,21 +87,21 @@ async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs
     return await handler(request)
 
 
-@task_broker.task(task_name="artanis_amqp")
+@event_broker.task(task_name="artanis_amqp")
 async def artanis_amqp(queue_id: str):
     from artanis.component.queue.quexec import QueueDispatcher
     config = Configuration.get_default_instance(create_instance=False)
     await QueueDispatcher(uuid.UUID(queue_id), broker=config.container.mq_broker)
 
 
-@task_broker.task(task_name="artanis_krbridge")
+@event_broker.task(task_name="artanis_krbridge")
 async def artanis_krbridge(queue_id: str):
     from artanis.component.queue.quexec import KRBDispatcher
     config = Configuration.get_default_instance(create_instance=False)
     await KRBDispatcher(uuid.UUID(queue_id), broker=config.container.mq_broker)
 
 
-@event_broker.task(task_name="artanis_event_execute")
+@task_broker.task(task_name="artanis_event_execute")
 async def artanis_event_execute(klass: str, func: str, event: dict):
     await EventDispatcher.dispatch(klass, func, event)
 

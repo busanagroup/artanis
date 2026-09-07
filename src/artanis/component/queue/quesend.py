@@ -13,7 +13,6 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-import json
 import typing as t
 import uuid
 
@@ -21,7 +20,7 @@ from taskiq.kicker import AsyncKicker
 
 from artanis.component.queue.types import QueueType
 from artanis.config import Configuration
-from artanis.taskiq.broker import task_broker
+from artanis.taskiq.broker import event_broker
 from artanis.utils import import_function
 
 
@@ -29,7 +28,7 @@ class QueueSubmitter:
     __safe_exec: t.Callable | None = None
     __get_entity: t.Callable | None = None
 
-    def __init__(self, exchange: str, route_key: str, message: bytes, execute_immediately: bool = True):
+    def __init__(self, exchange: str, route_key: str, message: t.Any, execute_immediately: bool = True):
         self.config = Configuration.get_default_instance(create_instance=False)
         self.entity = None
         self.exchange = exchange
@@ -46,11 +45,12 @@ class QueueSubmitter:
     async def submit_queue_item(self):
         if not self.entity:
             self.entity = self.get_entity('efmque')
-        queue_id: uuid.UUID = await self.entity.queue_add(self.exchange, self.route_key, self.message, que_type=self.get_queue_type())
+        queue_id: uuid.UUID = await self.entity.queue_add(self.exchange, self.route_key, self.message,
+                                                          que_type=self.get_queue_type())
         if not self.execute_immediately:
             return
         await AsyncKicker(
-            broker=task_broker,
+            broker=event_broker,
             task_name=self.get_task_name(),
             labels={}
         ).kiq(str(queue_id))
@@ -73,4 +73,3 @@ class QueueSubmitter:
 
     def __await__(self):
         return self.submit_queue_item().__await__()
-

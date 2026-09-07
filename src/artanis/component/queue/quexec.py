@@ -38,42 +38,40 @@ class BaseQueueDispatcher(abc.ABC):
     __dispatched: bool | None = None
 
     def __init__(self, queue_id: uuid.UUID, broker: RabbitBroker, delay_every: int = 100):
-        self.queue = asyncio.Queue()
         self.queue_id: uuid.UUID = queue_id
-        self.queue.put_nowait(self.queue_id)
+        self.queue_list = [queue_id]
         self.config = Configuration.get_default_instance(create_instance=False)
         self.entity = None
         self.delay_every: int = delay_every
         self.broker: RabbitBroker = broker
         self.exchange_name: str | None = None
         self.queue_exchange: RabbitExchange | None = None
+        self.status_list: list[int] = [0, 91, 92, 93]
+        self.error_list: list[int] = [91, 92, 93, 99]
 
     async def dispatch(self):
         if self.__class__.__dispatched:
             return
         self.__class__.__dispatched = True
         try:
-            await self.dispatch_queue(mode=1)
+            for i in range(3, 0, -1):
+                await self.dispatch_queue(mode=i)
             while True:
                 if not await self.dispatch_queue(mode=0):
                     break
                 await asyncio.sleep(0.1)
         finally:
             self.__class__.__dispatched = False
-            if self.broker._connection is not None:
-                await self.broker.stop()
 
     async def dispatch_queue(self, mode: int = 0) -> bool:
-        queue_list = await self.get_list(status=0 if mode == 0 else 9)
-        for item in queue_list:
-            self.queue.put_nowait(item)
-        if self.queue.empty():
+        self.queue_list += await self.get_list(status=self.status_list[mode])
+        if not self.queue_list:
             return False
         try:
             dispatched_total: int = 0
-            while not self.queue.empty():
-                queue_id = await self.queue.get()
-                await self.dispatch_item(queue_id)
+            while self.queue_list:
+                queue_id = self.queue_list.pop(0)
+                await self.dispatch_item(queue_id, mode=mode)
                 dispatched_total += 1
                 if dispatched_total % self.delay_every == 0:
                     await asyncio.sleep(0.1)
@@ -88,8 +86,13 @@ class BaseQueueDispatcher(abc.ABC):
         ...
 
     @abc.abstractmethod
-    async def dispatch_item(self, queue_id: uuid.UUID):
+    async def dispatch_item(self, queue_id: uuid.UUID, mode: int = 0):
         ...
+
+    @staticmethod
+    def convert(message: t.Any) -> rabbitmq.RabbitMQMessage:
+        cloudevent = converter.to_cloudevents(message)
+        return rabbitmq.to_binary_event(cloudevent)
 
     @classmethod
     def get_service_class(cls, service_name: str):
@@ -120,16 +123,11 @@ class QueueDispatcher(BaseQueueDispatcher):
             self.entity = self.get_entity('efmque')
         return await self.entity.queue_get_except(self.queue_id, que_type=QueueType.CLOUD_EVENT.value, status=status)
 
-    def convert(self, message: bytes) -> rabbitmq.RabbitMQMessage:
-        event = json.loads(message)
-        cloudevent = converter.to_cloudevents(event)
-        return rabbitmq.to_binary_event(cloudevent)
-
-    async def dispatch_item(self, queue_id: uuid.UUID):
+    async def dispatch_item(self, queue_id: uuid.UUID, mode: int = 0):
         if not self.entity:
             self.entity = self.get_entity('efmque')
         queue_item = await self.entity.get_or_none(mquepkid=queue_id)
-        if not queue_item or queue_item.mquestat not in [0, 9]:
+        if not queue_item or queue_item.mquestat not in self.status_list:
             return
         try:
             await self.entity.queue_update_status(queue_id, status=1)
@@ -162,13 +160,13 @@ class QueueDispatcher(BaseQueueDispatcher):
                 )
             await self.entity.queue_delete(queue_id)
         except Exception as ex:
-            await self.entity.queue_update_status(queue_id, status=9)
+            await self.entity.queue_update_status(queue_id, status=self.error_list[mode])
             logger.error("Error dispatching queue item %s", queue_id)
             logger.exception(ex)
 
 
 class KRBDispatcher(BaseQueueDispatcher):
-    __exchange_type: ExchangeType = ExchangeType.FANOUT
+    __exchange_type: ExchangeType = ExchangeType.TOPIC
     __dispatched = False
 
     async def get_list(self, status: int = 0) -> list[uuid.UUID]:
@@ -176,11 +174,11 @@ class KRBDispatcher(BaseQueueDispatcher):
             self.entity = self.get_entity('efmque')
         return await self.entity.queue_get_except(self.queue_id, que_type=QueueType.KR_BRIDGE.value, status=status)
 
-    async def dispatch_item(self, queue_id: uuid.UUID):
+    async def dispatch_item(self, queue_id: uuid.UUID, mode: int = 0):
         if not self.entity:
             self.entity = self.get_entity('efmque')
         queue_item = await self.entity.get_or_none(mquepkid=queue_id)
-        if not queue_item or queue_item.mquestat not in [0, 9]:
+        if not queue_item or queue_item.mquestat not in self.status_list:
             return
         try:
             await self.entity.queue_update_status(queue_id, status=1)
@@ -195,9 +193,24 @@ class KRBDispatcher(BaseQueueDispatcher):
                     auto_delete=True
                 )
                 await self.broker.declare_exchange(self.queue_exchange)
-            await self.broker.publish(queue_item.mquedata, exchange=self.queue_exchange)
+            message = self.convert(queue_item.mquedata)
+            if queue_item.mquerout:
+                await self.broker.publish(
+                    message.body,
+                    headers=message.headers,
+                    content_type=message.content_type,
+                    exchange=self.queue_exchange,
+                    routing_key=queue_item.mquerout
+                )
+            else:
+                await self.broker.publish(
+                    message.body,
+                    headers=message.headers,
+                    content_type=message.content_type,
+                    exchange=self.queue_exchange,
+                )
             await self.entity.queue_delete(queue_id)
         except Exception as ex:
-            await self.entity.queue_update_status(queue_id, status=9)
-            logger.error("Error dispatching KRB queue item %s", queue_id)
+            await self.entity.queue_update_status(queue_id, status=self.error_list[mode])
+            logger.error("Error dispatching KRB queue item %s message: %s", queue_id, ex)
             logger.exception(ex)

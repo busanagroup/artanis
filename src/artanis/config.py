@@ -278,9 +278,8 @@ class Configuration(Singleton, SyncLock, Listenable):
 
             self.ARTANIS_DB_CONNECTION: "postgres:masterkey@10.0.3.102/template1",
             self.ARTANIS_DB_SCHEMA: '',
-            self.ARTANIS_DB_POOL_SIZE: '16',
+            self.ARTANIS_DB_POOL_SIZE: '48',
 
-            # self.ARTANIS_MQ_CONNECTION: 'amqp://ecfappusrprod:ecfprod26*@127.0.0.1:5672',
             self.ARTANIS_MQ_CONNECTION: 'amqp://ecfappusrprod:ecfprod26*@127.0.0.1:5672',
             self.ARTANIS_MQ_EXCHANGE: 'artanis.exchange',
             self.ARTANIS_MQ_EXCHANGE_KRB: 'krbridge.exchange',
