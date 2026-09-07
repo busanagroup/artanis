@@ -34,7 +34,8 @@ class cmnsvc(APIService):
     @published(path='/userinfo', methods=['GET'])
     async def get_user_info(self):
         message = {'hello': 'world'}
-        await self.eventbus.emit(SalaryCalculationEvent(message=message))
+        for i in range(100):
+            await self.eventbus.emit(SalaryCalculationEvent(message=message))
         # await self.eventbus.emit(SalaryRollbackEvent(message=message))
         # event = SalaryCalculationEvent(message=message)
         # pprint.PrettyPrinter(indent=2).pprint(event.model_dump())

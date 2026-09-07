@@ -15,6 +15,8 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 from __future__ import annotations
 
+import functools
+
 from artanis.abc.configurable import Configurable
 from artanis.abc.objloader import ObjectLoader
 from artanis.abc.objlock import SyncLock
@@ -91,17 +93,12 @@ class EventRoute(Configurable, Singleton, SyncLock, ObjectLoader):
             self._load_class_dir()
             self._load_classes()
 
+    @functools.lru_cache(maxsize=32)
     def get_event_handler(self, event_type: str) -> list[tuple[str, str]] | None:
         if not self.is_configured():
             self.configure()
-        handler_list = []
-        for name in self.all_classes.keys():
-            klass = self.all_classes[name]
-            if not klass:
-                continue
-            handlers = klass.get_event_handler(event_type)
-            handler_list.extend(handlers)
-        return handler_list
+        handler_list = [klass.get_event_handler(event_type) for klass in self.all_classes.values() if klass]
+        return [item for sublist in handler_list for item in sublist]
 
 
 event_route = EventRoute()
