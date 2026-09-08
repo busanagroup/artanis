@@ -65,9 +65,6 @@ class BaseMessage:
         config = Configuration.get_default_instance(create_instance=False)
         self.exchange_name = config.get_property_value(config.ARTANIS_MQ_EXCHANGE_KRB, "artanis.krbridge")
 
-    def _encode(self, data: bytes) -> str:
-        return base64.b64encode(data).decode("utf-8")
-
 
 class KRBEventSender(BaseMessage):
 

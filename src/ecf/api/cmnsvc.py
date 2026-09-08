@@ -16,7 +16,7 @@
 from starlette.responses import JSONResponse
 
 from artanis.asgi.asgiendpoint import published
-from artanis.component.queue.krbridge import KRBEventSender, KRBCommandSender
+from artanis.component.queue.krbridge import KRBEventSender
 from artanis.events import BaseEvent
 from ecf.core.apisvc import *
 
@@ -35,9 +35,10 @@ class cmnsvc(APIService):
     @published(path='/userinfo', methods=['GET'])
     async def get_user_info(self):
         message = {'hello': 'world'}
-        for i in range(100):
-            await self.eventbus.emit(SalaryCalculationEvent(message=message))
-        # await self.eventbus.emit(SalaryRollbackEvent(message=message))
+        await self.eventbus.emit(SalaryCalculationEvent(message=message))
+        # for i in range(1000):
+            # await self.eventbus.emit(SalaryCalculationEvent(message=message))
+            # await self.eventbus.emit(SalaryRollbackEvent(message=message))
         # event = SalaryCalculationEvent(message=message)
         # pprint.PrettyPrinter(indent=2).pprint(event.model_dump())
         event = KRBEventSender(module='TASM', submodule='HREMAS')

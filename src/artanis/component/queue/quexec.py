@@ -15,7 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import abc
 import asyncio
-import json
+import base64
 import logging
 import typing as t
 import uuid
@@ -54,12 +54,12 @@ class BaseQueueDispatcher(abc.ABC):
             return
         self.__class__.__dispatched = True
         try:
-            for i in range(3, 0, -1):
-                await self.dispatch_queue(mode=i)
             while True:
                 if not await self.dispatch_queue(mode=0):
                     break
                 await asyncio.sleep(0.1)
+            for i in range(3, 0, -1):
+                await self.dispatch_queue(mode=i)
         finally:
             self.__class__.__dispatched = False
 
@@ -194,9 +194,10 @@ class KRBDispatcher(BaseQueueDispatcher):
                 )
                 await self.broker.declare_exchange(self.queue_exchange)
             message = self.convert(queue_item.mquedata)
+            body = base64.b64encode(message.body).decode("utf-8")
             if queue_item.mquerout:
                 await self.broker.publish(
-                    message.body,
+                    body,
                     headers=message.headers,
                     content_type=message.content_type,
                     exchange=self.queue_exchange,
@@ -204,7 +205,7 @@ class KRBDispatcher(BaseQueueDispatcher):
                 )
             else:
                 await self.broker.publish(
-                    message.body,
+                    body,
                     headers=message.headers,
                     content_type=message.content_type,
                     exchange=self.queue_exchange,

@@ -72,21 +72,6 @@ async def artanis_event(event: dict):
         logger.exception(e)
 
 
-@batchjob_broker.task(task_name="artanis_task")
-async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs):
-    request = TaskRequest(username, func, *args, **kwargs)
-    return await JobHandler(request)
-
-
-@task_broker.task(task_name="artanis_task")
-async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs):
-    if task_type not in [TaskType.TK_JOB.value, TaskType.TK_TASK.value]:
-        return None
-    request = TaskRequest(username, func, *args, **kwargs)
-    handler: type[BaseTaskHandler] = LightJobHandler if task_type == TaskType.TK_JOB else TaskHandler
-    return await handler(request)
-
-
 @event_broker.task(task_name="artanis_amqp")
 async def artanis_amqp(queue_id: str):
     from artanis.component.queue.quexec import QueueDispatcher
@@ -104,6 +89,21 @@ async def artanis_krbridge(queue_id: str):
 @task_broker.task(task_name="artanis_event_execute")
 async def artanis_event_execute(klass: str, func: str, event: dict):
     await EventDispatcher.dispatch(klass, func, event)
+
+
+@task_broker.task(task_name="artanis_task")
+async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs):
+    if task_type not in [TaskType.TK_JOB.value, TaskType.TK_TASK.value]:
+        return None
+    request = TaskRequest(username, func, *args, **kwargs)
+    handler: type[BaseTaskHandler] = LightJobHandler if task_type == TaskType.TK_JOB else TaskHandler
+    return await handler(request)
+
+
+@batchjob_broker.task(task_name="artanis_task")
+async def artanis_task(task_type: int, username: str, func: str, *args, **kwargs):
+    request = TaskRequest(username, func, *args, **kwargs)
+    return await JobHandler(request)
 
 
 class TaskRequest:
