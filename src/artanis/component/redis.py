@@ -40,7 +40,6 @@ class Redis(SyncRedisPy, Singleton, SyncLock):
             config.get_property_value(config.ARTANIS_SPV_MASTER)
         redis_auth = config.get_property_value(config.ARTANIS_SPV_SECURITY_HASH)
         redis_url = "/".join([f"redis://:{redis_auth}@{redis_url}", '0'])
-        # redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
         connection_pool = connection_pool or config.container.redis_pool \
             if hasattr(config.container, "redis_pool") else \
             AsyncConnectionPool.from_url(redis_url,
@@ -49,7 +48,7 @@ class Redis(SyncRedisPy, Singleton, SyncLock):
                                          retry_on_timeout=True,
                                          socket_keepalive=True,
                                          socket_keepalive_options=ka_options,
-                                         max_connections=16,
+                                         max_connections=32,
                                          )
         super().__init__(connection_pool=connection_pool,
                          single_connection_client=single_connection_client,
@@ -57,7 +56,7 @@ class Redis(SyncRedisPy, Singleton, SyncLock):
                          socket_connect_timeout=5,
                          retry_on_timeout=True,
                          socket_keepalive=True,
-                         max_connections=16,
+                         max_connections=32,
                          )
         self.auto_close_connection_pool = False
 
@@ -84,7 +83,6 @@ class AsyncRedis(AsyncRedisPy, AsyncSingleton, AsyncLock):
             config.get_property_value(config.ARTANIS_SPV_MASTER)
         redis_auth = config.get_property_value(config.ARTANIS_SPV_SECURITY_HASH)
         redis_url = "/".join([f"redis://:{redis_auth}@{redis_url}", '0'])
-        # redis_url = config.get_property_value(config.ARTANIS_REDIS_URL)
         ka_options = {
             socket.TCP_KEEPIDLE: 10,
             socket.TCP_KEEPINTVL: 5,
@@ -98,7 +96,7 @@ class AsyncRedis(AsyncRedisPy, AsyncSingleton, AsyncLock):
                                          retry_on_timeout=True,
                                          socket_keepalive=True,
                                          socket_keepalive_options=ka_options,
-                                         max_connections=16,
+                                         max_connections=32,
                                          )
         super().__init__(connection_pool=connection_pool,
                          single_connection_client=single_connection_client,
@@ -106,7 +104,7 @@ class AsyncRedis(AsyncRedisPy, AsyncSingleton, AsyncLock):
                          socket_connect_timeout=5,
                          retry_on_timeout=True,
                          socket_keepalive=True,
-                         max_connections=16,
+                         max_connections=32,
                          )
         self.auto_close_connection_pool = False
 

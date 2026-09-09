@@ -271,11 +271,13 @@ class RedisMixin(object):
         for i in range(0, self.start_timeout * 10):
             try:
                 self.ping()
+                self.flushall()  # Clear any data that may have been loaded from a previous db file
                 timeout = False
                 break
             except redis.BusyLoadingError:
                 pass
             await asyncio.sleep(.1)
+
         if timeout:  # pragma: no cover
             raise RedisLiteServerStartError(
                 'The redis-server process failed to start; unreachable after '

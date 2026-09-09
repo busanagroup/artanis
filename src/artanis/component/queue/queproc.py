@@ -14,14 +14,11 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import abc
-import asyncio
 import logging
-import time
 import typing as t
 from dataclasses import is_dataclass, asdict
 
 from pydantic import BaseModel
-from redis import ResponseError
 from redis.asyncio import Redis
 from taskiq.serializers import JSONSerializer
 
@@ -35,10 +32,12 @@ class QueueParameters(BaseModel):
 
 class BaseQueueProcessor(abc.ABC):
 
+    __setname__ = "artque_processor"
+
     def __init__(
             self,
             queue_name: str,
-            idle_timeout: int = 1,  # 2 seconds
+            idle_timeout: float = 0.5,  # 0.5 seconds
     ):
         self.queue_name = queue_name
         self.idle_timeout = idle_timeout
@@ -46,13 +45,12 @@ class BaseQueueProcessor(abc.ABC):
         self.serializer = JSONSerializer()
         self.task_params: QueueParameters | None = None
         self.logger = logging.getLogger("artanis.streamqueue")
-        self.semaphore = asyncio.Semaphore()
 
     @abc.abstractmethod
     async def process_queue_item(self, *args, **kwargs):
         pass
 
-    async def finalize_processing(self):
+    async def finalize(self):
         """
         Finalize the processing of the queue.
 
@@ -61,63 +59,53 @@ class BaseQueueProcessor(abc.ABC):
         """
         pass
 
+    async def initialize(self):
+        """
+        Initialize the processing of the queue.
+
+        This method is called before any items in the queue are processed.
+        It can be overridden to perform any necessary setup or initialization tasks.
+        """
+        pass
+
     async def submit_item(self):
         if self.task_params is None:
             return
-        queue_exists: bool = await self.queue_exists()
-        await self.send_task_parameters()
+        queue_exists: bool = await self.send_task_parameters()
         if queue_exists:
             return
-        # queue did not exist, launch queue processing task
+        await self.initialize()
         try:
             await self.launch_queue_processing_task()
         finally:
-            # if the queue was created, we should delete it after processing
-            await self.destroy_queue()
-            await self.finalize_processing()
+            await self.finalize()
 
-    async def send_task_parameters(self):
+    async def send_task_parameters(self) -> bool:
         async with Redis(connection_pool=self.connection_pool) as redis_conn:
+            members = await redis_conn.smembers(self.__setname__)
+            return_val = self.queue_name.encode() in members
+            if not return_val:
+                await redis_conn.sadd(self.__setname__, self.queue_name.encode())
             await redis_conn.lpush(
                 self.queue_name,
                 self.serializer.dumpb(self.task_params.model_dump(mode="json"))
             )
-
-    async def get_stream_messages(self, queue: asyncio.Queue):
-        async with Redis(connection_pool=self.connection_pool) as redis_conn:
-            start_time = time.perf_counter()
-            await self.semaphore.acquire()
-            try:
-                while True:
-                    message = await redis_conn.brpop(self.queue_name, timeout=2)
-                    if not message or not message[1]:
-                        elapsed = (time.perf_counter() - start_time)
-                        if elapsed > self.idle_timeout:
-                            break
-                    await queue.put(QueueParameters.model_validate(self.serializer.loadb(message[1])))
-            finally:
-                self.semaphore.release()
-
-    async def process_queue(self, queue: asyncio.Queue):
-        while True:
-            if queue.empty():
-                if self.semaphore.locked():
-                    await asyncio.sleep(0.1)
-                    continue
-                else:
-                    break
-
-            task_params: QueueParameters = await queue.get()
-            try:
-                await self.process_queue_item(*task_params.args, **task_params.kwargs)
-            except Exception as e:
-                self.logger.error(f"Error processing queue item: {e}")
+            return return_val
 
     async def launch_queue_processing_task(self):
-        queue = asyncio.Queue()
-        async with asyncio.TaskGroup() as task_group:
-            task_group.create_task(self.get_stream_messages(queue))
-            task_group.create_task(self.process_queue(queue))
+        async with Redis(connection_pool=self.connection_pool) as redis_conn:
+            try:
+                while True:
+                    message = await redis_conn.rpop(self.queue_name)
+                    if not message:
+                        break
+                    task_params: QueueParameters = QueueParameters.model_validate(self.serializer.loadb(message))
+                    try:
+                        await self.process_queue_item(*task_params.args, **task_params.kwargs)
+                    except Exception as e:
+                        self.logger.error(f"Error processing queue item: {e}")
+            finally:
+                await redis_conn.srem(self.__setname__, self.queue_name.encode())
 
     @classmethod
     def _prepare_arg(cls, arg: t.Any) -> t.Any:
@@ -136,29 +124,6 @@ class BaseQueueProcessor(abc.ABC):
             args=[self._prepare_arg(arg) for arg in args],
             kwargs={key: self._prepare_arg(value) for key, value in kwargs.items()},
         )
-
-    async def destroy_queue(self) -> None:
-        """
-        Destroy the queue.
-        """
-        async with Redis(connection_pool=self.connection_pool) as redis_conn:
-            try:
-                await redis_conn.delete(self.queue_name)
-            except ResponseError as e:
-                pass
-
-    async def queue_exists(self) -> bool:
-        """
-        Check if the queue exists.
-        """
-        return_val: bool = False
-        async with Redis(connection_pool=self.connection_pool) as redis_conn:
-            try:
-                key_exists = await redis_conn.exists(self.queue_name)
-                return_val = True if key_exists else False
-            except ResponseError as e:
-                return_val = False
-        return return_val
 
     @property
     def connection_pool(self):

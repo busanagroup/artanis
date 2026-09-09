@@ -13,6 +13,7 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+import asyncio
 import logging
 
 from artanis.component.queue.queproc import BaseQueueProcessor
@@ -22,17 +23,21 @@ from ecf.core.eventsvc import EventHandler, on_event
 
 class SummarizeCalculation(BaseQueueProcessor):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, message: dict):
         super().__init__("calculation_summary_queue")
-        self.prepare_message(*args, **kwargs)
+        self.prepare_message(message)
 
     async def process_queue_item(self, message):
         self.logger.info(f"Processing message: {message}")
         summary = f"Summary of calculation: {message}"
         self.logger.info(summary)
+        await asyncio.sleep(0.1)  # Simulate some processing time
         return summary
 
-    async def finalize_processing(self):
+    async def initialize(self):
+        self.logger.info("Initializing processing of calculation summary queue.")
+
+    async def finalize(self):
         self.logger.info("Finalizing processing of calculation summary queue.")
 
 
