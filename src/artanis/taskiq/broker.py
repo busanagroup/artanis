@@ -24,10 +24,10 @@ from taskiq.result_backends.dummy import DummyResultBackend
 from artanis.config import Configuration
 from artanis.entrypoint import artanis_startup, artanis_shutdown, artanis_monitor
 from artanis.taskiq.base import BaseBrokerService
-from artanis.taskiq.redis import ListQueueBroker, RedisAsyncResultBackend
+from artanis.taskiq.redis import ListQueueBroker, RedisAsyncResultBackend, RedisStreamBroker
 
 
-class ArtanisBroker(ListQueueBroker, BaseBrokerService):
+class ArtanisBroker(RedisStreamBroker, BaseBrokerService):
 
     def __init__(self, *args, config: Configuration = None, queue_name: str = None, **kwargs):
         config = config or Configuration.get_default_instance(create_instance=False)
@@ -53,7 +53,7 @@ class ArtanisBroker(ListQueueBroker, BaseBrokerService):
             timeout=0,
             **kwargs)
         for base in ArtanisBroker.__bases__:
-            if base is not ListQueueBroker:
+            if base is not RedisStreamBroker:
                 base.__init__(self, *args, **kwargs)  # type: ignore
         self.set_configuration(config)
 

@@ -34,15 +34,16 @@ class cmnsvc(APIService):
 
     @published(path='/userinfo', methods=['GET'])
     async def get_user_info(self):
-        message = {'hello': 'world'}
-        await self.eventbus.emit(SalaryCalculationEvent(message=message))
-        # for i in range(1000):
-            # await self.eventbus.emit(SalaryCalculationEvent(message=message))
+        # message = {'hello': 'world'}
+        # await self.eventbus.emit(SalaryCalculationEvent(message=message))
+        await self.eventbus.emit(SalaryCalculationEvent(message={'hello': f'world 0'}))
+        #         for i in range(10):
+        #             await self.eventbus.emit(SalaryCalculationEvent(message={'hello': f'world {i}'}))
             # await self.eventbus.emit(SalaryRollbackEvent(message=message))
         # event = SalaryCalculationEvent(message=message)
         # pprint.PrettyPrinter(indent=2).pprint(event.model_dump())
-        event = KRBEventSender(module='TASM', submodule='HREMAS')
-        await event.notify('HREMAS_UPDATE', cono=600, emid=200305184)
+        # event = KRBEventSender(module='TASM', submodule='HREMAS')
+        # await event.notify('HREMAS_UPDATE', cono=600, emid=200305184)
 
         # command = KRBCommandSender(module='FASM', submodule='CAPEX')
         #         for i in range(100):
