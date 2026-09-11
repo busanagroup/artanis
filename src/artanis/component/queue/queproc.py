@@ -14,6 +14,7 @@
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import abc
+import asyncio
 import logging
 import typing as t
 from dataclasses import is_dataclass, asdict
@@ -104,6 +105,8 @@ class BaseQueueProcessor(abc.ABC):
                         await self.process_queue_item(*task_params.args, **task_params.kwargs)
                     except Exception as e:
                         self.logger.error(f"Error processing queue item: {e}")
+                    finally:
+                        await asyncio.sleep(0)  # return control to the event loop
             finally:
                 await redis_conn.srem(self.__setname__, self.queue_name.encode())
 
