@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import asyncio
 import logging
+import random
 
 from artanis.component.queue.queproc import BaseQueueProcessor
 from ecf.api.cmnsvc import SalaryCalculationEvent, SalaryRollbackEvent
@@ -31,6 +32,9 @@ class SummarizeCalculation(BaseQueueProcessor):
         self.logger.info(f"Processing message: {message}")
         summary = f"Summary of calculation: {message}"
         self.logger.info(summary)
+        num_int = random.randint(1, 4)
+        if num_int == 2:
+            raise Exception("Simulated processing error")
         await asyncio.sleep(0.1)  # Simulate some processing time
         return summary
 

@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import abc
 import asyncio
+import functools
 import logging
 import typing as t
 import uuid
@@ -37,9 +38,13 @@ class BaseQueueProcessor(abc.ABC):
 
     def __init__(
             self,
-            queue_name: str
+            queue_name: str,
+            retry_on_failure: bool = True,
+            delay_between_retries: float = 0.5,
     ):
         self.queue_name = queue_name
+        self.retry_on_failure = retry_on_failure
+        self.delay_between_retries = delay_between_retries
         self.__connection_pool = None
         self.serializer = JSONSerializer()
         self.task_params: QueueParameters | None = None
@@ -105,8 +110,14 @@ class BaseQueueProcessor(abc.ABC):
                     if not message:
                         break
                     task_params: QueueParameters = QueueParameters.model_validate(self.serializer.loadb(message))
+                    func = functools.partial(self.process_queue_item, *task_params.args, **task_params.kwargs)
                     try:
-                        await self.process_queue_item(*task_params.args, **task_params.kwargs)
+                        if self.retry_on_failure:
+                            await retry(func, self.logger,
+                                delay_between_retries= self.delay_between_retries
+                            )
+                        else:
+                            await self.process_queue_item(*task_params.args, **task_params.kwargs)
                     except Exception as e:
                         self.logger.error(f"Error processing queue item: {e}")
                     finally:
@@ -155,3 +166,15 @@ class BaseQueueProcessor(abc.ABC):
 
     def __await__(self):
         return self.submit_item().__await__()
+
+
+async def retry(func, logger, max_retries=3, delay_between_retries=0.5):
+    for attempt in range(max_retries):
+        try:
+            return await func()
+        except Exception as e:
+            logger.error(f"Error occurred on attempt {attempt + 1}/{max_retries}: {e}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep((2 ** attempt) * delay_between_retries)  # Exponential backoff
+            else:
+                raise e
