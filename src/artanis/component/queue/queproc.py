@@ -17,6 +17,7 @@ import abc
 import asyncio
 import logging
 import typing as t
+import uuid
 from dataclasses import is_dataclass, asdict
 
 from pydantic import BaseModel
@@ -32,20 +33,18 @@ class QueueParameters(BaseModel):
 
 
 class BaseQueueProcessor(abc.ABC):
-
-    __setname__ = "artque_processor"
+    __setname__ = "artqueproc"
 
     def __init__(
             self,
-            queue_name: str,
-            idle_timeout: float = 0.5,  # 0.5 seconds
+            queue_name: str
     ):
         self.queue_name = queue_name
-        self.idle_timeout = idle_timeout
         self.__connection_pool = None
         self.serializer = JSONSerializer()
         self.task_params: QueueParameters | None = None
         self.logger = logging.getLogger("artanis.streamqueue")
+        self._client_id: uuid.UUID | None = None
 
     @abc.abstractmethod
     async def process_queue_item(self, *args, **kwargs):
@@ -83,12 +82,14 @@ class BaseQueueProcessor(abc.ABC):
 
     async def send_task_parameters(self) -> bool:
         async with Redis(connection_pool=self.connection_pool) as redis_conn:
-            members = await redis_conn.smembers(self.__setname__)
-            return_val = self.queue_name.encode() in members
-            if not return_val:
-                await redis_conn.sadd(self.__setname__, self.queue_name.encode())
+            queue_name: str = f"{self.__setname__}:{self.queue_name}"
+            queue_lock: str = f"{queue_name}:lock"
+            value = await redis_conn.set(queue_lock, str(self.client_id).encode(),
+                                         nx=True,
+                                         px=60000)
+            return_val = value is None  # If value is None, the key already exists
             await redis_conn.lpush(
-                self.queue_name,
+                queue_name,
                 self.serializer.dumpb(self.task_params.model_dump(mode="json"))
             )
             return return_val
@@ -96,8 +97,11 @@ class BaseQueueProcessor(abc.ABC):
     async def launch_queue_processing_task(self):
         async with Redis(connection_pool=self.connection_pool) as redis_conn:
             try:
+                queue_name: str = f"{self.__setname__}:{self.queue_name}"
+                queue_lock: str = f"{queue_name}:lock"
+                start_time = asyncio.get_event_loop().time()
                 while True:
-                    message = await redis_conn.rpop(self.queue_name)
+                    message = await redis_conn.rpop(queue_name)
                     if not message:
                         break
                     task_params: QueueParameters = QueueParameters.model_validate(self.serializer.loadb(message))
@@ -107,8 +111,16 @@ class BaseQueueProcessor(abc.ABC):
                         self.logger.error(f"Error processing queue item: {e}")
                     finally:
                         await asyncio.sleep(0)  # return control to the event loop
+                        elapsed_time = asyncio.get_event_loop().time() - start_time
+                        if elapsed_time > 20:  # Log every 20 seconds
+                            start_time = asyncio.get_event_loop().time()
+                            value = await redis_conn.get(queue_lock)
+                            if value and value.decode() == str(self.client_id):
+                                await redis_conn.pexpire(queue_lock, 60000)
             finally:
-                await redis_conn.srem(self.__setname__, self.queue_name.encode())
+                value = await redis_conn.get(queue_lock)
+                if value and value.decode() == str(self.client_id):
+                    await redis_conn.delete(queue_lock)
 
     @classmethod
     def _prepare_arg(cls, arg: t.Any) -> t.Any:
@@ -134,6 +146,12 @@ class BaseQueueProcessor(abc.ABC):
             config = Configuration.get_default_instance(create_instance=False)
             self.__connection_pool = config.container.redis_pool
         return self.__connection_pool
+
+    @property
+    def client_id(self) -> uuid.UUID:
+        if not self._client_id:
+            self._client_id = uuid.uuid4()
+        return self._client_id
 
     def __await__(self):
         return self.submit_item().__await__()
