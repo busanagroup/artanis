@@ -30,7 +30,7 @@ from artanis.taskiq.proxy import TaskObjectProxy
 from artanis.utils import import_function
 
 if TYPE_CHECKING:
-    from ecf.core.jobsvc import JobEngine, JOBSession
+    from ecf.core.jobsvc import BaseJob, JOBSession
 
 
 class CounterMeta(type):
@@ -211,7 +211,7 @@ class JobObjectHandler(BusinessObjectProxy):
 
     @classmethod
     async def execute_job(cls, service_name: str, session: 'JOBSession'):
-        instance: 'JobEngine' = cls.get_object(service_name)
+        instance: 'BaseJob' = cls.get_object(service_name)
         return await instance.execute(session)
 
     @classmethod
