@@ -19,7 +19,7 @@ from tortoise import ConfigurationError
 from tortoise import Model as TortoiseModel
 from tortoise import ModelMeta as TortoiseMeta
 from tortoise.expressions import Q
-from tortoise.fields import Field, DecimalField, CharField
+from tortoise.fields import Field, DecimalField, CharField, BooleanField
 from tortoise.queryset import QuerySet
 
 from artanis.sqlentity import PostgreSQLClient
@@ -63,7 +63,7 @@ class ModelMeta(TortoiseMeta):
         if not custom_pk_present and not is_abstract:
             pk_name = field_prefix + "pkid" if field_prefix else "id"
             if pk_name not in attrs:
-                attrs = {pk_name: UUIDField(primary_key=True, null=False), **attrs}
+                attrs = {pk_name: UUIDField(primary_key=True, null=False, label="Record id"), **attrs}
                 pk_attr = pk_name
 
             if not isinstance(attrs[pk_name], Field) or not attrs[pk_name].pk:
@@ -77,6 +77,10 @@ class ModelMeta(TortoiseMeta):
                 field_name = field_prefix + key
                 if field_name not in attrs:
                     attrs = {**attrs, field_name: value}
+                    
+            delstat: str = field_prefix + "pkst" if field_prefix else "pkst"
+            if delstat not in attrs:
+                attrs = {**attrs, delstat: BooleanField(label='Deletion status')}
 
         return attrs, pk_attr
 
