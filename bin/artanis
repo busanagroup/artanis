@@ -1,4 +1,4 @@
-#!/data/u01/projects/BAG/artanis/venv/bin/python3.14
+#!/data/u01/projects/BAG/artanis/venv/bin/python3
 import sys
 import pathlib
 

@@ -28,5 +28,18 @@ class InitCMDArgs:
 
         parser = ArgumentParser(
             formatter_class=ArgumentDefaultsHelpFormatter,
-            description="Subcommand to run initdb for Artanis Server.",
+            description="Subcommand to run db for Artanis Server.",
         )
+        subparsers = parser.add_subparsers(
+            title="Available subcommands",
+            metavar="",
+            dest="subcommand",
+        )
+        init_parser = subparsers.add_parser(
+            "init", help="Create migrations packages for configured apps."
+        )
+        init_parser.add_argument("app_labels", nargs="*")
+        # init_parser.set_defaults(func=_run_init)
+
+        namespace = parser.parse_args(args)
+        return cls(**namespace.__dict__)

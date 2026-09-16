@@ -1,4 +1,5 @@
 /.idea/
+/.ai/
 /.vscode/
 **/__pycache__/
 /dist/

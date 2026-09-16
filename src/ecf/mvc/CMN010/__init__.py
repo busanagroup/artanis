@@ -13,16 +13,9 @@
 #
 # This module is part of Artanis Enterprise Platform and is released under
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
-from sqlalchemy import String
-
-from ecf.core.mvcsvc import MVCService, MVCField
-
-
-class CMN010(MVCService):
-    cinfcono = MVCField(String(30), label='Company')
-    cinfdvno = MVCField(String(30), label='Division')
-    cinfctcd = MVCField(String(30), label='Constant Code')
-    cinfstky = MVCField(String(30), label='Key Value')
-    cinfsbky = MVCField(String(30), label='Sub Key Value')
+from ecf.core.mvcsvc import MVCService
+from ecf.tbl.efusrs import efusrs
 
 
+class CMN010(MVCService, entity=efusrs, label='Constant Maintenance'):
+    ...

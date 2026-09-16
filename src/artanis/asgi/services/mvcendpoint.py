@@ -90,13 +90,13 @@ class MVCEndPoint(ASGIEndPoint):
         """
         scope = request.scope
         instance = scope.get("module_instance")
-        descriptor = instance.descriptor
-        data = dict(
-            jsonFields=dict(attrs={}),
-            service=descriptor.name,
-            fields=[field.field_info() for field in descriptor.get_fields()],
-        )
-        return DefaultResponse(status=0, data=data)
+        # descriptor = instance.descriptor
+        #         data = dict(
+        #             jsonFields=dict(attrs={}),
+        #             service=descriptor.name,
+        #             fields=[field.field_info() for field in descriptor.get_fields()],
+        #         )
+        return DefaultResponse(status=0, data={})
 
     @published(path="/open")
     async def get_data(self, data: DataListRequest, request: Request) -> DataListResponse:

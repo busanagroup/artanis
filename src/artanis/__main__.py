@@ -30,17 +30,13 @@ def __load_config(config_path: str | None = None):
     config.configure_logging()
     return config
 
-
-def main(sys_args: Optional[List[str]] = None) -> int:
-    parser = argparse.ArgumentParser(
-        description= f"Artanis Server version {__version__}",
-    )
+def add_global_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "-v",
         "--version",
         dest="version",
         action="store_true",
-        help="print current taskiq version and exit",
+        help="print current Artanis version and exit",
     )
     parser.add_argument(
         "-c",
@@ -48,11 +44,18 @@ def main(sys_args: Optional[List[str]] = None) -> int:
         help="Location of a config file.",
         default=None,
     )
+
+
+def main(sys_args: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser(
+        description= f"Artanis Server version {__version__}",
+    )
+    add_global_arguments(parser)
     subcommands: Dict[str, ArtanisCommand] = {}
     subparsers = parser.add_subparsers(
-        title="Available subcommands",
+        title="Available commands",
         metavar="",
-        dest="subcommand",
+        dest="command",
     )
     command_classes = import_function(f"artanis.cli:__command_classses__")
     for klass in command_classes:
@@ -68,7 +71,7 @@ def main(sys_args: Optional[List[str]] = None) -> int:
         print(__version__)  # noqa: T201
         return 0
 
-    if args.subcommand is None:
+    if args.command is None:
         parser.print_help()
         return 0
 
@@ -76,11 +79,11 @@ def main(sys_args: Optional[List[str]] = None) -> int:
         print("Config file is required. Use -c or --config to specify the config file path.")
         return -1
     __load_config(args.config)
-
-
-    command = subcommands[args.subcommand]
+    command = subcommands[args.command]
     sys.argv.pop(0)
-    return command.exec(sys.argv[1:]) or 0
+    status = command.exec(sys.argv[3:]) or 0
+    if status is not None:
+        exit(status)  # noqa: PLR1722
 
 if __name__ == "__main__":
     sys.exit(main())

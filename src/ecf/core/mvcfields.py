@@ -44,3 +44,12 @@ class MVCFieldBase(t.Generic[VALUE], metaclass=MVCFieldMeta):
     """
     Base class for MVC fields.
     """
+
+class ReverseRelation(t.Generic[CONTROLLER]):
+    """
+    Reverse relation for MVC fields.
+    """
+
+    def __init__(self, controller: t.Type[CONTROLLER]):
+        self.controller = controller
+

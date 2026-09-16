@@ -18,7 +18,8 @@ import logging
 from typing import Optional, Sequence
 
 from artanis.abc.command import ArtanisCommand
-from artanis.cli.init.run import run_initdb
+from artanis.cli.db.args import InitCMDArgs
+from artanis.cli.db.run import run_initdb
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +27,9 @@ logger = logging.getLogger(__name__)
 class InitCMD(ArtanisCommand):
     """Command to run Server."""
 
-    name: str = "initdb"
+    name: str = "db"
 
-    short_help = "Helper to initialize database"
+    short_help = "Helper to initialize/migrate database"
 
     def exec(self, args: Sequence[str]) -> Optional[int]:
         """
@@ -40,6 +41,7 @@ class InitCMD(ArtanisCommand):
         :param args: CLI arguments.
         :returns: status code.
         """
+        parsed = InitCMDArgs.from_cli(args)
         logger.info("Initializing database")
         asyncio.run(run_initdb())
         return 0

@@ -455,12 +455,9 @@ class ASGIEndPoint(ControllerABC):
             )
         child_scope = types.Scope({})
         if klass:
-            if klass.__name__ in self.__instances:
-                instance = self.__instances[klass.__name__]
-            else:
-                instance = klass(config=config)
-                self.__instances[klass.__name__] = instance
+            instance = self._instantiate(klass, config)
             child_scope.update(dict(module_instance=instance))
+
         for route in self.published_methods:
             match = route.match(klass_scope)
             if match == BaseRoute.Match.full:
