@@ -22,6 +22,8 @@ from dataclasses import dataclass
 class InitCMDArgs:
     """Arguments for InitCMD."""
 
+    subcommand: str
+
     @classmethod
     def from_cli(cls, args: t.Optional[t.Sequence[str]] = None) -> "InitCMDArgs":
         """Parse CLI arguments and return an instance of InitCMDArgs."""
@@ -38,7 +40,7 @@ class InitCMDArgs:
         init_parser = subparsers.add_parser(
             "init", help="Create migrations packages for configured apps."
         )
-        init_parser.add_argument("app_labels", nargs="*")
+        # init_parser.add_argument("app_labels", nargs="*")
         # init_parser.set_defaults(func=_run_init)
 
         namespace = parser.parse_args(args)

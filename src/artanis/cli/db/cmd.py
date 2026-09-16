@@ -19,7 +19,7 @@ from typing import Optional, Sequence
 
 from artanis.abc.command import ArtanisCommand
 from artanis.cli.db.args import InitCMDArgs
-from artanis.cli.db.run import run_initdb
+from artanis.cli.db.run import db_process
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,5 @@ class InitCMD(ArtanisCommand):
         :returns: status code.
         """
         parsed = InitCMDArgs.from_cli(args)
-        logger.info("Initializing database")
-        asyncio.run(run_initdb())
+        asyncio.run(db_process(parsed))
         return 0
-

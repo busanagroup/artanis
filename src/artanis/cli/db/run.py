@@ -15,6 +15,7 @@
 # the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
 import logging
 
+from artanis.cli.db.args import InitCMDArgs
 from artanis.config import Configuration
 from artanis.sqlentity.entrypoint import configure_database, setup_all
 
@@ -27,3 +28,11 @@ async def run_initdb():
     logger.info("... loading models completed")
     await setup_all(config=config)
     logger.info("... database initialization completed")
+
+
+async def db_process(args: InitCMDArgs):
+    if args.subcommand == "init":
+        logger.info("Initializing database")
+        await run_initdb()
+    else:
+        logger.error(f"Unknown subcommand: {args.subcommand}")

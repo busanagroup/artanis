@@ -53,7 +53,7 @@ def patch_tortoise():
     data.JSON_DUMPS = functools.partial(json.dumps, cls=DecimalEncoder)
 
 
-async def configure_database(config: Configuration):
+def get_dbconfig(config: Configuration) -> dict:
     db_url: str = config.get_property_value(config.ARTANIS_DB_CONNECTION, '')
     u = url.make_url(db_url)
     db_credentials = dict(
@@ -77,11 +77,14 @@ async def configure_database(config: Configuration):
     db_models = dict(
         models=models
     )
-    db_config = dict(connections=db_connection, apps=db_models)
+    return dict(connections=db_connection, apps=db_models)
+
+
+async def configure_database(config: Configuration):
     patch_tortoise()
     from tortoise import Tortoise
     load_ecf_modules("ecf.tbl", True)
-    config.container.dbengine = await Tortoise.init(config=db_config, _enable_global_fallback=True)
+    config.container.dbengine = await Tortoise.init(config=get_dbconfig(config), _enable_global_fallback=True)
 
 
 async def setup_all(config: Configuration) -> None:
