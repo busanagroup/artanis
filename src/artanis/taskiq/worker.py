@@ -34,6 +34,7 @@ from taskiq.cli.utils import import_object, import_tasks
 from taskiq.cli.worker.args import WorkerArgs
 from taskiq.cli.worker.run import get_receiver_type
 
+from artanis import utils
 from artanis.config import Configuration
 from artanis.exceptions import ShutdownError
 from artanis.utils import raise_shutdown
@@ -58,7 +59,7 @@ async def shutdown_broker(broker: AsyncBroker, timeout: float) -> None:
 
 
 def taskiq_worker(
-        sysconfig_path: Configuration,
+        sysconfig_path: str,
         args: WorkerArgs,
         debug: bool,
         shutdown_event: EventType,
@@ -66,7 +67,7 @@ def taskiq_worker(
         subsys_index: int
 ) -> None:
     hardkill_counter = 0
-    config = Configuration.get_default_instance(config_path=sysconfig_path)
+    config: Configuration = utils.__initialize(config_path=sysconfig_path)
     config.configure_logging(config.configure_logging(subsys_name=subsys_name, subsys_index=subsys_index))
 
     def interrupt_handler(signum: int, _frame: Any) -> None:

@@ -19,16 +19,10 @@ import argparse
 import sys
 from typing import List, Optional, Dict
 
-from artanis import __version__
+from artanis import __version__, utils
 from artanis.abc.command import ArtanisCommand
-from artanis.config import Configuration
 from artanis.utils import import_function
 
-
-def __load_config(config_path: str | None = None):
-    config = Configuration.get_default_instance(config_path=config_path)
-    config.configure_logging()
-    return config
 
 def add_global_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
@@ -48,7 +42,7 @@ def add_global_arguments(parser: argparse.ArgumentParser):
 
 def main(sys_args: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(
-        description= f"Artanis Server version {__version__}",
+        description=f"Artanis Server version {__version__}",
     )
     add_global_arguments(parser)
     subcommands: Dict[str, ArtanisCommand] = {}
@@ -78,12 +72,13 @@ def main(sys_args: Optional[List[str]] = None) -> int:
     if not args.config:
         print("Config file is required. Use -c or --config to specify the config file path.")
         return -1
-    __load_config(args.config)
+    utils.__initialize(args.config)
     command = subcommands[args.command]
     sys.argv.pop(0)
     status = command.exec(sys.argv[3:]) or 0
     if status is not None:
         exit(status)  # noqa: PLR1722
+
 
 if __name__ == "__main__":
     sys.exit(main())

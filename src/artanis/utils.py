@@ -16,6 +16,7 @@
 
 
 import functools
+import gc
 import os
 import re
 import sys
@@ -30,6 +31,7 @@ from typing import Any, overload, TypeVar, ParamSpec, TypeIs
 import anyio.to_thread
 from starlette.types import Scope
 
+from artanis.config import Configuration
 from artanis.exceptions import ShutdownError, NoAppError
 
 T = TypeVar("T")
@@ -174,3 +176,15 @@ def generate_unique_id(route: "Route") -> str:
 
 def get_name(endpoint: Callable[..., Any]) -> str | None:
     return getattr(endpoint, "__name__", endpoint.__class__.__name__)
+
+
+def __load_config(config_path: str | None = None):
+    config = Configuration.get_default_instance(config_path=config_path)
+    config.configure_logging()
+    return config
+
+
+def __initialize(config_path: str | None = None):
+    gc.set_threshold(2000, 5, 5)
+    config = __load_config(config_path)
+    return config

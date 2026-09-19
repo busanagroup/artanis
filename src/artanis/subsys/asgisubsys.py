@@ -21,16 +21,17 @@ from pickle import PicklingError
 from hypercorn.asyncio.run import uvloop_worker
 from hypercorn.config import Config, Sockets
 
+from artanis import utils
 from artanis.abc.factory import WorkerFactory
 from artanis.abc.subsys import Subsystem
 from artanis.config import Configuration
 
 
 def hypercorn_worker(
-        sysconfig_path: Configuration, asgi_config: Config, sockets: Sockets | None = None,
+        sysconfig_path: str, asgi_config: Config, sockets: Sockets | None = None,
         shutdown_event: Event | None = None, subsys_name: str = None, subsys_index: int = None
 ) -> None:
-    config = Configuration.get_default_instance(config_path=sysconfig_path)
+    config: Configuration = utils.__initialize(config_path=sysconfig_path)
     config.configure_logging(subsys_name=subsys_name, subsys_index=subsys_index)
     log_format = logging.Formatter(config.get_property_value(config.ARTANIS_LOG_FORMAT, None))
     asgi_config.log.error_logger.handlers[0].setFormatter(log_format)
