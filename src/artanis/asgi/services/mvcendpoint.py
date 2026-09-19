@@ -35,18 +35,22 @@ class DataListReq(pydantic.BaseModel):
     limit: int
     offset: int
 
+
 class DataListResp(DefaultResp):
     params: t.Dict[str, t.Any] | None
     offset: int
     total: int
+
 
 class CRUDReq(pydantic.BaseModel):
     params: t.Dict[str, t.Any] | None
     fields: t.List[str] | None
     data: t.Any | None
 
+
 class EditResp(DefaultResp):
     params: t.Dict[str, t.Any] | None
+
 
 DataListRequest = t.Annotated[schemas.Schema, schemas.SchemaMetadata(DataListReq)]
 DataListResponse = t.Annotated[schemas.Schema, schemas.SchemaMetadata(DataListResp)]
@@ -98,53 +102,161 @@ class MVCEndPoint(ASGIEndPoint):
         #         )
         return DefaultResponse(status=0, data={})
 
-    @published(path="/open")
+    @published(path="/open", methods=["POST"])
     async def get_data(self, data: DataListRequest, request: Request) -> DataListResponse:
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: get list of data from service
+        """
         scope = request.scope
         instance = scope.get("module_instance")
         descriptor = instance.descriptor
         return DataListResponse(status=0, offset=0, total=40, data={'hello': "world"})
 
-    @published(path="/pgmredir")
+    @published(path="/pgmredir", methods=["POST"])
     async def pgmredir(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Get program redirection information
+        """
         return {'hello': "world"}
 
-    @published(path="/verify")
+    @published(path="/verify", methods=["POST"])
     async def verify(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Verify service access
+        """
         return {'hello': "world"}
 
-    @published(path="/initialize")
+    @published(path="/initialize", methods=["POST"])
     async def initialize(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Initialize service
+        """
         return {'hello': "world"}
 
-    @published(path="/get")
+    @published(path="/get", methods=["POST"])
     async def get(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Get service data
+        """
         return {'hello': "world"}
 
-    @published(path="/post")
+    @published(path="/post", methods=["POST"])
     async def post(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Post service data
+        """
         return {'hello': "world"}
 
-    @published(path="/initexec")
+    @published(path="/initexec", methods=["POST"])
     async def initexec(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Initialize service execution
+        """
         return {'hello': "world"}
 
-    @published(path="/execute")
+    @published(path="/execute", methods=["POST"])
     async def execute(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Execute service
+        """
         return {'hello': "world"}
 
-    @published(path="/print")
+    @published(path="/print", methods=["POST"])
     async def print(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Print service data
+        """
         return {'hello': "world"}
 
-    @published(path="/synchronize")
+    @published(path="/synchronize", methods=["POST"])
     async def sync(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: synchronize service data
+        """
         return {'hello': "world"}
 
-    @published(path="/initlookup")
+    @published(path="/initlookup", methods=["POST"])
     async def initlookup(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Initialize service lookup
+        """
         return {'hello': "world"}
 
-    @published(path="/finalize")
+    @published(path="/finalize", methods=["POST"])
     async def finalize(self, request: Request):
+        """
+        parameters:
+        - in: path
+          name: service_name
+          schema:
+            type: string
+          required: true
+          description: Finalize service
+        """
         return {'hello': "world"}
