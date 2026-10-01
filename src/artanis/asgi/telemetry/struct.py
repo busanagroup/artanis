@@ -1,0 +1,231 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2026 Busana Apparel Group. All rights reserved.
+#
+# This product and it's source code is protected by patents, copyright laws and
+# international copyright treaties, as well as other intellectual property
+# laws and treaties. The product is licensed, not sold.
+#
+# The source code and sample programs in this package or parts hereof
+# as well as the documentation shall not be copied, modified or redistributed
+# without permission, explicit or implied, of the author.
+#
+# This module is part of Artanis Enterprise Platform and is released under
+# the Apache-2.0 License: https://www.apache.org/licenses/LICENSE-2.0
+
+import dataclasses
+import datetime
+import logging
+import typing as t
+
+from artanis.asgi import types
+from artanis.asgi.http import Request as HTTPRequest
+from artanis.asgi.auth import AccessToken, RefreshToken
+from artanis.exceptions import HTTPException
+from artanis._core.cookies import parse_cookie_header
+
+logger = logging.getLogger(__name__)
+
+__all__ = ["Endpoint", "Authentication", "Request", "Response", "Error", "TelemetryData"]
+
+
+@dataclasses.dataclass
+class _Body:
+    """The payload of an exchange, holding as much of it as was kept."""
+
+    content: bytes = b""
+    truncated: bool = False
+
+    def append(self, payload: bytes, max_body: int | None, /) -> None:
+        """Keep as much of a payload as the bound leaves room for.
+
+        Whatever does not fit is dropped and the body is marked truncated, so a consumer can tell a short
+        payload from a clipped one. A bound of ``None`` keeps everything, and a bound of zero keeps nothing.
+
+        :param payload: Payload that has just passed through.
+        :param max_body: Bytes of payload to keep, or ``None`` to keep all of them.
+        """
+        if max_body is None:
+            self.content += payload
+            return
+
+        room = max(max_body - len(self.content), 0)
+        self.content += payload[:room]
+        self.truncated |= len(payload) > room
+
+    def to_dict(self) -> dict[str, t.Any]:
+        """Return the body as a dictionary.
+
+        :return: Body as a dictionary.
+        """
+        return {
+            "content": self.content,
+            "truncated": self.truncated,
+        }
+
+
+@dataclasses.dataclass
+class Endpoint:
+    path: str
+    name: str | None
+    tags: dict[str, t.Any]
+
+    @classmethod
+    async def from_scope(cls, *, scope: types.Scope, receive: types.Receive, send: types.Send) -> "Endpoint":
+        app: types.App = scope["app"]
+        route, _ = app.router.resolve_route(scope)
+
+        return cls(path=str(route.path), name=route.name, tags=route.tags)
+
+    def to_dict(self) -> dict[str, t.Any]:
+        return {
+            "path": self.path,
+            "name": self.name,
+            "tags": self.tags,
+        }
+
+
+@dataclasses.dataclass
+class Authentication:
+    access: AccessToken | None
+    refresh: RefreshToken | None
+
+    @classmethod
+    async def from_scope(cls, *, scope: types.Scope, receive: types.Receive, send: types.Send) -> "Authentication":
+        app: types.App = scope["app"]
+        context = Context(scope=scope, request=HTTPRequest(scope, receive=receive))
+
+        try:
+            access = await app.injector.value(AccessToken, context)
+        except Exception:
+            access = None
+
+        try:
+            refresh = await app.injector.value(RefreshToken, context)
+        except Exception:
+            refresh = None
+
+        return cls(access=access, refresh=refresh)
+
+    def to_dict(self) -> dict[str, t.Any]:
+        return {
+            "access": self.access.to_dict() if self.access else None,
+            "refresh": self.refresh.to_dict() if self.refresh else None,
+        }
+
+
+@dataclasses.dataclass
+class Request:
+    headers: dict[str, t.Any]
+    cookies: dict[str, t.Any]
+    query_parameters: dict[str, t.Any]
+    path_parameters: dict[str, t.Any]
+    body: _Body = dataclasses.field(default_factory=_Body)
+    timestamp: datetime.datetime = dataclasses.field(
+        init=False, default_factory=lambda: datetime.datetime.now(datetime.timezone.utc)
+    )
+
+    @classmethod
+    async def from_scope(cls, *, scope: types.Scope, receive: types.Receive, send: types.Send) -> "Request":
+        app: types.App = scope["app"]
+        context = Context(scope=scope, request=HTTPRequest(scope, receive=receive), route=app.resolve_route(scope)[0])
+
+        headers = dict(await app.injector.value(Headers, context))
+        cookies = dict(await app.injector.value(types.Cookies, context))
+        query = dict(await app.injector.value(QueryParams, context))
+        path = dict(await app.injector.value(types.PathParams, context))
+
+        return cls(headers=headers, cookies=cookies, query_parameters=query, path_parameters=path)
+
+    def to_dict(self) -> dict[str, t.Any]:
+        return {
+            "timestamp": self.timestamp.isoformat(),
+            "headers": self.headers,
+            "cookies": self.cookies,
+            "query_parameters": self.query_parameters,
+            "path_parameters": self.path_parameters,
+            "body": self.body.to_dict(),
+        }
+
+
+@dataclasses.dataclass
+class Response:
+    headers: dict[str, t.Any] | None
+    body: _Body = dataclasses.field(default_factory=_Body)
+    status_code: int | None = None
+    timestamp: datetime.datetime = dataclasses.field(
+        init=False, default_factory=lambda: datetime.datetime.now(datetime.timezone.utc)
+    )
+
+    @property
+    def cookies(self) -> dict[str, t.Any]:
+        """The cookies carried by the headers, which arrive after the response is first recorded."""
+        return (
+            {name: {"value": value} for name, value in parse_cookie_header(self.headers.get("cookie", ""))}
+            if self.headers
+            else {}
+        )
+
+    def to_dict(self) -> dict[str, t.Any]:
+        return {
+            "timestamp": self.timestamp.isoformat(),
+            "headers": self.headers,
+            "cookies": self.cookies,
+            "body": self.body.to_dict(),
+            "status_code": self.status_code,
+        }
+
+
+@dataclasses.dataclass
+class Error:
+    detail: str
+    status_code: int | None = None
+    timestamp: datetime.datetime = dataclasses.field(
+        init=False, default_factory=lambda: datetime.datetime.now(datetime.timezone.utc)
+    )
+
+    @classmethod
+    async def from_exception(cls, *, exception: Exception) -> "Error":
+        if isinstance(exception, HTTPException):
+            return cls(status_code=exception.status_code, detail=str(exception.detail))
+
+        return cls(detail=str(exception))
+
+    def to_dict(self) -> dict[str, t.Any]:
+        return {
+            "timestamp": self.timestamp.isoformat(),
+            "detail": self.detail,
+            "status_code": self.status_code,
+        }
+
+
+@dataclasses.dataclass
+class TelemetryData:
+    type: t.Literal["http", "websocket"]
+    endpoint: Endpoint
+    authentication: Authentication
+    request: Request
+    response: Response | None = None
+    error: Error | None = None
+    extra: dict[t.Any, t.Any] = dataclasses.field(default_factory=dict)
+
+    @classmethod
+    async def from_scope(cls, *, scope: types.Scope, receive: types.Receive, send: types.Send) -> "TelemetryData":
+        return cls(
+            type=scope["type"],
+            endpoint=await Endpoint.from_scope(scope=scope, receive=receive, send=send),
+            authentication=await Authentication.from_scope(scope=scope, receive=receive, send=send),
+            request=await Request.from_scope(scope=scope, receive=receive, send=send),
+        )
+
+    def to_dict(self) -> dict[str, t.Any]:
+        return {
+            "type": self.type,
+            "endpoint": self.endpoint.to_dict(),
+            "authentication": self.authentication.to_dict(),
+            "request": self.request.to_dict(),
+            "response": self.response.to_dict() if self.response else None,
+            "error": self.error.to_dict() if self.error else None,
+            "extra": self.extra,
+        }

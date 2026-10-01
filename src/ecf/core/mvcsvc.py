@@ -27,10 +27,27 @@ class MVCModelBinder:
     def __init__(self, model_class: type | str):
         self.model_class: Entity = entity.get_entity(model_class) if isinstance(model_class, str) else model_class
 
-    async def get(self):
-        # Implement logic to retrieve data from the model_class
-        # For example, you might want to fetch all records or filter based on some criteria
-        return await self.model_class.all()
+    async def get(self, **kwargs):
+        if not kwargs:
+            return self.model_class.get_all()
+
+        try:
+            return await self.model_class.get(**kwargs)
+        except self.model_class.DoesNotExist:
+            return await self.model_class.filter(**kwargs).first()
+
+    async def get_filter(self, **kwargs):
+        return await self.model_class.filter(**kwargs).all()
+
+    async def create(self, **kwargs):
+        return await self.model_class.create(**kwargs)
+
+    async def delete(self, **kwargs):
+        obj = await self.get(**kwargs)
+        if obj:
+            await obj.delete()
+            return True
+        return False
 
 
 class MVCDescriptor(Descriptor):
@@ -39,6 +56,8 @@ class MVCDescriptor(Descriptor):
 
 class MVCBaseService(BaseController):
     __config: Configuration
+    __label: str
+    __binder: MVCModelBinder | None
     descriptor = MVCDescriptor
 
     def __init_subclass__(cls, **kwargs):

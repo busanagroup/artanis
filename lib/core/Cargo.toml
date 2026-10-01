@@ -1,0 +1,54 @@
+[package]
+name = "artanis-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "_core"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["extension-module"]
+extension-module = ["pyo3/extension-module"]
+
+[dependencies]
+pyo3 = { version = "0.29" }
+pyo3-async-runtimes = { version = "0.29", features = ["tokio-runtime"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "fs", "io-util"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+multer = "3"
+rand_core = { version = "0.6", features = ["getrandom"] }
+tempfile = "3"
+bytes = "1"
+futures-util = "0.3"
+form_urlencoded = "1"
+flate2 = "1"
+brotli = "8"
+cookie = "0.18"
+bzip2 = "0.6"
+lzma-rs = "0.3"
+zstd = "0.13"
+tar = "0.4"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+# Python signatures bind every option to a parameter; arity is dictated by the API.
+too_many_arguments = "allow"
+# Casts are intentional for ISO-8601 timedelta integer formatting.
+cast_possible_truncation = "allow"
+# `dt_mod`/`dc_mod`-style local bindings are descriptive enough at one-glance reads.
+similar_names = "allow"
+# PyO3 #[pyclass] enums require a module-public name; module-name redundancy is unavoidable.
+module_name_repetitions = "allow"
+# Function bodies that bridge with the GIL legitimately exceed the default line budget.
+too_many_lines = "allow"
+# Many helpers must remain methods (PyO3 binding requirements).
+missing_const_for_fn = "warn"

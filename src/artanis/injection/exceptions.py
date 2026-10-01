@@ -19,10 +19,13 @@ if t.TYPE_CHECKING:
     from artanis.injection.components import Component
     from artanis.injection.resolver import Parameter
 
-__all__ = ["ComponentError", "ComponentNotFound"]
+__all__ = ["ContextError", "ComponentError", "ComponentNotFound"]
 
 
 class InjectionError(Exception): ...
+
+
+class ContextError(InjectionError): ...
 
 
 class ComponentError(InjectionError): ...
@@ -30,10 +33,10 @@ class ComponentError(InjectionError): ...
 
 class ComponentNotFound(ComponentError):
     def __init__(
-        self,
-        parameter: "Parameter",
-        component: "Component | None" = None,
-        function: t.Callable | None = None,
+            self,
+            parameter: "Parameter",
+            component: "Component | None" = None,
+            function: t.Callable | None = None,
     ):
         self.parameter = parameter
         self.component = component

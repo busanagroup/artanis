@@ -24,6 +24,7 @@ from artanis.abc.service import StartableService
 from artanis.abc.singleton import Singleton
 from artanis.asgi import types, routing, http, websockets
 from artanis.asgi.components import asgi, validation
+from artanis.asgi.context import Context
 from artanis.asgi.events import Events
 from artanis.asgi.middlewares import MiddlewareStack
 from artanis.asgi.pagination import paginator
@@ -311,32 +312,3 @@ class BaseASGIService(StartableService, Singleton, SyncLock, ObjectLoader):
                 cls.get_class_locker().release()
         return cls.VM_DEFAULT
 
-
-class Context(injection.Context):
-    types = {
-        "scope": types.Scope,
-        "receive": types.Receive,
-        "send": types.Send,
-        "exc": Exception,
-        "app": BaseASGIService,
-        "route": routing.BaseRoute,
-        "request": http.Request,
-        "response": http.Response,
-        "websocket": websockets.WebSocket,
-        "websocket_message": types.Message,
-        "websocket_encoding": types.Encoding,
-        "websocket_code": types.Code,
-    }
-
-    hashable = (
-        "scope",
-        "receive",
-        "send",
-        "exc",
-        "app",
-        "route",
-        "response",
-        "websocket_message",
-        "websocket_encoding",
-        "websocket_code",
-    )
